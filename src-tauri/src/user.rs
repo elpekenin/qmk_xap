@@ -16,12 +16,11 @@ use crate::xap::hid::XAPClient;
 
 const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'`').add(b'>').add(b'<').add(b'-');
 
-const BUTTON_0_X:  u16 = 180;
-const BUTTON_0_Y:  u16 = 135;
-const BUTTON_1_X:  u16 = 252;
-const BUTTON_1_Y:  u16 = 135;
+const N_BUTTONS: usize = 2;
+const BUTTONS_X: [u16; N_BUTTONS] = [180, 252];
+const BUTTONS_Y: [u16; N_BUTTONS] = [135, 135];
 const BUTTON_SIZE: u16 = 48;
-const TOLERANCE:   u16 = 60;
+const TOLERANCE: u16 = 60;
 
 const HSV_WHITE: HSVColor = HSVColor{hue: 0, sat:0, val: 255};
 const HSV_BLACK: HSVColor = HSVColor{hue: 0, sat:0, val: 0};
@@ -31,64 +30,72 @@ pub(crate) fn broadcast_callback(broadcast: BroadcastRaw, id: Uuid, state: &Arc<
     dotenv().ok();
 
     let msg: UserBroadcast = broadcast.into_xap_broadcast().unwrap();
-    info!("Received {:?}", msg);
 
-    // Clear UI
-    let _ = state.lock().query(id, draw_button_request(BUTTON_0_X, BUTTON_0_Y, 0, false));
-    let _ = state.lock().query(id, draw_button_request(BUTTON_1_X, BUTTON_1_Y, 1, false));
+    // Clear buttons
+    for i in 0..N_BUTTONS {
+        let _ = state.lock().query(id, draw_button_request(BUTTONS_X[i], BUTTONS_Y[i], i as u8, false));
+    };
 
-    if  BUTTON_0_X-TOLERANCE <= msg.x && msg.x <= BUTTON_0_X+BUTTON_SIZE+TOLERANCE
-        && 
-        BUTTON_0_Y-TOLERANCE <= msg.y && msg.y <= BUTTON_0_Y+BUTTON_SIZE+TOLERANCE {
-        // Mark as pressed
-        let _ = state.lock().query(id, draw_button_request(BUTTON_0_X, BUTTON_0_Y, 0, true));
+    // Currently pressed botton
+    let button = get_button(msg);
 
-        // Query HomeAssistant for current temperature
-        let json = get_hasst_state("weather.forecast_casa");
-        let attributes = json["attributes"].clone();
-
-        // Format it and display on keyboard
-        let _ = state.lock().query(id, clear_text());
-        let text = format!("Temperature (HomeAssistant): {}C", attributes["temperature"].to_string()).replace('"', "");
-        let request = PainterDrawText(
-            PainterText {
-                dev:0,
-                x: 120,
-                y: 240,
-                font:0,
-                text: text.clone().into_bytes()
-            }
+    // Mark it as pressed
+    if button > -1 {
+        let _ = state.lock().query(
+            id,
+            draw_button_request(
+                BUTTONS_X[button as usize],
+                BUTTONS_Y[button as usize],
+                button as u8,
+                true
+            )
         );
-        let _ = state.lock().query(id, request);
-
-        return;
     }
 
-    if  BUTTON_1_X-TOLERANCE <= msg.x && msg.x <= BUTTON_1_X+BUTTON_SIZE+TOLERANCE
-        &&
-        BUTTON_1_Y-TOLERANCE <= msg.y && msg.y <= BUTTON_1_Y+BUTTON_SIZE+TOLERANCE {
-        // Mark as pressed
-        let _ = state.lock().query(id, draw_button_request(BUTTON_1_X, BUTTON_1_Y, 1, true));
+    // Buttons' logic
+    match button { 
+        0 => {
+            // Query HomeAssistant for current temperature
+            let json = get_hasst_state("weather.forecast_casa");
+            let attributes = json["attributes"].clone();
 
-        // Show feedback
-        let _ = state.lock().query(id, clear_text());
-        let request = PainterDrawText(
-            PainterText {
-                dev:0,
-                x: 220,
-                y: 240,
-                font:0,
-                text: "Message sent".to_string().into_bytes()
-            }
-        );
-        let _ = state.lock().query(id, request);
+            // Format it and display on keyboard
+            let _ = state.lock().query(id, clear_text());
+            let text = format!("Temperature (HomeAssistant): {}ºC", attributes["temperature"].to_string()).replace('"', "");
+            let request = PainterDrawText(
+                PainterText {
+                    dev:0,
+                    x: 120,
+                    y: 240,
+                    font:0,
+                    text: text.clone().into_bytes()
+                }
+            );
+            let _ = state.lock().query(id, request);
+        },
 
-        // Send Telegram message
-        send_tg_msg("QMK -> XAP -> TauriClient -> Telegram");
+        1 => {
+            // Show feedback
+            let _ = state.lock().query(id, clear_text());
+            let request = PainterDrawText(
+                PainterText {
+                    dev:0,
+                    x: 220,
+                    y: 240,
+                    font:0,
+                    text: "Message sent".to_string().into_bytes()
+                }
+            );
+            let _ = state.lock().query(id, request);
 
-        return;
+            // Send Telegram message
+            send_tg_msg("QMK -> XAP -> TauriClient -> Telegram");
+        },
+
+        _ => {}
     }
 }
+
 
 fn clear_text() -> PainterDrawRect {
     PainterDrawRect(
@@ -115,6 +122,19 @@ fn draw_button_request(button_x: u16, button_y: u16, img_id: u8, pressed: bool) 
             bg_color: if pressed {HSV_WHITE} else {HSV_BLACK},
         }
     )
+}
+
+fn get_button(msg: UserBroadcast) ->i8 {
+    for i in 0..N_BUTTONS {
+        if  BUTTONS_X[i]-TOLERANCE <= msg.x && msg.x <= BUTTONS_X[i]+BUTTON_SIZE+TOLERANCE
+            &&
+            BUTTONS_Y[i]-TOLERANCE <= msg.y && msg.y <= BUTTONS_Y[i]+BUTTON_SIZE+TOLERANCE {
+                info!("Button {i} was pressed");
+                // Mark as pressed
+                return i as i8;
+        }
+    }
+    -1
 }
 
 fn get_hasst_state(entity_id: impl Into<String>) -> Map<String, Value> {
