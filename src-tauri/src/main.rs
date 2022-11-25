@@ -8,6 +8,7 @@ mod commands;
 mod aggregation;
 mod events;
 mod xap;
+mod user;
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -24,12 +25,11 @@ use tauri::{
 };
 use tauri::{AppHandle, Manager};
 
-
-
-
 use commands::*;
 use events::{FrontendEvent, XAPEvent};
-use xap::{XAPClient, XAPResult};
+use xap::hid::XAPClient;
+use xap::ClientResult;
+use xap_specs::constants::XAPConstants;
 
 fn shutdown_event_loop<R: Runtime>(sender: Sender<XAPEvent>) -> TauriPlugin<R> {
     Builder::new("event loop shutdown")
@@ -91,6 +91,9 @@ fn start_event_loop(
                                 error!("failed to enumerate XAP devices: {err}");
                             }
                         },
+                        Ok(XAPEvent::HandleUserBroadcast{broadcast, id}) => {
+                            user::broadcast_callback(broadcast, id, &state);
+                        }
                         Err(err) => {
                             error!("error receiving event {err}");
                         },
@@ -114,13 +117,16 @@ fn start_event_loop(
     });
 }
 
-fn main() -> XAPResult<()> {
+fn main() -> ClientResult<()> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info"))
         .format_timestamp(None)
         .init();
 
     let (event_channel_tx, event_channel_rx): (Sender<XAPEvent>, Receiver<XAPEvent>) = unbounded();
-    let state = Arc::new(Mutex::new(XAPClient::new(event_channel_tx.clone())?));
+    let state = Arc::new(Mutex::new(XAPClient::new(
+        event_channel_tx.clone(),
+        XAPConstants::new("../xap-specs/specs/constants/keycodes".into())?,
+    )?));
     let event_channel_tx_listen_frontend = event_channel_tx.clone();
 
     tauri::Builder::default()
@@ -132,6 +138,12 @@ fn main() -> XAPResult<()> {
             secure_status_get,
             jump_to_bootloader,
             reset_eeprom,
+            painter_circle,
+            painter_ellipse,
+            painter_line,
+            painter_pixel,
+            painter_rect,
+            painter_text,
             keycode_get,
             keycode_set,
             keymap_get,

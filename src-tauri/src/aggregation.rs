@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 use uuid::Uuid;
-
-use crate::xap::{
-    keycode::XAPKeyCode, KeyPositionConfig, QMKBoardIdentifiers, XAPKeyCodeConfig, XAPSecureStatus,
+use xap_specs::{
+    constants::keycode::{XAPKeyCode, XAPKeyCodeConfig},
+    protocol::{qmk::QMKBoardIdentifiers, xap::XAPSecureStatus},
 };
 
 #[derive(Clone, Serialize, TS)]
@@ -22,32 +22,32 @@ pub struct XAPDevice {
 pub struct XAPDeviceInfo {
     pub xap: XAPInfo,
     pub qmk: QMKInfo,
-    pub features: FeaturesInfo,
+    // pub features: FeaturesInfo,
     pub keymap: Option<KeymapInfo>,
     pub remap: Option<RemapInfo>,
     pub lighting: Option<LightingInfo>,
 }
 
-#[derive(Debug, Deserialize, Serialize, TS, Clone)]
-#[ts(export)]
-pub struct FeaturesInfo {
-    pub audio: bool,
-    pub backlight: bool,
-    pub bootmagic: bool,
-    pub console: bool,
-    pub deferred_exec: bool,
-    pub encoder: bool,
-    pub extrakey: bool,
-    pub mousekey: bool,
-    pub nkro: bool,
-    pub quantum_painter: bool,
-    pub quantum_painter_animations: bool,
-    pub rgb_matrix: bool,
-    pub unicode: bool,
-    pub usbpd: bool,
-    pub wpm:  bool,
-    pub xap: bool,
-}
+// #[derive(Debug, Deserialize, Serialize, TS, Clone)]
+// #[ts(export)]
+// pub struct FeaturesInfo {
+//     pub audio: bool,
+//     pub backlight: bool,
+//     pub bootmagic: bool,
+//     pub console: bool,
+//     pub deferred_exec: bool,
+//     pub encoder: bool,
+//     pub extrakey: bool,
+//     pub mousekey: bool,
+//     pub nkro: bool,
+//     pub quantum_painter: bool,
+//     pub quantum_painter_animations: bool,
+//     pub rgb_matrix: bool,
+//     pub unicode: bool,
+//     pub usbpd: bool,
+//     pub wpm:  bool,
+//     pub xap: bool,
+// }
 
 #[derive(Debug, Serialize, TS, Clone)]
 #[ts(export)]
@@ -140,8 +140,8 @@ pub struct XAPConstants {
     keycodes: Vec<XAPKeyCodeCategory>,
 }
 
-impl From<crate::xap::XAPConstants> for XAPConstants {
-    fn from(constants: crate::xap::XAPConstants) -> Self {
+impl From<xap_specs::constants::XAPConstants> for XAPConstants {
+    fn from(constants: xap_specs::constants::XAPConstants) -> Self {
         let keycodes =
             constants
                 .keycodes

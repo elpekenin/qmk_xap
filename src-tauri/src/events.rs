@@ -1,13 +1,14 @@
 use serde::Serialize;
 use ts_rs::TS;
 use uuid::Uuid;
+use xap_specs::protocol::{xap::XAPSecureStatus, BroadcastRaw};
 
 use crate::aggregation::XAPDevice as XAPDeviceDTO;
-use crate::xap::XAPSecureStatus;
 
 #[derive(Clone, Serialize, TS)]
 #[serde(tag = "kind", content = "data")]
 #[ts(export)]
+#[ts(export_to = "../bindings/")]
 pub(crate) enum FrontendEvent {
     NewDevice {
         device: XAPDeviceDTO,
@@ -26,6 +27,10 @@ pub(crate) enum FrontendEvent {
 }
 
 pub(crate) enum XAPEvent {
+    HandleUserBroadcast {
+        broadcast: BroadcastRaw,
+        id: Uuid,
+    },
     LogReceived {
         id: Uuid,
         log: String,
@@ -34,6 +39,7 @@ pub(crate) enum XAPEvent {
         id: Uuid,
         secure_status: XAPSecureStatus,
     },
+
     NewDevice(Uuid),
     RemovedDevice(Uuid),
     AnnounceAllDevices,
