@@ -151,7 +151,7 @@
 
                 case "Rect":
                     // Canvas
-                    if (filled.value) {
+                    if (filled) {
                         ctx.fillRect(left, top, right-left, bottom-top);
                     } else {
                         ctx.beginPath();

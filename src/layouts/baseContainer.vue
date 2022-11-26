@@ -50,7 +50,7 @@
                         exact
                     />
                     <q-route-tab
-                        v-if="device?.info?.features?.quantum_painter !== false"
+                        v-if="device?.info?.features?.quantum_painter === true"
                         label="Painter"
                         to="/painter"
                         exact
