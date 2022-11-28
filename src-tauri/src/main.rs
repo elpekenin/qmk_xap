@@ -21,9 +21,9 @@ use parking_lot::Mutex;
 
 use tauri::{
     plugin::{Builder, TauriPlugin},
-    RunEvent, Runtime,
+    CustomMenuItem, RunEvent, Runtime, SystemTray, SystemTrayMenu, SystemTrayMenuItem,
 };
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, SystemTrayEvent};
 
 use commands::*;
 use events::{FrontendEvent, XAPEvent};
@@ -71,6 +71,7 @@ fn start_event_loop(
                                 info!("detected new device - notifying frontend!");
 
                                 app.emit_all("new-device", FrontendEvent::NewDevice{ device: device.as_dto() }).unwrap();
+                                user::on_device_connection(device);
                             }
                         },
                         Ok(XAPEvent::RemovedDevice(id)) => {
@@ -129,8 +130,52 @@ fn main() -> ClientResult<()> {
     )?));
     let event_channel_tx_listen_frontend = event_channel_tx.clone();
 
+    // System tray
+    let tray_menu = SystemTrayMenu::new()
+        .add_item(CustomMenuItem::new("show".to_string(), "Show"))
+        .add_item(CustomMenuItem::new("hide".to_string(), "Hide"))
+        .add_native_item(SystemTrayMenuItem::Separator)
+        .add_item(CustomMenuItem::new("quit".to_string(), "Quit"));
+
+    let system_tray = SystemTray::new().with_menu(tray_menu);
+
     tauri::Builder::default()
         .plugin(shutdown_event_loop(event_channel_tx))
+        // Prevent window from closing
+        .on_window_event(|event| match event.event() {
+            tauri::WindowEvent::CloseRequested { api, .. } => {
+                event.window().hide().unwrap();
+                api.prevent_close()
+            },
+            _ => {}
+        })
+        // Add system tray
+        .system_tray(system_tray)
+        // And its logic
+        .on_system_tray_event(|app, event| match event {
+            SystemTrayEvent::MenuItemClick { id, .. } => {
+                    match id.as_str() {
+                    "hide" => {
+                        let window = app.get_window("main").unwrap();
+                        window.hide().unwrap();
+                    },
+
+                    "quit" => {
+                        // user::on_close(state.lock().get_devices());
+                        std::process::exit(0);
+                    },
+
+                    "show" => {
+                        let window = app.get_window("main").unwrap();
+                        window.show().unwrap();
+                    },
+
+                    _ => {}
+                }
+            },
+
+            _ => {}
+        })
         .invoke_handler(tauri::generate_handler![
             xap_constants_get,
             secure_lock,
@@ -171,6 +216,8 @@ fn main() -> ClientResult<()> {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+
+    user::post_init();
 
     Ok(())
 }

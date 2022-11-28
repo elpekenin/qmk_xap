@@ -50,6 +50,10 @@
     "security": {
       "csp": null
     },
+    "systemTray": {
+      "iconPath": "../src/assets/qmk.png",
+      "iconAsTemplate": true
+    },
     "updater": {
       "active": false
     },

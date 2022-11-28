@@ -16,7 +16,7 @@ use xap_specs::protocol::{
     BroadcastRaw, UserBroadcast
 };
 
-use crate::xap::hid::XAPClient;
+use crate::{xap::hid::{XAPClient,XAPDevice}};
 
 // HTTP escape reserved characters
 const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'`').add(b'>').add(b'<').add(b'-');
@@ -78,6 +78,80 @@ const SLIDER2IMG: [SliderMap; N_SLIDERS] = [
 const TEXT_START: u16 = 300;
 const TEXT_END: u16 = SCREEN_HEIGHT;
 
+// Public functions
+pub(crate)fn post_init() {
+    match std::process::Command::new("sh")
+            .arg("-c")
+            .arg("sudo systemctl start docker && cd $HOME/docker  && docker compose up -d")
+            .output()
+    {
+        Ok(_) => info!("pre_init went correctly"),
+        Err(out) => error!("pre_init: {out}")
+    }
+}
+
+
+pub(crate) fn on_device_connection(device: &XAPDevice) {
+    std::thread::sleep(std::time::Duration::from_millis(500));
+
+    // Show connection
+    let _ = device.query(PainterDrawTextRecolor(
+        PainterTextRecolor {
+            dev: SCREEN_ID,
+            x: 15,
+            y: 15,
+            font: 0,
+            fg_color: FG_COLOR,
+            bg_color: BG_COLOR,
+            text: "Connected to Tauri".into(),
+        }
+    ));
+
+    // Print buttons
+    for id in 0..N_BUTTONS {
+        let _ = device.query(PainterDrawImageRecolor (
+            PainterImageRecolor {
+                dev: SCREEN_ID,
+                x: BUTTONS_X[id],
+                y: BUTTONS_Y[id],
+                img: BUTTON2IMG[id],
+                fg_color: FG_COLOR,
+                bg_color: BG_COLOR,
+            }
+        ));
+    }
+}
+
+
+pub(crate) fn on_close(devices: Vec<&XAPDevice>) {
+    for device in devices {
+        // Clear screen
+        let _ = device.query(PainterDrawRect (
+            PainterRect {
+                dev: SCREEN_ID,
+                left: 0,
+                top: 0,
+                right: SCREEN_WIDTH,
+                bottom: SCREEN_HEIGHT,
+                color: BG_COLOR,
+                filled: 1
+            }
+        ));
+
+        // Show text
+        let _ = device.query(PainterDrawTextRecolor(
+            PainterTextRecolor {
+                dev: SCREEN_ID,
+                x: 15,
+                y: 15,
+                font: 0,
+                fg_color: FG_COLOR,
+                bg_color: BG_COLOR,
+                text: "Tauri app was closed".into(),
+            }
+        ));
+    };
+}
 
 
 pub(crate) fn broadcast_callback(broadcast: BroadcastRaw, id: Uuid, state: &Arc<Mutex<XAPClient>>) {
@@ -237,13 +311,15 @@ fn draw_slider(id: impl Into<usize>, value: u16) -> PainterDrawImage {
     )
 }
 
-fn draw_text(text: impl Into<Vec<u8>>) -> PainterDrawText {
-    PainterDrawText (
-        PainterText {
+fn draw_text(text: impl Into<Vec<u8>>) -> PainterDrawTextRecolor {
+    PainterDrawTextRecolor (
+        PainterTextRecolor {
             dev: SCREEN_ID,
             x: 120,
             y: TEXT_START,
             font:0,
+            fg_color: FG_COLOR,
+            bg_color: BG_COLOR,
             text: text.into()
         }
     )

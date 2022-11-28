@@ -284,3 +284,29 @@ impl XAPRequest for PainterDrawText {
         &[0x2, 0x2, 0xB]
     }
 }
+
+// ==============================
+// 0x2 0x2 0xC
+#[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
+#[ts(export)]
+#[ts(export_to = "../bindings/")]
+pub struct PainterTextRecolor {
+    pub dev: u8,
+    pub x: u16,
+    pub y: u16,
+    pub font: u8,
+    pub fg_color: HSVColor,
+    pub bg_color: HSVColor,
+    pub text: Vec<u8>,
+}
+
+#[derive(BinWrite, Debug)]
+pub struct PainterDrawTextRecolor(pub PainterTextRecolor);
+
+impl XAPRequest for PainterDrawTextRecolor {
+    type Response = ();
+
+    fn id() -> &'static [u8] {
+        &[0x2, 0x2, 0xC]
+    }
+}
