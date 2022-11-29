@@ -123,6 +123,8 @@ fn main() -> ClientResult<()> {
         .format_timestamp(None)
         .init();
 
+    user::on_init();
+
     let (event_channel_tx, event_channel_rx): (Sender<XAPEvent>, Receiver<XAPEvent>) = unbounded();
     let state = Arc::new(Mutex::new(XAPClient::new(
         event_channel_tx.clone(),
@@ -147,34 +149,26 @@ fn main() -> ClientResult<()> {
                 event.window().hide().unwrap();
                 api.prevent_close()
             },
+
             _ => {}
         })
         // Add system tray
         .system_tray(system_tray)
         // And its logic
-        .on_system_tray_event(|app, event| match event {
-            SystemTrayEvent::MenuItemClick { id, .. } => {
+        .on_system_tray_event(|app, event|
+            match event {
+                SystemTrayEvent::MenuItemClick { id, .. } => {
                     match id.as_str() {
-                    "hide" => {
-                        let window = app.get_window("main").unwrap();
-                        window.hide().unwrap();
-                    },
+                        "hide" => app.get_window("main").unwrap().hide().unwrap(),
+                        "quit" => {
+                            std::process::exit(0);
+                        },
+                        "show" => app.get_window("main").unwrap().show().unwrap(),
+                        _ => {}
+                    }
+                },
 
-                    "quit" => {
-                        // user::on_close(state.lock().get_devices());
-                        std::process::exit(0);
-                    },
-
-                    "show" => {
-                        let window = app.get_window("main").unwrap();
-                        window.show().unwrap();
-                    },
-
-                    _ => {}
-                }
-            },
-
-            _ => {}
+                _ => {}
         })
         .invoke_handler(tauri::generate_handler![
             xap_constants_get,
@@ -217,7 +211,6 @@ fn main() -> ClientResult<()> {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 
-    user::post_init();
-
+        // user::on_close();
     Ok(())
 }

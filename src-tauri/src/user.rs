@@ -79,14 +79,14 @@ const TEXT_START: u16 = 300;
 const TEXT_END: u16 = SCREEN_HEIGHT;
 
 // Public functions
-pub(crate)fn post_init() {
+pub(crate)fn on_init() {
     match std::process::Command::new("sh")
             .arg("-c")
             .arg("sudo systemctl start docker && cd $HOME/docker  && docker compose up -d")
             .output()
     {
-        Ok(_) => info!("pre_init went correctly"),
-        Err(out) => error!("pre_init: {out}")
+        Ok(_) => error!("on_init went correctly"),
+        Err(out) => error!("on_init failed due to: {out}")
     }
 }
 
@@ -123,8 +123,8 @@ pub(crate) fn on_device_connection(device: &XAPDevice) {
 }
 
 
-pub(crate) fn on_close(devices: Vec<&XAPDevice>) {
-    for device in devices {
+pub(crate) fn on_close(state: Arc<Mutex<XAPClient>>) {
+    for device in state.clone().lock().get_devices() {
         // Clear screen
         let _ = device.query(PainterDrawRect (
             PainterRect {
