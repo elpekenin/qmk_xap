@@ -92,7 +92,8 @@ pub(crate)fn on_init() {
 
 
 pub(crate) fn on_device_connection(device: &XAPDevice) {
-    std::thread::sleep(std::time::Duration::from_millis(500));
+    // Sleep is needed, so that screen is init'ed
+    std::thread::sleep(std::time::Duration::from_millis(2000));
 
     // Show connection
     let _ = device.query(PainterDrawTextRecolor(

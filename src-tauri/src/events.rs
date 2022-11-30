@@ -27,7 +27,7 @@ pub(crate) enum FrontendEvent {
 }
 
 pub(crate) enum XAPEvent {
-    HandleUserBroadcast {
+    ReceivedUserBroadcast {
         broadcast: BroadcastRaw,
         id: Uuid,
     },

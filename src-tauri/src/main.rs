@@ -56,6 +56,7 @@ fn start_event_loop(
                     match msg {
                         Ok(XAPEvent::Exit) => {
                             info!("received shutdown signal, exiting!");
+                            user::on_close(state);
                             break 'event_loop;
                         },
                         Ok(XAPEvent::LogReceived{id, log}) => {
@@ -92,9 +93,9 @@ fn start_event_loop(
                                 error!("failed to enumerate XAP devices: {err}");
                             }
                         },
-                        Ok(XAPEvent::HandleUserBroadcast{broadcast, id}) => {
+                        Ok(XAPEvent::ReceivedUserBroadcast{broadcast, id}) => {
                             user::broadcast_callback(broadcast, id, &state);
-                        }
+                        },
                         Err(err) => {
                             error!("error receiving event {err}");
                         },
@@ -130,6 +131,7 @@ fn main() -> ClientResult<()> {
         event_channel_tx.clone(),
         XAPConstants::new("../xap-specs/specs/constants/keycodes".into())?,
     )?));
+    let _state = state.clone();
     let event_channel_tx_listen_frontend = event_channel_tx.clone();
 
     // System tray
@@ -155,21 +157,27 @@ fn main() -> ClientResult<()> {
         // Add system tray
         .system_tray(system_tray)
         // And its logic
-        .on_system_tray_event(|app, event|
+        .on_system_tray_event(move |app, event|
             match event {
                 SystemTrayEvent::MenuItemClick { id, .. } => {
                     match id.as_str() {
-                        "hide" => app.get_window("main").unwrap().hide().unwrap(),
+                        "hide" => {
+                            app.get_window("main").unwrap().hide().unwrap();
+                        }
                         "quit" => {
+                            user::on_close(_state.clone());
                             std::process::exit(0);
                         },
-                        "show" => app.get_window("main").unwrap().show().unwrap(),
+                        "show" => {
+                            app.get_window("main").unwrap().show().unwrap();
+                        }
                         _ => {}
                     }
                 },
 
                 _ => {}
-        })
+            }
+        )
         .invoke_handler(tauri::generate_handler![
             xap_constants_get,
             secure_lock,
@@ -211,6 +219,5 @@ fn main() -> ClientResult<()> {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 
-        // user::on_close();
     Ok(())
 }
