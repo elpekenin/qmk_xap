@@ -127,11 +127,10 @@ fn main() -> ClientResult<()> {
     user::on_init();
 
     let (event_channel_tx, event_channel_rx): (Sender<XAPEvent>, Receiver<XAPEvent>) = unbounded();
-    let state = Arc::new(Mutex::new(XAPClient::new(
-        event_channel_tx.clone(),
-        XAPConstants::new("../xap-specs/specs/constants/keycodes".into())?,
-    )?));
+
+    let state = Arc::new(Mutex::new(XAPClient::new(event_channel_tx.clone())?));
     let _state = state.clone();
+
     let event_channel_tx_listen_frontend = event_channel_tx.clone();
 
     // System tray
@@ -207,6 +206,8 @@ fn main() -> ClientResult<()> {
             rgbmatrix_config_save,
         ])
         .setup(move |app| {
+            let resource_path = app.path_resolver().resolve_resource("../xap-specs/specs/constants/keycodes").expect("failed to resolve resource");
+            state.lock().set_xap_constants(XAPConstants::new(resource_path.into())?);
             app.manage(state.clone());
             app.listen_global("frontend-loaded", move |_| {
                 event_channel_tx_listen_frontend

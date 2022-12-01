@@ -50,8 +50,15 @@
         y: number,
     }
 
-    let ctx;
-    let rect;
+    type Rect = {
+        left: number,
+        top: number,
+        right: number,
+        bottom: number,
+    }
+
+    let ctx: CanvasRenderingContext2D;
+    let rect: Rect;
     let start: Coord;
     let drawing = false;
     function fromEvent(e: MouseEvent): Coord {
@@ -63,13 +70,13 @@
     }
 
     onMounted(async () => {
-        const canvas = document.getElementById('painter-canvas');
+        const canvas = document.getElementById('painter-canvas') as HTMLCanvasElement;
         canvas.style.width = '480px';
         canvas.style.height = '320px';
         canvas.width = 480 * window.devicePixelRatio;
         canvas.height = 320 * window.devicePixelRatio;
 
-        ctx = canvas.getContext('2d');
+        ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
         rect = canvas.getBoundingClientRect();
 
         setCanvasColor();
@@ -84,8 +91,14 @@
                 return;
             }
 
+            // Canvas
             const current = fromEvent(e);
             ctx.fillRect(current.x, current.y, 1, 1);
+
+            // QP over XAP
+            if (device?.value == null) {
+                return;
+            }
 
             drawPixel(
                 device.value.id,
@@ -136,6 +149,10 @@
                     ctx.stroke();
 
                     // QP over XAP
+                    if (device?.value == null) {
+                        return;
+                    }
+
                     drawLine(
                         device.value.id,
                         {
@@ -162,7 +179,12 @@
                         ctx.lineTo(left, top);
                         ctx.stroke();
                     }
+
                     // QP over XAP
+                    if (device?.value == null) {
+                        return;
+                    }
+
                     drawRect(
                         device.value.id,
                         {
@@ -188,6 +210,10 @@
                     }
 
                     // QP over XAP
+                    if (device?.value == null) {
+                        return;
+                    }
+                    
                     drawCircle(
                         device.value.id,
                         {
@@ -214,6 +240,10 @@
                     }
 
                     // QP over XAP
+                    if (device?.value == null) {
+                        return;
+                    }
+                    
                     drawEllipse(
                         device.value.id,
                         {
@@ -236,6 +266,10 @@
         ctx.fillStyle = "hsl(0, 0%, 100%)";
         ctx.clearRect(0, 0, rect.right-rect.left, rect.bottom-rect.top);
         setCanvasColor();
+        
+        if (device?.value == null) {
+                return;
+        }
         await drawClear(device.value.id);
     }
 </script>

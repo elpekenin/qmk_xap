@@ -10,6 +10,7 @@ use xap_specs::{
 
 #[derive(Clone, Serialize, TS)]
 #[ts(export)]
+#[ts(export_to = "../bindings/")]
 pub struct XAPDevice {
     pub id: Uuid,
     pub info: XAPDeviceInfo,
@@ -19,44 +20,48 @@ pub struct XAPDevice {
 
 #[derive(Debug, Serialize, TS, Clone)]
 #[ts(export)]
+#[ts(export_to = "../bindings/")]
 pub struct XAPDeviceInfo {
     pub xap: XAPInfo,
     pub qmk: QMKInfo,
-    // pub features: FeaturesInfo,
+    pub features: FeaturesInfo,
     pub keymap: Option<KeymapInfo>,
     pub remap: Option<RemapInfo>,
     pub lighting: Option<LightingInfo>,
 }
 
-// #[derive(Debug, Deserialize, Serialize, TS, Clone)]
-// #[ts(export)]
-// pub struct FeaturesInfo {
-//     pub audio: bool,
-//     pub backlight: bool,
-//     pub bootmagic: bool,
-//     pub console: bool,
-//     pub deferred_exec: bool,
-//     pub encoder: bool,
-//     pub extrakey: bool,
-//     pub mousekey: bool,
-//     pub nkro: bool,
-//     pub quantum_painter: bool,
-//     pub quantum_painter_animations: bool,
-//     pub rgb_matrix: bool,
-//     pub unicode: bool,
-//     pub usbpd: bool,
-//     pub wpm:  bool,
-//     pub xap: bool,
-// }
+#[derive(Debug, Deserialize, Serialize, TS, Clone)]
+#[ts(export)]
+#[ts(export_to = "../bindings/")]
+pub struct FeaturesInfo {
+    pub audio: bool,
+    pub backlight: bool,
+    pub bootmagic: bool,
+    pub console: bool,
+    pub deferred_exec: bool,
+    pub encoder: bool,
+    pub extrakey: bool,
+    pub mousekey: bool,
+    pub nkro: bool,
+    pub quantum_painter: bool,
+    // pub quantum_painter_animations: bool,
+    pub rgb_matrix: bool,
+    pub unicode: bool,
+    pub usbpd: bool,
+    pub wpm:  bool,
+    pub xap: bool,
+}
 
 #[derive(Debug, Serialize, TS, Clone)]
 #[ts(export)]
+#[ts(export_to = "../bindings/")]
 pub struct XAPInfo {
     pub version: String,
 }
 
 #[derive(Debug, Serialize, TS, Clone)]
 #[ts(export)]
+#[ts(export_to = "../bindings/")]
 pub struct QMKInfo {
     pub version: String,
     pub board_ids: QMKBoardIdentifiers,
@@ -70,6 +75,7 @@ pub struct QMKInfo {
 
 #[derive(Deserialize, Debug, Serialize, TS, Clone)]
 #[ts(export)]
+#[ts(export_to = "../bindings/")]
 pub struct Matrix {
     pub cols: u8,
     pub rows: u8,
@@ -77,6 +83,7 @@ pub struct Matrix {
 
 #[derive(Debug, Serialize, TS, Clone)]
 #[ts(export)]
+#[ts(export_to = "../bindings/")]
 pub struct KeymapInfo {
     pub matrix: Matrix,
     pub layer_count: Option<u8>,
@@ -86,6 +93,7 @@ pub struct KeymapInfo {
 
 #[derive(Debug, Serialize, TS, Clone)]
 #[ts(export)]
+#[ts(export_to = "../bindings/")]
 pub struct RemapInfo {
     pub layer_count: Option<u8>,
     pub set_keycode_enabled: bool,
@@ -94,6 +102,7 @@ pub struct RemapInfo {
 
 #[derive(Debug, Serialize, TS, Clone)]
 #[ts(export)]
+#[ts(export_to = "../bindings/")]
 pub struct LightingInfo {
     pub backlight: Option<BacklightInfo>,
     pub rgblight: Option<RGBLightInfo>,
@@ -102,6 +111,7 @@ pub struct LightingInfo {
 
 #[derive(Debug, Serialize, TS, Clone)]
 #[ts(export)]
+#[ts(export_to = "../bindings/")]
 pub struct BacklightInfo {
     pub effects: Option<Vec<u8>>,
     pub get_config_enabled: bool,
@@ -111,6 +121,7 @@ pub struct BacklightInfo {
 
 #[derive(Debug, Serialize, TS, Clone)]
 #[ts(export)]
+#[ts(export_to = "../bindings/")]
 pub struct RGBLightInfo {
     pub effects: Option<Vec<u8>>,
     pub get_config_enabled: bool,
@@ -120,6 +131,7 @@ pub struct RGBLightInfo {
 
 #[derive(Debug, Serialize, TS, Clone)]
 #[ts(export)]
+#[ts(export_to = "../bindings/")]
 pub struct RGBMatrixInfo {
     pub effects: Option<Vec<u8>>,
     pub get_config_enabled: bool,
@@ -129,6 +141,7 @@ pub struct RGBMatrixInfo {
 
 #[derive(Debug, Serialize, TS, Clone)]
 #[ts(export)]
+#[ts(export_to = "../bindings/")]
 pub struct XAPKeyCodeCategory {
     name: String,
     codes: Vec<XAPKeyCode>,
@@ -136,6 +149,7 @@ pub struct XAPKeyCodeCategory {
 
 #[derive(Debug, Serialize, TS, Clone)]
 #[ts(export)]
+#[ts(export_to = "../bindings/")]
 pub struct XAPConstants {
     keycodes: Vec<XAPKeyCodeCategory>,
 }

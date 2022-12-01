@@ -31,12 +31,12 @@ impl Debug for XAPClient {
 }
 
 impl XAPClient {
-    pub fn new(event_channel: Sender<XAPEvent>, xap_constants: XAPConstants) -> ClientResult<Self> {
+    pub fn new(event_channel: Sender<XAPEvent>) -> ClientResult<Self> {
         Ok(Self {
             devices: HashMap::new(),
             hid: HidApi::new_without_enumerate()?,
             event_channel,
-            constants: Arc::new(xap_constants),
+            constants: Arc::new(XAPConstants {keycodes: HashMap::new()}),
         })
     }
 
@@ -63,6 +63,10 @@ impl XAPClient {
 
     pub fn xap_constants(&self) -> XAPConstants {
         self.constants.as_ref().clone()
+    }
+
+    pub fn set_xap_constants(&mut self, xap_constants: XAPConstants) {
+        self.constants = Arc::new(xap_constants);
     }
 
     pub fn enumerate_xap_devices(&mut self) -> ClientResult<()> {
