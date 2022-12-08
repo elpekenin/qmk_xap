@@ -103,7 +103,7 @@
             drawPixel(
                 device.value.id,
                 {
-                    dev: 0,
+                    dev: 2,
                     x: current.x,
                     y: current.y,
                     color: _color.value
@@ -156,7 +156,7 @@
                     drawLine(
                         device.value.id,
                         {
-                            dev: 0,
+                            dev: 2,
                             x0,
                             y0,
                             x1,
@@ -188,7 +188,7 @@
                     drawRect(
                         device.value.id,
                         {
-                            dev: 0,
+                            dev: 2,
                             left,
                             top,
                             right,
@@ -217,7 +217,7 @@
                     drawCircle(
                         device.value.id,
                         {
-                            dev: 0,
+                            dev: 2,
                             x,
                             y,
                             radius,
@@ -247,7 +247,7 @@
                     drawEllipse(
                         device.value.id,
                         {
-                            dev: 0,
+                            dev: 2,
                             x,
                             y,
                             sizex,

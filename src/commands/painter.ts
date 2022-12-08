@@ -7,7 +7,7 @@ import { PainterEllipse } from '@bindings/PainterEllipse';
 
 export async function drawClear(id: string) {
     const rect: PainterRect = {
-        dev: 0,
+        dev: 2,
         left: 0,
         top: 0,
         right: 480,

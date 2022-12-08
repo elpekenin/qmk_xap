@@ -59,6 +59,15 @@ struct Screen {
     pub sliders: Vec<Slider>,
 }
 static SCREENS: Lazy<Vec<Screen>> = Lazy::new(|| vec![
+    // ILI9163
+    Screen {
+        width: 129,
+        height: 128,
+        id: 0,
+        buttons: vec![],
+        sliders: vec![],
+    },
+
     // ILI9341
     Screen {
         width: 240,
@@ -71,7 +80,19 @@ static SCREENS: Lazy<Vec<Screen>> = Lazy::new(|| vec![
                 img: 0,
             }
         ],
-        sliders: vec![],
+        sliders: vec![
+            // Slider {
+            //     direction: SliderDirection::Horizontal,
+            //     start: 270,
+            //     size: 50,
+            //     x: 50,
+            //     y: 120,
+            //     img_map: HashMap::from([
+            //         ("0", 0),
+            //         ("1", 1),
+            //     ]),
+            // }
+        ],
     },
 
     // ILI9486
@@ -156,7 +177,7 @@ pub(crate) fn on_device_connection(device: &XAPDevice) {
                 font: 0,
                 fg_color: FG_COLOR,
                 bg_color: BG_COLOR,
-                text: "Connected to Tauri".into(),
+                text: "Tauri ON".into(),
             }
         ));
 
@@ -202,7 +223,7 @@ pub(crate) fn on_close(state: Arc<Mutex<XAPClient>>) {
                     font: 0,
                     fg_color: FG_COLOR,
                     bg_color: BG_COLOR,
-                    text: "Tauri app was closed".into(),
+                    text: "Tauri OFF".into(),
                 }
             ));
         }
@@ -217,7 +238,7 @@ pub(crate) fn broadcast_callback(broadcast: BroadcastRaw, id: Uuid, state: &Arc<
     // Parse raw data
     let msg: UserBroadcast = broadcast.into_xap_broadcast().unwrap();
 
-    info!("Received {msg:?}");
+    // info!("Received {msg:?}");
 
     // Clear any leftover graphics
     clear_ui(id, state);
@@ -246,68 +267,86 @@ fn handle_button(msg: UserBroadcast, id: Uuid, state: &Arc<Mutex<XAPClient>>, bu
     // Mark as pressed
     let _ = state.lock().query(id, draw_button(screen.clone(), button_id, true));
 
+    let screen = get_screen_from_id(msg.dev);
+    if screen.is_none() {
+        return;
+    }
+    let screen = screen.unwrap();
+
     // Run its logic
-    match get_screen_from_id(msg.dev) {
-        None => {
-            return;
+    match screen.id {
+        1 => {
+            match button_id {
+                0 => {
+                    // Query HomeAssistant for current temperature
+                    let json = get_hasst_state("weather.forecast_casa");
+                    let attributes = json["attributes"].clone();
+
+                    // Format it and display on keyboard
+                    let _ = state.lock().query(id, clear_text(screen.clone()));
+                    let text = format!("Temperature: {} C", attributes["temperature"].to_string()).replace('"', "");
+                    let _ = state.lock().query(id, draw_text(screen.clone(), text));
+                },
+                
+                v => error!("No logic for button {v}")
+            }
         },
 
-        Some(screen) => {
-            match screen.id {
-                1 => {
-                    match button_id {
-                        0 => {
-                            // Query HomeAssistant for current temperature
-                            let json = get_hasst_state("weather.forecast_casa");
-                            let attributes = json["attributes"].clone();
-
-                            // Format it and display on keyboard
-                            let _ = state.lock().query(id, clear_text(screen.clone()));
-                            let text = format!("Temperature (HomeAssistant): {}ºC", attributes["temperature"].to_string()).replace('"', "");
-                            let _ = state.lock().query(id, draw_text(screen.clone(), text));
-                        },
-                        
-                        v => error!("No logic for button {v}")
-                    }
+        2 => {
+            match button_id {
+                0 => {
+                    let _ = state.lock().query(id, clear_text(screen.clone()));
+                    let _ = state.lock().query(id, draw_text(screen.clone(), get_pokeapi(msg.x+msg.y)));
                 },
+                
+                // 2 => {
+                //     // Show feedback
+                //     let _ = state.lock().query(id, clear_text(screen.clone()));
+                //     let _ = state.lock().query(id, draw_text(screen.clone(), "Message sent"));
 
-                2 => {
-                    match button_id {
-                        0 => {
-                            let _ = state.lock().query(id, clear_text(screen.clone()));
-                            let _ = state.lock().query(id, draw_text(screen.clone(), get_pokeapi(msg.x+msg.y)));
-                        },
-                        
-                        // 2 => {
-                        //     // Show feedback
-                        //     let _ = state.lock().query(id, clear_text(screen.clone()));
-                        //     let _ = state.lock().query(id, draw_text(screen.clone(), "Message sent"));
+                //     // Send Telegram message
+                //     send_tg_msg("QMK -> XAP -> TauriClient -> Telegram");
+                // },
 
-                        //     // Send Telegram message
-                        //     send_tg_msg("QMK -> XAP -> TauriClient -> Telegram");
-                        // },
-
-                        v => error!("No logic for button {v}")
-                    }
-                },
-
-                v => error!("Invalid screen id: {v}")
+                v => error!("No logic for button {v}")
             }
-        }
+        },
+
+        id => error!("Invalid screen id: {id}")
     }
 
     clear_ui(id, state);
 }
 
 fn handle_slider(msg: UserBroadcast, id: Uuid, state: &Arc<Mutex<XAPClient>>, slider_id: u8) {
-    match slider_id {
-        0 => {
-            let intensity = 5 - (msg.y * 6 / 321) as u16;
-            let _ = state.lock().query(id, draw_slider(get_screen_from_id(msg.dev).unwrap().clone(), slider_id, intensity));
-            set_light_intensity(intensity);
+    let screen = get_screen_from_id(msg.dev);
+    if screen.is_none() {
+        return;
+    }
+    let screen = screen.unwrap();
+
+    match screen.id { 
+        1 => match slider_id {
+            0 => {
+                let intensity = (msg.x * 2 / 241) as u16;
+                let _ = state.lock().query(id, draw_slider(screen.clone(), slider_id, intensity));
+                set_light_intensity(intensity);
+            },
+
+            v => error!("No logic for slider {v}")
         },
 
-        v => error!("No logic for slider {v}")
+        2 => match slider_id {
+            0 => {
+                let intensity = 5 - (msg.y * 6 / 321) as u16;
+                let _ = state.lock().query(id, draw_slider(screen.clone(), slider_id, intensity));
+                set_light_intensity(intensity);
+            },
+
+            v => error!("No logic for slider {v}")
+        },
+
+        id => error!("Invalid screen id: {id}")
     }
 }
 
