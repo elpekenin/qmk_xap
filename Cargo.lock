@@ -2394,6 +2394,7 @@ dependencies = [
  "flate2",
  "hidapi",
  "log",
+ "once_cell",
  "parking_lot",
  "percent-encoding",
  "phf 0.11.1",

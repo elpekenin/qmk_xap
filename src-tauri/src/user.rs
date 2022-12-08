@@ -2,6 +2,7 @@ use std::{sync::Arc, collections::HashMap};
 
 use dotenv::dotenv;
 use log::{info, error};
+use once_cell::sync::Lazy;
 use parking_lot::{Mutex};
 use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
 use reqwest::{
@@ -9,7 +10,6 @@ use reqwest::{
     self, Method,
 };
 use serde_json::{Value, Map};
-use tauri::utils::assets::phf::phf_map;
 use uuid::Uuid;
 use xap_specs::protocol::{
     painter::*,
@@ -21,10 +21,90 @@ use crate::{xap::hid::{XAPClient,XAPDevice}};
 // HTTP escape reserved characters
 const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'`').add(b'>').add(b'<').add(b'-');
 
-// Display info
-const SCREEN_WIDTH: u16 = 480;
-const SCREEN_HEIGHT: u16 = 320;
-const SCREEN_ID: u8 = 0;
+// =====
+// Buttons: Persistent element on the screen, that changes color while pressed
+const TOLERANCE: u16 = 30;
+const BUTTON_SIZE: u16 = IMAGE_SIZE + 2*TOLERANCE;
+#[derive(Debug, Clone)]
+struct Button {
+    pub x: u16,
+    pub y: u16,
+    pub img: u8
+}
+
+// =====
+// Sliders: Area where a variable takes different values depending on one of its coordinates, show a popup while pressed
+#[derive(Debug, Clone)]
+enum SliderDirection {
+    Vertical,
+    Horizontal
+}
+#[derive(Debug, Clone)]
+struct Slider {
+    pub direction: SliderDirection,
+    pub start: u16,
+    pub size: u16,
+    pub x: u16,
+    pub y: u16,
+    pub img_map: HashMap<&'static str, u8>,
+}
+// =====
+// Screen and contents info
+#[derive(Debug, Clone)]
+struct Screen {
+    pub width: u16,
+    pub height: u16,
+    pub id: u8,
+    pub buttons: Vec<Button>,
+    pub sliders: Vec<Slider>,
+}
+static SCREENS: Lazy<Vec<Screen>> = Lazy::new(|| vec![
+    // ILI9341
+    Screen {
+        width: 240,
+        height: 320,
+        id: 1,
+        buttons: vec![
+            Button {
+                x: 50,
+                y: 50,
+                img: 0,
+            }
+        ],
+        sliders: vec![],
+    },
+
+    // ILI9486
+    Screen {
+        width: 480,
+        height: 320,
+        id: 2,
+        buttons: vec![
+            Button {
+                x: 150,
+                y: 150,
+                img: 6,
+            }
+        ],
+        sliders: vec![
+            Slider {
+                direction: SliderDirection::Vertical,
+                start: 400,
+                size: 80,
+                x: 240,
+                y: 160,
+                img_map: HashMap::from([
+                    ("0", 0),
+                    ("1", 1),
+                    ("2", 2),
+                    ("3", 3),
+                    ("4", 4),
+                    ("5", 5),
+                ]),
+            }
+        ],
+    }
+]);
 
 // Assets size
 const IMAGE_SIZE: u16 = 48;
@@ -35,51 +115,9 @@ const HSV_BLACK: HSVColor = HSVColor{hue: 0, sat:0, val: 0};
 const BG_COLOR: HSVColor = HSV_BLACK;
 const FG_COLOR: HSVColor = HSV_WHITE;
 
-// =====
-// Buttons: Persistent element on the screen, that changes color while pressed
-const N_BUTTONS: usize = 1;
-//Size and position of each one
-const BUTTONS_X: [u16; N_BUTTONS] = [150];
-const BUTTONS_Y: [u16; N_BUTTONS] = [150];
-//Extra hitbox around each one
-const TOLERANCE: u16 = 30;
-const BUTTON_SIZE: u16 = IMAGE_SIZE + 2*TOLERANCE;
-//Button to image_id mapping
-const BUTTON2IMG: [u8; N_BUTTONS] = [6];
-
-// =====
-// Sliders: Area where a variable takes different values depending on one of its coordinates, show a popup while pressed
-const N_SLIDERS: usize = 1;
-//Size and position of each one
-const SLIDERS_X: [u16; N_SLIDERS] = [430];
-const SLIDERS_Y: [u16; N_SLIDERS] = [0];
-const SLIDERS_SIZE_X: [u16; N_SLIDERS] = [50];
-const SLIDERS_SIZE_Y: [u16; N_SLIDERS] = [320];
-//Position where the popups are shown
-const SLIDERS_POPUP_X: [u16; N_SLIDERS] = [SCREEN_WIDTH/2];
-const SLIDERS_POPUP_Y: [u16; N_SLIDERS] = [SCREEN_HEIGHT/2];
-//Slider value to image_id mapping
-type SliderMap = phf::Map<&'static str, u8>;
-//Light brightness (0-5) slider
-const _SLIDER_MAP_0: SliderMap = phf_map! {
-    "0" => 0,
-    "1" => 1,
-    "2" => 2,
-    "3" => 3,
-    "4" => 4,
-    "5" => 5
-};
-const SLIDER2IMG: [SliderMap; N_SLIDERS] = [
-    _SLIDER_MAP_0
-];
-
-// =====
-// Text: A region is reserved for the text, taking all the width of the screen within the vertical range
-const TEXT_START: u16 = 300;
-const TEXT_END: u16 = SCREEN_HEIGHT;
-
 // Public functions
 pub(crate)fn on_init() {
+    // Make sure Home Assistant is running
     match std::process::Command::new("sh")
             .arg("-c")
             .arg("sudo systemctl start docker && cd $HOME/docker  && docker compose up -d")
@@ -93,65 +131,82 @@ pub(crate)fn on_init() {
 
 pub(crate) fn on_device_connection(device: &XAPDevice) {
     // Sleep is needed, so that screen is init'ed
-    std::thread::sleep(std::time::Duration::from_millis(2000));
+    std::thread::sleep(std::time::Duration::from_millis(500));
 
-    // Show connection
-    let _ = device.query(PainterDrawTextRecolor(
-        PainterTextRecolor {
-            dev: SCREEN_ID,
-            x: 15,
-            y: 15,
-            font: 0,
-            fg_color: FG_COLOR,
-            bg_color: BG_COLOR,
-            text: "Connected to Tauri".into(),
-        }
-    ));
-
-    // Print buttons
-    for id in 0..N_BUTTONS {
-        let _ = device.query(PainterDrawImageRecolor (
-            PainterImageRecolor {
-                dev: SCREEN_ID,
-                x: BUTTONS_X[id],
-                y: BUTTONS_Y[id],
-                img: BUTTON2IMG[id],
-                fg_color: FG_COLOR,
-                bg_color: BG_COLOR,
+    for screen in &*SCREENS {
+        // Clear screen
+        let _ = device.query(PainterDrawRect (
+            PainterRect {
+                dev: screen.id,
+                left: 0,
+                top: 0,
+                right: screen.width,
+                bottom: screen.height,
+                color: BG_COLOR,
+                filled: 1
             }
         ));
+
+        // Show connection
+        let _ = device.query(PainterDrawTextRecolor(
+            PainterTextRecolor {
+                dev: screen.id,
+                x: 15,
+                y: 15,
+                font: 0,
+                fg_color: FG_COLOR,
+                bg_color: BG_COLOR,
+                text: "Connected to Tauri".into(),
+            }
+        ));
+
+        // Print buttons
+        for button in &screen.buttons {
+            let _ = device.query(PainterDrawImageRecolor (
+                PainterImageRecolor {
+                    dev: screen.id,
+                    x: button.x,
+                    y: button.y,
+                    img: button.img,
+                    fg_color: FG_COLOR,
+                    bg_color: BG_COLOR,
+                }
+            ));
+        }
     }
 }
 
 
 pub(crate) fn on_close(state: Arc<Mutex<XAPClient>>) {
     for device in state.clone().lock().get_devices() {
-        // Clear screen
-        let _ = device.query(PainterDrawRect (
-            PainterRect {
-                dev: SCREEN_ID,
-                left: 0,
-                top: 0,
-                right: SCREEN_WIDTH,
-                bottom: SCREEN_HEIGHT,
-                color: BG_COLOR,
-                filled: 1
-            }
-        ));
+        for screen in &*SCREENS {
+            // Clear screen
+            let _ = device.query(PainterDrawRect (
+                PainterRect {
+                    dev: screen.id,
+                    left: 0,
+                    top: 0,
+                    right: screen.width,
+                    bottom: screen.height,
+                    color: BG_COLOR,
+                    filled: 1
+                }
+            ));
 
-        // Show text
-        let _ = device.query(PainterDrawTextRecolor(
-            PainterTextRecolor {
-                dev: SCREEN_ID,
-                x: 15,
-                y: 15,
-                font: 0,
-                fg_color: FG_COLOR,
-                bg_color: BG_COLOR,
-                text: "Tauri app was closed".into(),
-            }
-        ));
-    };
+            // Show text
+            let _ = device.query(PainterDrawTextRecolor(
+                PainterTextRecolor {
+                    dev: screen.id,
+                    x: 15,
+                    y: 15,
+                    font: 0,
+                    fg_color: FG_COLOR,
+                    bg_color: BG_COLOR,
+                    text: "Tauri app was closed".into(),
+                }
+            ));
+        }
+    }
 }
 
 
@@ -162,23 +217,23 @@ pub(crate) fn broadcast_callback(broadcast: BroadcastRaw, id: Uuid, state: &Arc<
     // Parse raw data
     let msg: UserBroadcast = broadcast.into_xap_broadcast().unwrap();
 
+    info!("Received {msg:?}");
+
     // Clear any leftover graphics
     clear_ui(id, state);
 
     // Run logic, code assumes that sliders and buttons don't overlap, if they do button will have preference
-    match check_buttons(&msg) {
+    match check_buttons(msg.clone()) {
         u8::MAX => {},
         button_id => {
-            handle_button(msg, id, state, button_id);
-            return;
+            handle_button(msg.clone(), id, state, button_id);
         }
     }
 
-    match check_sliders(&msg) {
+    match check_sliders(msg.clone()) {
         u8::MAX => {},
         slider_id => {
-            handle_slider(msg, id, state, slider_id);
-            return;
+            handle_slider(msg.clone(), id, state, slider_id);
         }
     }
 }
@@ -186,55 +241,69 @@ pub(crate) fn broadcast_callback(broadcast: BroadcastRaw, id: Uuid, state: &Arc<
 
 // ------------------------------------------------ User's logic ------------------------------------------------
 fn handle_button(msg: UserBroadcast, id: Uuid, state: &Arc<Mutex<XAPClient>>, button_id: u8) {
-    if button_id == u8::MAX {
-        return;
-    }
+    let screen = get_screen_from_id(msg.dev).unwrap();
 
     // Mark as pressed
-    let _ = state.lock().query(id, draw_button(button_id, true));
+    let _ = state.lock().query(id, draw_button(screen.clone(), button_id, true));
 
     // Run its logic
-    match button_id {
-        0 => {
-            let _ = state.lock().query(id, clear_text());
-            let _ = state.lock().query(id, draw_text(get_pokeapi(msg.x+msg.y)));
+    match get_screen_from_id(msg.dev) {
+        None => {
+            return;
         },
 
-        1 => {
-            // Query HomeAssistant for current temperature
-            let json = get_hasst_state("weather.forecast_casa");
-            let attributes = json["attributes"].clone();
+        Some(screen) => {
+            match screen.id {
+                1 => {
+                    match button_id {
+                        0 => {
+                            // Query HomeAssistant for current temperature
+                            let json = get_hasst_state("weather.forecast_casa");
+                            let attributes = json["attributes"].clone();
 
-            // Format it and display on keyboard
-            let _ = state.lock().query(id, clear_text());
-            let text = format!("Temperature (HomeAssistant): {}ºC", attributes["temperature"].to_string()).replace('"', "");
-            let _ = state.lock().query(id, draw_text(text));
-        },
+                            // Format it and display on keyboard
+                            let _ = state.lock().query(id, clear_text(screen.clone()));
+                            let text = format!("Temperature (HomeAssistant): {}ºC", attributes["temperature"].to_string()).replace('"', "");
+                            let _ = state.lock().query(id, draw_text(screen.clone(), text));
+                        },
+                        
+                        v => error!("No logic for button {v}")
+                    }
+                },
 
-        2 => {
-            // Show feedback
-            let _ = state.lock().query(id, clear_text());
-            let _ = state.lock().query(id, draw_text("Message sent"));
+                2 => {
+                    match button_id {
+                        0 => {
+                            let _ = state.lock().query(id, clear_text(screen.clone()));
+                            let _ = state.lock().query(id, draw_text(screen.clone(), get_pokeapi(msg.x+msg.y)));
+                        },
+                        
+                        // 2 => {
+                        //     // Show feedback
+                        //     let _ = state.lock().query(id, clear_text(screen.clone()));
+                        //     let _ = state.lock().query(id, draw_text(screen.clone(), "Message sent"));
 
-            // Send Telegram message
-            send_tg_msg("QMK -> XAP -> TauriClient -> Telegram");
-        },
+                        //     // Send Telegram message
+                        //     send_tg_msg("QMK -> XAP -> TauriClient -> Telegram");
+                        // },
 
-        v => error!("No logic for button {v}")
+                        v => error!("No logic for button {v}")
+                    }
+                },
+
+                v => error!("Invalid screen id: {v}")
+            }
+        }
     }
 
     clear_ui(id, state);
 }
 
 fn handle_slider(msg: UserBroadcast, id: Uuid, state: &Arc<Mutex<XAPClient>>, slider_id: u8) {
-    if slider_id == u8::MAX {
-        return;
-    }
-
     match slider_id {
         0 => {
             let intensity = 5 - (msg.y * 6 / 321) as u16;
-            let _ = state.lock().query(id, draw_slider(slider_id, intensity));
+            let _ = state.lock().query(id, draw_slider(get_screen_from_id(msg.dev).unwrap().clone(), slider_id, intensity));
             set_light_intensity(intensity);
         },
 
@@ -244,41 +313,75 @@ fn handle_slider(msg: UserBroadcast, id: Uuid, state: &Arc<Mutex<XAPClient>>, sl
 
 
 // ------------------------------------------------ Event parsing helpers ------------------------------------------------
-fn check_buttons(msg: &UserBroadcast) -> u8 {
-    for i in 0..N_BUTTONS {
-        if  BUTTONS_X[i]-TOLERANCE <= msg.x && msg.x <= BUTTONS_X[i]+BUTTON_SIZE
-            &&
-            BUTTONS_Y[i]-TOLERANCE <= msg.y && msg.y <= BUTTONS_X[i]+BUTTON_SIZE {
-                return i as u8;
+fn get_screen_from_id(id: u8) -> Option<&'static Screen> {
+    for screen in &*SCREENS {
+        if screen.id == id {
+            return Some(screen);
         }
     }
 
-    u8::MAX
+    None
 }
 
-fn check_sliders(msg: &UserBroadcast) -> u8 {
-    for i in 0..N_SLIDERS {
-        if  SLIDERS_X[i] <= msg.x && msg.x <= SLIDERS_X[i]+SLIDERS_SIZE_X[i]
-            &&
-            SLIDERS_Y[i] <= msg.y && msg.y <= SLIDERS_Y[i]+SLIDERS_SIZE_Y[i] {
-                return i as u8;
+fn check_buttons(msg: UserBroadcast) -> u8 {
+    match get_screen_from_id(msg.dev) {
+        None => u8::MAX,
+
+        // TODO equivalent of Python's `enumerate`?
+        Some(screen) => {
+            for i in 0..screen.buttons.len() {
+                let button = &screen.buttons[i];
+
+                if  button.x-TOLERANCE <= msg.x && msg.x <= button.x+BUTTON_SIZE
+                    &&
+                    button.y-TOLERANCE <= msg.y && msg.y <= button.y+BUTTON_SIZE {
+                        return i as u8;
+                }
+            }
+
+            u8::MAX
         }
     }
+}
 
-    u8::MAX
+fn check_sliders(msg: UserBroadcast) -> u8 {
+    match get_screen_from_id(msg.dev) {
+        None => u8::MAX,
+
+        Some(screen) => {
+            for i in 0..screen.sliders.len() {
+                let slider = &screen.sliders[i];
+
+                match &slider.direction {
+                    SliderDirection::Vertical => {
+                        if  slider.start <= msg.x && msg.x <= slider.start + slider.size {
+                            return i as u8;
+                        }
+                    }
+                    SliderDirection::Horizontal => {
+                        if  slider.start <= msg.y && msg.y <= slider.start + slider.size {
+                            return i as u8;
+                        }
+                    }
+                }
+            }
+
+            u8::MAX
+        }
+    }
 }
 
 
 // ------------------------------------------------ Drawing helpers ------------------------------------------------
-fn draw_button(id: impl Into<usize>, pressed: bool) -> PainterDrawImageRecolor {
-    let id = id.into();
+fn draw_button(screen: Screen, id: impl Into<usize>, pressed: bool) -> PainterDrawImageRecolor {
+    let button = &screen.buttons[id.into()];
 
     PainterDrawImageRecolor (
         PainterImageRecolor {
-            dev: SCREEN_ID,
-            x: BUTTONS_X[id],
-            y: BUTTONS_Y[id],
-            img: BUTTON2IMG[id],
+            dev: screen.id,
+            x: button.x,
+            y: button.y,
+            img: button.img,
             fg_color: if pressed {BG_COLOR} else {FG_COLOR},
             bg_color: if pressed {FG_COLOR} else {BG_COLOR},
         }
@@ -286,24 +389,24 @@ fn draw_button(id: impl Into<usize>, pressed: bool) -> PainterDrawImageRecolor {
 }
 
 
-fn get_slider_image(id: usize, value: u16) -> u8 {
-    match SLIDER2IMG[id].get(&value.to_string() as &str) {
+fn get_slider_image(slider: Slider, value: u16) -> u8 {
+    match slider.img_map.get(&value.to_string() as &str) {
         Some(v) => *v,
         _ => u8::MAX
     }
 }
 
 
-fn draw_slider(id: impl Into<usize>, value: u16) -> PainterDrawImage {
-    let id = id.into();
+fn draw_slider(screen: Screen, id: impl Into<usize>, value: u16) -> PainterDrawImage {
+    let slider = &screen.sliders[id.into()];
     // Read value from Map, if can't be found defaults to `u8::MAX`
-    let img = get_slider_image(id, value);
+    let img = get_slider_image(slider.clone(), value);
 
     PainterDrawImage (
         PainterImage {
-            dev: SCREEN_ID,
-            x: SLIDERS_POPUP_X[id],
-            y: SLIDERS_POPUP_Y[id],
+            dev: screen.id,
+            x: slider.x,
+            y: slider.y,
             // TODO: Better handling
             // This is somewhat unsafe, as custom QP_XAP code will try to read image array with offset bigger than its size
             // which is then passed to the QP function which detects it isn't a valid image an quits
@@ -312,12 +415,12 @@ fn draw_slider(id: impl Into<usize>, value: u16) -> PainterDrawImage {
     )
 }
 
-fn draw_text(text: impl Into<Vec<u8>>) -> PainterDrawTextRecolor {
+fn draw_text(screen: Screen, text: impl Into<Vec<u8>>) -> PainterDrawTextRecolor {
     PainterDrawTextRecolor (
         PainterTextRecolor {
-            dev: SCREEN_ID,
-            x: 120,
-            y: TEXT_START,
+            dev: screen.id,
+            x: 0,
+            y: screen.height-40,
             font:0,
             fg_color: FG_COLOR,
             bg_color: BG_COLOR,
@@ -329,39 +432,40 @@ fn draw_text(text: impl Into<Vec<u8>>) -> PainterDrawTextRecolor {
 
 // ------------------------------------------------ Cleaning helpers ------------------------------------------------
 fn clear_ui(id: Uuid, state: &Arc<Mutex<XAPClient>>) {
-    for i in 0..N_BUTTONS {
-        let _ = state.lock().query(id, draw_button(i, false));
-    }
+    for screen in &*SCREENS {
+        for j in 0..screen.buttons.len() {
+            let _ = state.lock().query(id, draw_button(screen.clone(), j, false));
+        }
 
-    for i in 0..N_SLIDERS {
-        let _ = state.lock().query(id, clear_slider(i));
+        for j in 0..screen.sliders.len() {
+            let _ = state.lock().query(id, clear_slider(screen.clone(), j));
+        }
     }
-
-    // let _ = state.lock().query(id, clear_text());
 }
 
-fn clear_slider(id: usize) -> PainterDrawRect {
+fn clear_slider(screen: Screen, id: usize) -> PainterDrawRect {
+    let slider = &screen.sliders[id];
     PainterDrawRect (
         PainterRect {
-            dev: SCREEN_ID,
-            left: SLIDERS_POPUP_X[id],
-            top: SLIDERS_POPUP_Y[id],
-            right: SLIDERS_POPUP_X[id]+IMAGE_SIZE,
-            bottom: SLIDERS_POPUP_Y[id]+IMAGE_SIZE,
+            dev: screen.id,
+            left: slider.x,
+            top: slider.y,
+            right: slider.x+IMAGE_SIZE,
+            bottom: slider.y+IMAGE_SIZE,
             color: BG_COLOR,
             filled: 1,
         }
     )
 }
 
-fn clear_text() -> PainterDrawRect {
+fn clear_text(screen: Screen) -> PainterDrawRect {
     PainterDrawRect(
         PainterRect{
-            dev: SCREEN_ID,
+            dev: screen.id,
             left: 0,
-            top: TEXT_START,
-            right: SCREEN_WIDTH,
-            bottom: TEXT_END,
+            top: screen.height-40,
+            right: screen.width,
+            bottom: screen.height,
             color: BG_COLOR,
             filled: 1,
         }
