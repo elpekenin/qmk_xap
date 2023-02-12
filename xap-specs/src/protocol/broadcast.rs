@@ -83,7 +83,7 @@ impl XAPBroadcast for SecureStatusBroadcast {}
 // Custom touch screen message
 #[derive(BinRead, Debug, Clone)]
 pub struct UserBroadcast {
-    pub dev: u8,
+    pub screen_id: u8,
     pub x: u16,
     pub y: u16,
 }

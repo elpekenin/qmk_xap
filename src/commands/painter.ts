@@ -1,26 +1,14 @@
 import { queryDevice } from '@/commands/core'
 import { PainterCircle } from '@bindings/PainterCircle';
+import { PainterDevice } from '@bindings/PainterDevice';
+import { PainterGeometry } from '@bindings/PainterGeometry';
 import { PainterLine } from '@bindings/PainterLine'
 import { PainterPixel } from '@bindings/PainterPixel'
 import { PainterRect } from '@bindings/PainterRect'
 import { PainterEllipse } from '@bindings/PainterEllipse';
 
-export async function drawClear(id: string) {
-    const rect: PainterRect = {
-        dev: 2,
-        left: 0,
-        top: 0,
-        right: 480,
-        bottom: 320,
-        color: {
-            hue: 0,
-            sat: 0,
-            val: 0
-        },
-        filled: 1
-    };
-
-    await queryDevice('painter_rect', id, rect)
+export async function drawClear(id: string, screen_id: PainterDevice) {
+    await queryDevice('painter_clear', id, dev)
 }
 
 export async function drawPixel(id: string, pixel: PainterPixel) {
@@ -41,4 +29,8 @@ export async function drawCircle(id: string, circle: PainterCircle) {
 
 export async function drawEllipse(id: string, ellipse: PainterEllipse) {
     await queryDevice('painter_ellipse', id, ellipse);
+}
+
+export async function getGeometry(id: string, screen_id: PainterDevice): Promise<PainterGeometry> {
+    return await queryDevice('painter_geometry', id, dev);
 }

@@ -7,8 +7,10 @@
     import ColorPicker from '@radial-color-picker/vue-color-picker'
 
     import { HSVColor } from '@bindings/HSVColor'
+    import { PainterDevice } from '@bindings/PainterDevice'
+    import { PainterGeometry } from '@bindings/PainterGeometry'
     import { useXAPDeviceStore } from '@/stores/devices'
-    import { drawClear, drawCircle, drawLine, drawPixel, drawRect, drawEllipse } from '@/commands/painter'
+    import { drawClear, drawCircle, drawLine, drawPixel, drawRect, drawEllipse, getGeometry } from '@/commands/painter'
     import { notifyError } from '@/utils/utils'
     import { createForLoopParams } from '@vue/compiler-core'
 
@@ -71,10 +73,20 @@
 
     onMounted(async () => {
         const canvas = document.getElementById('painter-canvas') as HTMLCanvasElement;
-        canvas.style.width = '480px';
-        canvas.style.height = '320px';
-        canvas.width = 480 * window.devicePixelRatio;
-        canvas.height = 320 * window.devicePixelRatio;
+
+        if (device?.value == null) {
+            return;
+        }
+
+        const painter_device: PainterDevice = {"dev": 0};
+        const geometry: PainterGeometry = await getGeometry(device.value.id, painter_device)
+
+        canvas.style.width = `${geometry.width}px`;
+        canvas.style.height = `${geometry.height}px`;
+        canvas.width = geometry.width * window.devicePixelRatio;
+        canvas.height = geometry.height * window.devicePixelRatio;
+
+        console.log(geometry)
 
         ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
         rect = canvas.getBoundingClientRect();
@@ -103,7 +115,7 @@
             drawPixel(
                 device.value.id,
                 {
-                    dev: 2,
+                    screen_id: 0,
                     x: current.x,
                     y: current.y,
                     color: _color.value
@@ -156,7 +168,7 @@
                     drawLine(
                         device.value.id,
                         {
-                            dev: 2,
+                            screen_id: 0,
                             x0,
                             y0,
                             x1,
@@ -188,7 +200,7 @@
                     drawRect(
                         device.value.id,
                         {
-                            dev: 2,
+                            screen_id: 0,
                             left,
                             top,
                             right,
@@ -217,7 +229,7 @@
                     drawCircle(
                         device.value.id,
                         {
-                            dev: 2,
+                            screen_id: 0,
                             x,
                             y,
                             radius,
@@ -247,7 +259,7 @@
                     drawEllipse(
                         device.value.id,
                         {
-                            dev: 2,
+                            screen_id: 0,
                             x,
                             y,
                             sizex,

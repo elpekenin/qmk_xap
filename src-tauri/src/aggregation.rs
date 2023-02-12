@@ -48,7 +48,7 @@ pub struct FeaturesInfo {
     pub rgb_matrix: bool,
     pub unicode: bool,
     pub usbpd: bool,
-    pub wpm:  bool,
+    pub wpm: bool,
     pub xap: bool,
 }
 

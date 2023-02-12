@@ -52,9 +52,8 @@ use xap_specs::{
 
 use crate::{
     aggregation::{
-        BacklightInfo, KeymapInfo, LightingInfo, QMKInfo, RGBLightInfo, RGBMatrixInfo, RemapInfo,
-        XAPDevice as XAPDeviceDto, XAPDeviceInfo, XAPInfo,
-        FeaturesInfo,
+        BacklightInfo, FeaturesInfo, KeymapInfo, LightingInfo, QMKInfo, RGBLightInfo,
+        RGBMatrixInfo, RemapInfo, XAPDevice as XAPDeviceDto, XAPDeviceInfo, XAPInfo,
     },
     xap::{ClientError, ClientResult},
     XAPEvent,

@@ -7,8 +7,8 @@
 mod commands;
 mod aggregation;
 mod events;
-mod xap;
 mod user;
+mod xap;
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -107,6 +107,8 @@ fn start_event_loop(
                         Ok(_) => {
                             if let Err(err) = state.lock().enumerate_xap_devices() {
                                 error!("failed to enumerate XAP devices: {err}");
+                            } else {
+                                user::housekeeping(&state);
                             }
                         },
                         Err(err) => {
@@ -124,7 +126,7 @@ fn main() -> ClientResult<()> {
         .format_timestamp(None)
         .init();
 
-    user::on_init();
+    user::pre_init();
 
     let (event_channel_tx, event_channel_rx): (Sender<XAPEvent>, Receiver<XAPEvent>) = unbounded();
 
@@ -149,34 +151,30 @@ fn main() -> ClientResult<()> {
             tauri::WindowEvent::CloseRequested { api, .. } => {
                 event.window().hide().unwrap();
                 api.prevent_close()
-            },
+            }
 
             _ => {}
         })
         // Add system tray
         .system_tray(system_tray)
         // And its logic
-        .on_system_tray_event(move |app, event|
-            match event {
-                SystemTrayEvent::MenuItemClick { id, .. } => {
-                    match id.as_str() {
-                        "hide" => {
-                            app.get_window("main").unwrap().hide().unwrap();
-                        }
-                        "quit" => {
-                            user::on_close(_state.clone());
-                            std::process::exit(0);
-                        },
-                        "show" => {
-                            app.get_window("main").unwrap().show().unwrap();
-                        }
-                        _ => {}
-                    }
-                },
-
+        .on_system_tray_event(move |app, event| match event {
+            SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
+                "hide" => {
+                    app.get_window("main").unwrap().hide().unwrap();
+                }
+                "quit" => {
+                    user::on_close(_state.clone());
+                    std::process::exit(0);
+                }
+                "show" => {
+                    app.get_window("main").unwrap().show().unwrap();
+                }
                 _ => {}
-            }
-        )
+            },
+
+            _ => {}
+        })
         .invoke_handler(tauri::generate_handler![
             xap_constants_get,
             secure_lock,
@@ -184,12 +182,14 @@ fn main() -> ClientResult<()> {
             secure_status_get,
             jump_to_bootloader,
             reset_eeprom,
+            painter_clear,
             painter_circle,
             painter_ellipse,
             painter_line,
             painter_pixel,
             painter_rect,
             painter_text,
+            painter_geometry,
             keycode_get,
             keycode_set,
             keymap_get,
@@ -206,8 +206,13 @@ fn main() -> ClientResult<()> {
             rgbmatrix_config_save,
         ])
         .setup(move |app| {
-            let resource_path = app.path_resolver().resolve_resource("../xap-specs/specs/constants/keycodes").expect("failed to resolve resource");
-            state.lock().set_xap_constants(XAPConstants::new(resource_path.into())?);
+            let resource_path = app
+                .path_resolver()
+                .resolve_resource("../xap-specs/specs/constants/keycodes")
+                .expect("failed to resolve resource");
+            state
+                .lock()
+                .set_xap_constants(XAPConstants::new(resource_path.into())?);
             app.manage(state.clone());
             app.listen_global("frontend-loaded", move |_| {
                 event_channel_tx_listen_frontend

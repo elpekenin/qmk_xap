@@ -7,7 +7,6 @@ use xap_specs::protocol::xap::{XAPSecureStatus, XAPSecureStatusLock, XAPSecureSt
 
 use crate::xap::{hid::XAPClient, ClientResult};
 
-
 #[tauri::command]
 pub(crate) async fn secure_status_get(
     id: Uuid,

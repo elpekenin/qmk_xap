@@ -4,14 +4,22 @@ use parking_lot::Mutex;
 use tauri::State;
 use uuid::Uuid;
 
-use xap_specs::{
-    protocol::painter::{
-        PainterDrawCircle, PainterDrawEllipse, PainterDrawLine, PainterDrawPixel, PainterDrawRect, PainterDrawText,
-        PainterCircle, PainterEllipse, PainterLine, PainterPixel, PainterRect, PainterText, 
-    }
+use xap_specs::protocol::painter::{
+    PainterCircle, PainterDevice, PainterDrawCircle, PainterDrawClear, PainterDrawEllipse,
+    PainterDrawLine, PainterDrawPixel, PainterDrawRect, PainterDrawText, PainterEllipse,
+    PainterGeometry, PainterGetGeometry, PainterLine, PainterPixel, PainterRect, PainterText,
 };
 
 use crate::xap::{hid::XAPClient, ClientResult};
+
+#[tauri::command]
+pub(crate) async fn painter_clear(
+    id: Uuid,
+    arg: PainterDevice,
+    state: State<'_, Arc<Mutex<XAPClient>>>,
+) -> ClientResult<()> {
+    state.lock().query(id, PainterDrawClear(arg))
+}
 
 #[tauri::command]
 pub(crate) async fn painter_pixel(
@@ -19,7 +27,7 @@ pub(crate) async fn painter_pixel(
     arg: PainterPixel,
     state: State<'_, Arc<Mutex<XAPClient>>>,
 ) -> ClientResult<()> {
-    state.lock().query(id,PainterDrawPixel(arg))
+    state.lock().query(id, PainterDrawPixel(arg))
 }
 
 #[tauri::command]
@@ -28,7 +36,7 @@ pub(crate) async fn painter_line(
     arg: PainterLine,
     state: State<'_, Arc<Mutex<XAPClient>>>,
 ) -> ClientResult<()> {
-    state.lock().query(id,PainterDrawLine(arg))
+    state.lock().query(id, PainterDrawLine(arg))
 }
 
 #[tauri::command]
@@ -37,7 +45,7 @@ pub(crate) async fn painter_rect(
     arg: PainterRect,
     state: State<'_, Arc<Mutex<XAPClient>>>,
 ) -> ClientResult<()> {
-    state.lock().query(id,PainterDrawRect(arg))
+    state.lock().query(id, PainterDrawRect(arg))
 }
 
 #[tauri::command]
@@ -46,7 +54,7 @@ pub(crate) async fn painter_circle(
     arg: PainterCircle,
     state: State<'_, Arc<Mutex<XAPClient>>>,
 ) -> ClientResult<()> {
-    state.lock().query(id,PainterDrawCircle(arg))
+    state.lock().query(id, PainterDrawCircle(arg))
 }
 
 #[tauri::command]
@@ -55,7 +63,7 @@ pub(crate) async fn painter_ellipse(
     arg: PainterEllipse,
     state: State<'_, Arc<Mutex<XAPClient>>>,
 ) -> ClientResult<()> {
-    state.lock().query(id,PainterDrawEllipse(arg))
+    state.lock().query(id, PainterDrawEllipse(arg))
 }
 
 #[tauri::command]
@@ -64,5 +72,14 @@ pub(crate) async fn painter_text(
     arg: PainterText,
     state: State<'_, Arc<Mutex<XAPClient>>>,
 ) -> ClientResult<()> {
-    state.lock().query(id,PainterDrawText(arg))
+    state.lock().query(id, PainterDrawText(arg))
+}
+
+#[tauri::command]
+pub(crate) async fn painter_geometry(
+    id: Uuid,
+    arg: PainterDevice,
+    state: State<'_, Arc<Mutex<XAPClient>>>,
+) -> ClientResult<PainterGeometry> {
+    state.lock().query(id, PainterGetGeometry(arg))
 }

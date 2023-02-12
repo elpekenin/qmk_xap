@@ -708,10 +708,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bd0c93bb4b0c6d9b77f4435b0ae98c24d17f1c45b2ff844c6151a07256ca923b"
 
 [[package]]
-name = "dotenv"
-version = "0.15.0"
+name = "dotenvy"
+version = "0.15.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
+checksum = "03d8c417d7a8cb362e0c37e5d815f5eb7c37f79ff93707329d5a194e42e54ca0"
 
 [[package]]
 name = "dtoa"
@@ -2389,7 +2389,7 @@ dependencies = [
  "bitflags",
  "crossbeam-channel",
  "deser-hjson",
- "dotenv",
+ "dotenvy",
  "env_logger",
  "flate2",
  "hidapi",
@@ -2409,6 +2409,7 @@ dependencies = [
  "thiserror",
  "ts-rs",
  "uuid 1.2.2",
+ "winsafe",
  "xap-specs",
 ]
 
@@ -4265,6 +4266,12 @@ checksum = "b68db261ef59e9e52806f688020631e987592bd83619edccda9c47d42cde4f6c"
 dependencies = [
  "toml",
 ]
+
+[[package]]
+name = "winsafe"
+version = "0.0.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab5dcb02839f2a926bba7dcc63249c04db477ffdd994cd23e9d830488fdda1b9"
 
 [[package]]
 name = "wry"

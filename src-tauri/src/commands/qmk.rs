@@ -7,7 +7,6 @@ use xap_specs::protocol::qmk::{QMKJumpToBootloaderQuery, QMKReinitializeEepromQu
 
 use crate::xap::{hid::XAPClient, ClientResult};
 
-
 #[tauri::command]
 pub(crate) async fn jump_to_bootloader(
     id: Uuid,

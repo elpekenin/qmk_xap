@@ -36,7 +36,9 @@ impl XAPClient {
             devices: HashMap::new(),
             hid: HidApi::new_without_enumerate()?,
             event_channel,
-            constants: Arc::new(XAPConstants {keycodes: HashMap::new()}),
+            constants: Arc::new(XAPConstants {
+                keycodes: HashMap::new(),
+            }),
         })
     }
 
