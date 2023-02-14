@@ -27,3 +27,4 @@ target
 
 # Sensitive data
 .env
+.spotify_token_cache.json

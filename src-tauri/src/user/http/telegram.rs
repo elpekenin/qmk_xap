@@ -2,7 +2,7 @@ use crate::user::http::FRAGMENT;
 use percent_encoding::utf8_percent_encode;
 use reqwest::Method;
 
-pub fn send_tg_msg(text: impl Into<String>) {
+pub fn text(text: impl Into<String>) {
     let text = text.into();
 
     let tg_token = std::env::var("TG_TOKEN").unwrap();
@@ -14,5 +14,5 @@ pub fn send_tg_msg(text: impl Into<String>) {
         tg_token, tg_id, escaped_text
     );
 
-    super::http_request(Method::GET, url, None, None);
+    super::request(Method::GET, url, None, None);
 }

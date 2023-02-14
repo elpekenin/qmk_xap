@@ -1,3 +1,5 @@
+use std::cmp::{max, min};
+
 use binrw::*;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
@@ -11,6 +13,34 @@ pub struct HSVColor {
     pub hue: u8,
     pub sat: u8,
     pub val: u8,
+}
+
+impl HSVColor {
+    pub fn from_rgb(r: u8, g: u8, b: u8) -> Self {
+        let r2 = r / 255;
+        let g2 = g / 255;
+        let b2 = b / 255;
+        let c_max = max(max(r2, g2), b2);
+        let c_min = min(min(r2, g2), b2);
+        let delta = c_max - c_min;
+
+        let hue = {
+            if c_max == r2 {
+                60 * (((g2 - b2) / delta) % 6)
+            } else if c_max == g2 {
+                60 * (((b2 - r2) / delta) + 2)
+            } else {
+                60 * (((r2 - g2) / delta) + 4)
+            }
+        };
+        let sat = match c_max {
+            0 => 0,
+            _ => delta / c_max,
+        };
+        let val = c_max;
+
+        Self { hue, sat, val }
+    }
 }
 
 #[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
@@ -211,7 +241,7 @@ impl XAPRequest for PainterDrawImageRecolor {
 #[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
-pub struct PainterAnimate { 
+pub struct PainterAnimate {
     pub screen_id: u8,
     pub x: u16,
     pub y: u16,

@@ -1,3 +1,4 @@
+use crate::user::http;
 use reqwest::{
     header::{self, HeaderMap},
     Method,
@@ -19,7 +20,7 @@ pub fn get_state(entity_id: impl Into<String>) -> Map<String, Value> {
         format!("Bearer {}", hasst_token).parse().unwrap(),
     );
 
-    super::http_request(Method::GET, url, Some(headers), None).unwrap()
+    http::request(Method::GET, url, Some(headers), None).unwrap()
 }
 
 pub fn set_light_intensity(level: u16) {
@@ -42,5 +43,5 @@ pub fn set_light_intensity(level: u16) {
         format!("Bearer {hasst_token}").parse().unwrap(),
     );
 
-    super::http_request(Method::POST, url, Some(headers), Some(payload));
+    http::request(Method::POST, url, Some(headers), Some(payload));
 }

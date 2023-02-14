@@ -31,6 +31,11 @@ use xap::hid::XAPClient;
 use xap::ClientResult;
 use xap_specs::constants::XAPConstants;
 
+#[derive(Default)]
+pub struct UserData {
+    pub last_song: String,
+}
+
 fn shutdown_event_loop<R: Runtime>(sender: Sender<XAPEvent>) -> TauriPlugin<R> {
     Builder::new("event loop shutdown")
         .on_event(move |_, event| {
@@ -45,6 +50,7 @@ fn start_event_loop(
     app: AppHandle,
     state: Arc<Mutex<XAPClient>>,
     event_channel: Receiver<XAPEvent>,
+    user_data: Arc<Mutex<UserData>>,
 ) {
     let _ = std::thread::spawn(move || {
         let ticker = tick(Duration::from_millis(500));
@@ -108,7 +114,7 @@ fn start_event_loop(
                             if let Err(err) = state.lock().enumerate_xap_devices() {
                                 error!("failed to enumerate XAP devices: {err}");
                             } else {
-                                user::housekeeping(&state);
+                                user::housekeeping(&state, &user_data);
                             }
                         },
                         Err(err) => {
@@ -132,6 +138,8 @@ fn main() -> ClientResult<()> {
 
     let state = Arc::new(Mutex::new(XAPClient::new(event_channel_tx.clone())?));
     let _state = state.clone();
+
+    let user_data = Arc::new(Mutex::new(UserData::default()));
 
     let event_channel_tx_listen_frontend = event_channel_tx.clone();
 
@@ -219,7 +227,7 @@ fn main() -> ClientResult<()> {
                     .send(XAPEvent::AnnounceAllDevices)
                     .unwrap();
             });
-            start_event_loop(app.handle(), state, event_channel_rx);
+            start_event_loop(app.handle(), state, event_channel_rx, user_data);
             Ok(())
         })
         .run(tauri::generate_context!())

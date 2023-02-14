@@ -1,7 +1,8 @@
 use crate::xap::hid::XAPDevice;
 use xap_specs::protocol::painter::{
-    HSVColor, PainterDrawImage, PainterDrawImageRecolor, PainterDrawRect, PainterDrawTextRecolor,
-    PainterImage, PainterImageRecolor, PainterRect, PainterTextRecolor,
+    HSVColor, PainterDrawImage, PainterDrawImageRecolor, PainterDrawPixel, PainterDrawRect,
+    PainterDrawTextRecolor, PainterImage, PainterImageRecolor, PainterPixel, PainterRect,
+    PainterTextRecolor,
 };
 
 pub fn image(device: &XAPDevice, screen_id: u8, x: u16, y: u16, img: u8) {
@@ -73,5 +74,14 @@ pub fn rect(
         bottom,
         color,
         filled,
+    }));
+}
+
+pub fn pixel(device: &XAPDevice, screen_id: u8, x: u16, y: u16, color: HSVColor) {
+    let _ = device.query(PainterDrawPixel(PainterPixel {
+        screen_id,
+        x,
+        y,
+        color,
     }));
 }

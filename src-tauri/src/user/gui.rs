@@ -1,6 +1,6 @@
 /// Information about the GUI
 mod button;
-mod draw;
+pub mod draw;
 mod screen;
 mod slider;
 
@@ -104,7 +104,7 @@ static SCREENS: Lazy<Vec<Screen>> = Lazy::new(|| {
     ]
 });
 
-pub fn init(device: &XAPDevice) {
+pub fn on_connect(device: &XAPDevice) {
     for screen in &*SCREENS {
         // Clear screen
         draw::rect(

@@ -1,7 +1,7 @@
 use crate::{
     user::{
         gui::{self, Button, Screen, Slider},
-        http::home_assistant as ha,
+        http::{home_assistant as ha, telegram as tg},
     },
     xap::hid::XAPClient,
 };
@@ -51,42 +51,35 @@ pub(crate) fn button(state: &Arc<Mutex<XAPClient>>, id: &Uuid, screen: &Screen, 
 
     // Run its logic
     match screen.id {
-        1 => {
-            match button_id {
-                0 => {
-                    // Query HomeAssistant for current temperature
-                    let json = ha::get_state("weather.forecast_casa");
-                    let attributes = json["attributes"].clone();
+        1 => match button_id {
+            0 => {
+                let json = ha::get_state("weather.forecast_casa");
+                let attributes = json["attributes"].clone();
 
-                    // Format it and display on keyboard
-                    screen.clear_text(state.lock().get_device(id).unwrap());
-                    let text = format!("Temperature: {} C", attributes["temperature"].to_string())
-                        .replace('"', "");
-                    screen.draw_text(state.lock().get_device(id).unwrap(), text);
-                }
-
-                _ => unreachable!(),
+                screen.clear_text(state.lock().get_device(id).unwrap());
+                let text = format!("Temperature: {} C", attributes["temperature"].to_string())
+                    .replace('"', "");
+                screen.draw_text(state.lock().get_device(id).unwrap(), text);
             }
-        }
 
-        2 => {
-            match button_id {
-                0 => {
-                    screen.clear_text(state.lock().get_device(id).unwrap());
-                    screen.draw_text(state.lock().get_device(id).unwrap(), "Test");
-                }
+            _ => unreachable!(),
+        },
 
-                // 2 => {
-                //     // Show feedback
-                //     let _ = state.lock().query(id, clear_text(screen.clone()));
-                //     let _ = state.lock().query(id, draw_text(screen.clone(), "Message sent"));
-
-                //     // Send Telegram message
-                //     send_tg_msg("QMK -> XAP -> TauriClient -> Telegram");
-                // },
-                _ => unreachable!(),
+        2 => match button_id {
+            0 => {
+                screen.clear_text(state.lock().get_device(id).unwrap());
+                screen.draw_text(state.lock().get_device(id).unwrap(), "Test");
             }
-        }
+
+            2 => {
+                screen.clear_text(state.lock().get_device(id).unwrap());
+                screen.draw_text(state.lock().get_device(id).unwrap(), "Message sent");
+
+                tg::text("QMK -> XAP -> TauriClient -> Telegram");
+            }
+
+            _ => unreachable!(),
+        },
 
         _ => unreachable!(),
     }

@@ -16,13 +16,15 @@ const FRAGMENT: &AsciiSet = &CONTROLS
     .add(b'<')
     .add(b'-');
 
-fn http_request(
+fn request(
     method: Method,
-    url: String,
+    url: impl Into<String>,
     headers: Option<HeaderMap>,
     payload: Option<HashMap<&str, String>>,
 ) -> Option<Map<String, Value>> {
     let _client = reqwest::blocking::Client::new();
+
+    let url = url.into();
 
     let mut client = match method {
         Method::GET => _client.get(&url),
