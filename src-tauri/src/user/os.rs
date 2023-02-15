@@ -1,10 +1,7 @@
 mod linux;
 mod windows;
 
-use crate::xap::hid::XAPClient;
 use log::warn;
-use parking_lot::Mutex;
-use std::sync::Arc;
 
 const OS: &str = std::env::consts::OS;
 

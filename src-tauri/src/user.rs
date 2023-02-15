@@ -4,16 +4,22 @@ mod http;
 mod os;
 mod spotify;
 
-use crate::{
-    xap::hid::{XAPClient, XAPDevice},
-    UserData,
-};
+use crate::xap::hid::{XAPClient, XAPDevice};
 use dotenvy::dotenv;
-use log::{info, warn};
+use log::{debug, info, warn};
 use parking_lot::Mutex;
 use std::sync::Arc;
 use uuid::Uuid;
 use xap_specs::protocol::{BroadcastRaw, UserBroadcast};
+
+// Custom data
+#[derive(Default)]
+pub struct UserData {
+    pub last_song: String,
+    pub connected: bool,
+    // up to 256/2 => 128 seconds timer
+    pub counter: u8,
+}
 
 // Hooks
 pub(crate) fn pre_init() {
@@ -51,9 +57,20 @@ pub(crate) fn broadcast_callback(broadcast: BroadcastRaw, id: Uuid, state: &Arc<
     gui::handle(state, &id, &msg);
 }
 
-pub(crate) fn housekeeping(state: &Arc<Mutex<XAPClient>>, user_data: &Arc<Mutex<UserData>>) {
-    match state.lock().get_devices().first() {
-        Some(&device) => spotify::album_cover(device, user_data),
-        None => warn!("No XAP device connected"),
+pub(crate) fn housekeeping(client: &XAPClient, user_data: &Arc<Mutex<UserData>>) {
+    let mut user_data = user_data.lock();
+
+    if !user_data.connected {
+        info!("No device connected, quitting");
+        user_data.last_song = String::new();
+        return;
+    }
+
+    // modulo to prevent overflow
+    user_data.counter = (user_data.counter + 1) % 255;
+
+    // Once every 10 seconds, ticks are 0.5s
+    if user_data.counter % 20 == 0 {
+        spotify::album_cover(client.get_devices()[0], &mut user_data);
     }
 }

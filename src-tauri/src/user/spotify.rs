@@ -1,16 +1,14 @@
 use crate::{user::gui::draw, xap::hid::XAPDevice, UserData};
-use image::{self, ImageBuffer, Rgb};
+use image;
 use log::{debug, error, info, warn};
-use parking_lot::lock_api::RawMutex;
-use parking_lot::Mutex;
 use reqwest;
 use rspotify::{
     model::{AdditionalType, Country, FullTrack, Market, PlayableItem},
     prelude::*,
     scopes, AuthCodeSpotify, Config, Credentials, OAuth, Token, DEFAULT_CACHE_PATH,
 };
-use std::sync::Arc;
 use xap_specs::protocol::painter::HSVColor;
+use core::slice::Iter;
 
 fn init() -> AuthCodeSpotify {
     let config = Config {
@@ -78,8 +76,23 @@ fn playing_track(spotify: &AuthCodeSpotify) -> Option<FullTrack> {
     }
 }
 
-pub fn album_cover(device: &XAPDevice, user_data: &Arc<Mutex<UserData>>) {
-    info!("album_cover: in");
+fn draw_img(device: &XAPDevice, buffer: &mut Iter<u8>, width: u16, height: u16) {
+    // iterate backwards due to how data is represented internally by `image`
+    for x in (0..width).rev() {
+        for y in 0..height {
+            // TODO: use `next_chunk` when available
+            let r = buffer.next().unwrap();
+            let g = buffer.next().unwrap();
+            let b = buffer.next().unwrap();
+
+            let color = HSVColor::from_rgb(*r, *g, *b);
+
+            draw::rect(device, 0, 2 * x, 2 * y, 2 * x + 1, 2 * y + 1, color, true);
+        }
+    }
+}
+
+pub(crate) fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     let token = match Token::from_cache(DEFAULT_CACHE_PATH) {
         Ok(t) => t,
         Err(_) => {
@@ -100,12 +113,12 @@ pub fn album_cover(device: &XAPDevice, user_data: &Arc<Mutex<UserData>>) {
 
     let song = track.name;
 
-    if user_data.lock().last_song == song {
+    if user_data.last_song == song {
         debug!("Same song, quitting");
         return;
-    } else {
-        user_data.lock().last_song = song;
     }
+
+    user_data.last_song = song;
 
     let artist = &track.artists.first().unwrap().name;
     let url = &track.album.images.last().unwrap().url;
@@ -113,7 +126,7 @@ pub fn album_cover(device: &XAPDevice, user_data: &Arc<Mutex<UserData>>) {
     let img_bytes = match reqwest::blocking::get(url) {
         Ok(response) => response.bytes().unwrap(),
         Err(_) => {
-            error!("Couldn't get image for url {}", url);
+            error!("Couldn't get image from url {}", url);
             return;
         }
     };
@@ -128,24 +141,5 @@ pub fn album_cover(device: &XAPDevice, user_data: &Arc<Mutex<UserData>>) {
         }
     };
 
-    info!("album_cover: loop");
-    for x in 0..buffer.width() {
-        for y in 0..buffer.height() {
-            let pixel = buffer.get_pixel(x, y);
-
-            let image::Rgb([r, g, b]) = pixel;
-
-            println!("Drawing {},{},{} at ({}, {})", r, g, b, x, y);
-
-            draw::pixel(
-                device,
-                0,
-                x as u16,
-                y as u16,
-                HSVColor::from_rgb(*r, *g, *b),
-            );
-        }
-    }
-
-    info!("album_cover: out");
+    draw_img(device, &mut buffer.iter(), buffer.width() as u16, buffer.height() as u16);
 }

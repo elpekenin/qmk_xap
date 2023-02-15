@@ -17,27 +17,32 @@ pub struct HSVColor {
 
 impl HSVColor {
     pub fn from_rgb(r: u8, g: u8, b: u8) -> Self {
-        let r2 = r / 255;
-        let g2 = g / 255;
-        let b2 = b / 255;
-        let c_max = max(max(r2, g2), b2);
-        let c_min = min(min(r2, g2), b2);
+        let c_max = max(max(r, g), b) as f32 / 255.0;
+        let c_min = min(min(r, g), b) as f32 / 255.0;
         let delta = c_max - c_min;
 
-        let hue = {
-            if c_max == r2 {
-                60 * (((g2 - b2) / delta) % 6)
+        let r2 = r as f32 / 255.0;
+        let g2 = g as f32 / 255.0;
+        let b2 = b as f32 / 255.0;
+
+        let h = {
+            if delta == 0.0 {
+                0
+            } else if c_max == r2 {
+                60 * ((((g2 - b2) / delta) as u8) % 6)
             } else if c_max == g2 {
-                60 * (((b2 - r2) / delta) + 2)
+                60 * ((((b2 - r2) / delta) as u8) + 2)
             } else {
-                60 * (((r2 - g2) / delta) + 4)
+                60 * ((((r2 - g2) / delta) as u8) + 4)
             }
         };
-        let sat = match c_max {
-            0 => 0,
-            _ => delta / c_max,
-        };
-        let val = c_max;
+        let s = if c_max == 0.0 { 0.0 } else { delta / c_max };
+        let v = c_max;
+
+        // scale to 255, 255, 255 range
+        let hue = (h as u16 * 255 / 360) as u8;
+        let sat = (s * 255.0) as u8;
+        let val = (v * 255.0) as u8;
 
         Self { hue, sat, val }
     }
@@ -47,7 +52,7 @@ impl HSVColor {
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
 pub struct PainterDevice {
-    pub screen_id: u8,
+    pub id: u8,
 }
 
 // ==============================

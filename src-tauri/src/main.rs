@@ -27,14 +27,10 @@ use tauri::{AppHandle, Manager, SystemTrayEvent};
 
 use commands::*;
 use events::{FrontendEvent, XAPEvent};
+use user::UserData;
 use xap::hid::XAPClient;
 use xap::ClientResult;
 use xap_specs::constants::XAPConstants;
-
-#[derive(Default)]
-pub struct UserData {
-    pub last_song: String,
-}
 
 fn shutdown_event_loop<R: Runtime>(sender: Sender<XAPEvent>) -> TauriPlugin<R> {
     Builder::new("event loop shutdown")
@@ -79,11 +75,13 @@ fn start_event_loop(
 
                                 app.emit_all("new-device", FrontendEvent::NewDevice{ device: device.as_dto() }).unwrap();
                                 user::on_device_connection(device);
+                                user_data.lock().connected = true;
                             }
                         },
                         Ok(XAPEvent::RemovedDevice(id)) => {
                             info!("removed device - notifying frontend!");
                             app.emit_all("removed-device", FrontendEvent::RemovedDevice{ id }).unwrap();
+                            user_data.lock().connected = false;
                         },
                         Ok(XAPEvent::AnnounceAllDevices) => {
                             let mut state = state.lock();
@@ -111,11 +109,14 @@ fn start_event_loop(
                 recv(ticker) -> msg => {
                     match msg {
                         Ok(_) => {
-                            if let Err(err) = state.lock().enumerate_xap_devices() {
+                            let mut state = state.lock();
+
+                            if let Err(err) = state.enumerate_xap_devices() {
                                 error!("failed to enumerate XAP devices: {err}");
-                            } else {
-                                user::housekeeping(&state, &user_data);
+                                return;
                             }
+
+                            user::housekeeping(&state, &user_data);
                         },
                         Err(err) => {
                             error!("failed receiving tick {err}");

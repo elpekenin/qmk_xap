@@ -78,7 +78,7 @@
             return;
         }
 
-        const painter_device: PainterDevice = {"dev": 0};
+        const painter_device: PainterDevice = { id: 0 };
         const geometry: PainterGeometry = await getGeometry(device.value.id, painter_device)
 
         canvas.style.width = `${geometry.width}px`;
@@ -282,7 +282,9 @@
         if (device?.value == null) {
                 return;
         }
-        await drawClear(device.value.id);
+
+        const painter_device: PainterDevice = { id: 0 };
+        await drawClear(device.value.id, painter_device);
     }
 </script>
 

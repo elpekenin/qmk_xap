@@ -7,20 +7,40 @@ import { PainterPixel } from '@bindings/PainterPixel'
 import { PainterRect } from '@bindings/PainterRect'
 import { PainterEllipse } from '@bindings/PainterEllipse';
 
-export async function drawClear(id: string, screen_id: PainterDevice) {
-    await queryDevice('painter_clear', id, dev)
+export async function drawClear(id: string, screen: PainterDevice) {
+    // clear command -- on some devices this does nothing
+    await queryDevice('painter_clear', id, screen)
+
+    // fill screen white
+    const geometry = await getGeometry(id, screen);
+    await drawRect(
+        id,
+        {
+            screen_id: screen.id,
+            left: 0,
+            top: 0,
+            right: geometry.width,
+            bottom: geometry.height,
+            color: {
+                hue: 0,
+                sat: 0,
+                val: 100
+            },
+            filled: 1
+        }
+    );
 }
 
 export async function drawPixel(id: string, pixel: PainterPixel) {
-    await queryDevice('painter_pixel', id, pixel)
+    await queryDevice('painter_pixel', id, pixel);
 }
 
 export async function drawLine(id: string, line: PainterLine) {
-    await queryDevice('painter_line', id, line)
+    await queryDevice('painter_line', id, line);
 }
 
 export async function drawRect(id: string, rect: PainterRect) {
-    await queryDevice('painter_rect', id, rect)
+    await queryDevice('painter_rect', id, rect);
 }
 
 export async function drawCircle(id: string, circle: PainterCircle) {
@@ -31,6 +51,6 @@ export async function drawEllipse(id: string, ellipse: PainterEllipse) {
     await queryDevice('painter_ellipse', id, ellipse);
 }
 
-export async function getGeometry(id: string, screen_id: PainterDevice): Promise<PainterGeometry> {
-    return await queryDevice('painter_geometry', id, dev);
+export async function getGeometry(id: string, screen: PainterDevice): Promise<PainterGeometry> {
+    return await queryDevice('painter_geometry', id, screen.id);
 }
