@@ -33,11 +33,15 @@ pub(crate) fn pre_init() {
     spotify::login();
 }
 
-pub(crate) fn on_device_connection(device: &XAPDevice) {
+pub(crate) fn new_device(device: &XAPDevice, user_data: &Arc<Mutex<UserData>>) {
     // Sleep is needed, so that screen is init'ed
     std::thread::sleep(std::time::Duration::from_millis(3000));
-
     gui::on_connect(device);
+    user_data.lock().connected = true;
+}
+
+pub(crate) fn removed_device(_id: &Uuid, user_data: &Arc<Mutex<UserData>>) {
+    user_data.lock().connected = false;
 }
 
 pub(crate) fn on_close(state: Arc<Mutex<XAPClient>>) {

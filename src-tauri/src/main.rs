@@ -74,14 +74,13 @@ fn start_event_loop(
                                 info!("detected new device - notifying frontend!");
 
                                 app.emit_all("new-device", FrontendEvent::NewDevice{ device: device.as_dto() }).unwrap();
-                                user::on_device_connection(device);
-                                user_data.lock().connected = true;
+                                user::new_device(device, &user_data);
                             }
                         },
                         Ok(XAPEvent::RemovedDevice(id)) => {
                             info!("removed device - notifying frontend!");
                             app.emit_all("removed-device", FrontendEvent::RemovedDevice{ id }).unwrap();
-                            user_data.lock().connected = false;
+                            user::removed_device(&id, &user_data);
                         },
                         Ok(XAPEvent::AnnounceAllDevices) => {
                             let mut state = state.lock();
