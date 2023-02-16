@@ -1,4 +1,5 @@
-use crate::{user::gui::draw, xap::hid::XAPDevice, UserData};
+use crate::{user::gui, xap::hid::XAPDevice, UserData};
+use core::slice::Iter;
 use image;
 use log::{debug, error, info, warn};
 use reqwest;
@@ -8,7 +9,6 @@ use rspotify::{
     scopes, AuthCodeSpotify, Config, Credentials, OAuth, Token, DEFAULT_CACHE_PATH,
 };
 use xap_specs::protocol::painter::HSVColor;
-use core::slice::Iter;
 
 fn init() -> AuthCodeSpotify {
     let config = Config {
@@ -76,22 +76,6 @@ fn playing_track(spotify: &AuthCodeSpotify) -> Option<FullTrack> {
     }
 }
 
-fn draw_img(device: &XAPDevice, buffer: &mut Iter<u8>, width: u16, height: u16) {
-    // iterate backwards due to how data is represented internally by `image`
-    for x in (0..width).rev() {
-        for y in 0..height {
-            // TODO: use `next_chunk` when available
-            let r = buffer.next().unwrap();
-            let g = buffer.next().unwrap();
-            let b = buffer.next().unwrap();
-
-            let color = HSVColor::from_rgb(*r, *g, *b);
-
-            draw::rect(device, 0, 2 * x, 2 * y, 2 * x + 1, 2 * y + 1, color, true);
-        }
-    }
-}
-
 pub(crate) fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     let token = match Token::from_cache(DEFAULT_CACHE_PATH) {
         Ok(t) => t,
@@ -118,9 +102,8 @@ pub(crate) fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
         return;
     }
 
-    user_data.last_song = song;
+    user_data.last_song = song.clone();
 
-    let artist = &track.artists.first().unwrap().name;
     let url = &track.album.images.last().unwrap().url;
 
     let img_bytes = match reqwest::blocking::get(url) {
@@ -141,5 +124,42 @@ pub(crate) fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
         }
     };
 
-    draw_img(device, &mut buffer.iter(), buffer.width() as u16, buffer.height() as u16);
+    for x in 0..buffer.width() as u16 {
+        for y in 0..buffer.height() as u16 {
+            let image::Rgb([r, g, b]) = buffer.get_pixel(x.into(), y.into());
+            gui::draw::rect(
+                device,
+                0,
+                2 * x,
+                2 * y,
+                2 * x + 1,
+                2 * y + 1,
+                HSVColor::from_rgb(*r, *g, *b),
+                true,
+            );
+        }
+    }
+
+    let artist = &track.artists.first().unwrap().name;
+
+    gui::draw::text_recolor(
+        device,
+        0,
+        0,
+        0,
+        0,
+        gui::HSV_BLACK,
+        gui::HSV_WHITE,
+        format!("{}", song),
+    );
+    gui::draw::text_recolor(
+        device,
+        0,
+        0,
+        gui::FONT_SIZE,
+        0,
+        gui::HSV_BLACK,
+        gui::HSV_WHITE,
+        format!("{}", artist),
+    );
 }

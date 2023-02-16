@@ -11,7 +11,7 @@ export async function drawClear(id: string, screen: PainterDevice) {
     // clear command -- on some devices this does nothing
     await queryDevice('painter_clear', id, screen)
 
-    // fill screen white
+    // fill screen black
     const geometry = await getGeometry(id, screen);
     await drawRect(
         id,
@@ -24,7 +24,7 @@ export async function drawClear(id: string, screen: PainterDevice) {
             color: {
                 hue: 0,
                 sat: 0,
-                val: 100
+                val: 0
             },
             filled: 1
         }
@@ -52,5 +52,5 @@ export async function drawEllipse(id: string, ellipse: PainterEllipse) {
 }
 
 export async function getGeometry(id: string, screen: PainterDevice): Promise<PainterGeometry> {
-    return await queryDevice('painter_geometry', id, screen.id);
+    return await queryDevice('painter_geometry', id, screen);
 }

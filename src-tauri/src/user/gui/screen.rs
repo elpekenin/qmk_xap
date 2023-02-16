@@ -1,7 +1,7 @@
 /// Screens contain information about their geometry and elements on them
 use crate::{
     user::{
-        gui::{draw, Button, Slider, SliderDirection, BG_COLOR, FG_COLOR},
+        gui::{self, draw, Button, Slider, SliderDirection},
         handlers,
     },
     xap::hid::{XAPClient, XAPDevice},
@@ -26,10 +26,10 @@ impl Screen {
             device,
             self.id,
             0,
-            self.height - 40,
+            self.height - gui::FONT_SIZE,
             0,
-            FG_COLOR,
-            BG_COLOR,
+            gui::FG_COLOR,
+            gui::BG_COLOR,
             text,
         );
     }
@@ -39,10 +39,10 @@ impl Screen {
             device,
             self.id,
             0,
-            self.height - 40,
+            self.height - gui::FONT_SIZE,
             self.width,
             self.height,
-            BG_COLOR,
+            gui::BG_COLOR,
             true,
         );
     }

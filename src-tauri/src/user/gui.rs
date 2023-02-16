@@ -17,14 +17,15 @@ use xap_specs::protocol::{painter::HSVColor, UserBroadcast};
 
 // Assets size
 pub const IMAGE_SIZE: u16 = 48;
+pub const FONT_SIZE: u16 = 15;
 
 // Color definitions
-const HSV_WHITE: HSVColor = HSVColor {
+pub const HSV_WHITE: HSVColor = HSVColor {
     hue: 0,
     sat: 0,
     val: 255,
 };
-const HSV_BLACK: HSVColor = HSVColor {
+pub const HSV_BLACK: HSVColor = HSVColor {
     hue: 0,
     sat: 0,
     val: 0,

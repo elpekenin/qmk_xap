@@ -69,8 +69,8 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &Arc<Mutex<UserData>>)
     // modulo to prevent overflow
     user_data.counter = (user_data.counter + 1) % 255;
 
-    // Once every 10 seconds, ticks are 0.5s
-    if user_data.counter % 20 == 0 {
+    // ticks are 0.5s
+    if user_data.counter % 10 == 0 {
         spotify::album_cover(client.get_devices()[0], &mut user_data);
     }
 }
