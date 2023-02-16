@@ -1,3 +1,20 @@
+# Extras on my fork
+
+- Quantum Painter functionality, with a Microsoft's Paint-like canvas for testing every drawing primitive
+- Some abstractions to control screens from the computer -> `Button`, `Screen` and `Slider` classes, with their own logic.
+- Pressing the "X" button at the top-right doesn't close the client, but goes into background with a systray icon.
+- Hooks to run custom logic on
+    - Startup
+    - Upon receiving a XAP user-level broadcast message
+    - Housekeeping (called every 0.5 seconds)
+    - Device connected
+    - Device disconnected
+    - App (gracefully) closed
+  
+The `UserData` struct can be used to share some info between different hooks (or between calls to the same one)
+
+---
+
 # QMK XAP Client
 
 This repository contains the an experimental Client for the QMK Firmware [XAP protocol](https://github.com/qmk/qmk_firmware/pull/13733). It is build using the following base technologies:
@@ -172,17 +189,3 @@ pub struct RGBMatrixConfig {
 
 -   Leverage code generation as much as possible
 -   The XAP protocol, client and device implementation can be compiled to WebAssembly and leverage [web_sys](`https://docs.rs/web-sys/latest/web_sys/struct.Usb.html`) crate for WebHID compatibility. This could allow a WebApp without Tauri from the same codebase in the Future(tm).
-
-## Extras on my fork
-
-- Quantum Painter functionality, with a Microsoft's Paint-like canvas for testing every drawing primitive
-- Some abstractions to control screens from the computer -> `Button`, `Screen` and `Slider` classes, with their own logic.
-- Pressing the "X" button at the top-right doesn't close the client, but goes into background with a systray icon.
-- Hooks to run custom logic on
-    - Startup
-    - Upon receiving a XAP user-level broadcast message
-    - Housekeeping (called every 0.5 seconds)
-    - Device connected
-    - Device disconnected
-    - App (gracefully) closed
-The `UserData` struct can be used to share some info between different hooks (or between calls to the same one)
