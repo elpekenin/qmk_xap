@@ -22,7 +22,7 @@ use xap_specs::{
     protocol::{
         keymap::{
             KeyCode, KeyPosition, KeymapCapabilities, KeymapCapabilitiesQuery, KeymapKeycodeQuery,
-            KeymapLayerCountQuery,
+            KeymapLayerCountQuery, KeyLocation,
         },
         lighting::{
             BacklightCapabilities, BacklightCapabilitiesQuery, BacklightEffectsQuery,
@@ -129,6 +129,29 @@ impl XAPDevice {
 
     pub fn keymap(&self) -> Vec<Vec<Vec<XAPKeyCodeConfig>>> {
         self.state.read().keymap.clone()
+    }
+
+    pub fn xy_from_rowcol(&self, row: u8, col: u8) -> Option<KeyLocation> {
+        let json: Map<String, Value> = serde_json::from_str(self.xap_info().qmk.config.as_str()).ok()?;
+
+        // TODO: Dynamic layout name
+        let layout_info = json.get("layouts")?.get("LAYOUT")?.get("layout")?.as_array()?;
+
+        let Some(key) = layout_info.iter().find(|&key| {
+            let matrix = key.get("matrix").unwrap().as_array().unwrap();
+            matrix[0] == row && matrix[1] == col
+        }) else {
+            info!("There's no key at matrix ({row}, {col})");
+            return None;
+        };
+
+        let x = key.get("x")?.as_u64()? as u8;
+        let y = key.get("y")?.as_u64()? as u8;
+
+        info!("matrix ({row}, {col}) -> position ({x}, {y})");
+
+        Some(KeyLocation { x, y })
+
     }
 
     pub fn as_dto(&self) -> XAPDeviceDto {

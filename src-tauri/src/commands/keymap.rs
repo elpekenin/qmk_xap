@@ -7,7 +7,7 @@ use uuid::Uuid;
 use xap_specs::{
     constants::keycode::XAPKeyCodeConfig,
     protocol::keymap::{
-        EncoderPosition, KeyCode, KeyPosition, KeymapEncoderQuery, KeymapKeycodeQuery,
+        EncoderPosition, KeyCode, KeyLocation, KeyPosition, KeymapEncoderQuery, KeymapKeycodeQuery,
     },
 };
 
@@ -37,4 +37,14 @@ pub(crate) async fn keymap_get(
     state: State<'_, Arc<Mutex<XAPClient>>>,
 ) -> ClientResult<Vec<Vec<Vec<XAPKeyCodeConfig>>>> {
     Ok(state.lock().get_device(&id)?.keymap())
+}
+
+#[tauri::command]
+pub(crate) async fn get_xy_from_rowcol(
+    id: Uuid,
+    state: State<'_, Arc<Mutex<XAPClient>>>,
+    row: u8,
+    col: u8
+) -> ClientResult<Option<KeyLocation>> {
+    Ok(state.lock().get_device(&id)?.xy_from_rowcol(row, col))
 }

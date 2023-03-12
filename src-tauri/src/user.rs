@@ -36,6 +36,9 @@ pub(crate) fn pre_init() {
 pub(crate) fn new_device(device: &XAPDevice, user_data: &Arc<Mutex<UserData>>) {
     // Sleep is needed, so that screen is init'ed
     std::thread::sleep(std::time::Duration::from_millis(3000));
+    device.xy_from_rowcol(0, 0);
+    device.xy_from_rowcol(0, 2);
+    device.xy_from_rowcol(5, 1);
     gui::on_connect(device);
     user_data.lock().connected = true;
 }

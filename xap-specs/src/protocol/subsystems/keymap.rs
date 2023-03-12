@@ -60,6 +60,14 @@ pub struct KeyPosition {
     pub col: u8,
 }
 
+#[derive(BinWrite, Debug, Default, Clone, TS, Serialize, Deserialize)]
+#[ts(export)]
+#[ts(export_to = "../bindings/")]
+pub struct KeyLocation {
+    pub x: u8,
+    pub y: u8,
+}
+
 #[derive(BinWrite, Debug)]
 pub struct KeymapKeycodeQuery(pub KeyPosition);
 
