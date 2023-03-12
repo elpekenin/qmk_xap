@@ -16,7 +16,7 @@ pub enum Token {
 }
 
 impl Token {
-    pub(crate) fn regular_token() -> Token {
+    pub(crate) fn regular_token() -> Self {
         Self::WithResponse(Uniform::from(0x0100..=0xFFFD).sample(&mut rand::thread_rng()))
     }
 }
@@ -32,9 +32,9 @@ impl BinRead for Token {
         let raw: u16 = reader.read_le()?;
 
         match raw {
-            0x0100..=0xFFFD => Ok(Token::WithResponse(raw)),
-            0xFFFE => Ok(Token::WithoutResponse),
-            0xFFFF => Ok(Token::Broadcast),
+            0x0100..=0xFFFD => Ok(Self::WithResponse(raw)),
+            0xFFFE => Ok(Self::WithoutResponse),
+            0xFFFF => Ok(Self::Broadcast),
             _ => Err(binrw::Error::Custom {
                 pos: 0,
                 err: Box::new(anyhow!("XAP token has invalid value of {}", raw)),

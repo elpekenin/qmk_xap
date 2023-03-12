@@ -1,6 +1,6 @@
 use std::cmp::{max, min};
 
-use binrw::*;
+use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -16,14 +16,14 @@ pub struct HSVColor {
 }
 
 impl HSVColor {
-    pub fn from_rgb(r: u8, g: u8, b: u8) -> Self {
-        let c_max = max(max(r, g), b) as f32 / 255.0;
-        let c_min = min(min(r, g), b) as f32 / 255.0;
+    #[must_use] pub fn from_rgb(r: u8, g: u8, b: u8) -> Self {
+        let c_max = f32::from(max(max(r, g), b)) / 255.0;
+        let c_min = f32::from(min(min(r, g), b)) / 255.0;
         let delta = c_max - c_min;
 
-        let r2 = r as f32 / 255.0;
-        let g2 = g as f32 / 255.0;
-        let b2 = b as f32 / 255.0;
+        let r2 = f32::from(r) / 255.0;
+        let g2 = f32::from(g) / 255.0;
+        let b2 = f32::from(b) / 255.0;
 
         let h = {
             if delta == 0.0 {
@@ -40,7 +40,7 @@ impl HSVColor {
         let v = c_max;
 
         // scale to 255, 255, 255 range
-        let hue = (h as u16 * 255 / 360) as u8;
+        let hue = (u16::from(h) * 255 / 360) as u8;
         let sat = (s * 255.0) as u8;
         let val = (v * 255.0) as u8;
 

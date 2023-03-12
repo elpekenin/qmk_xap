@@ -1,4 +1,4 @@
-use binrw::*;
+use binrw::{BinRead, BinWrite, binread};
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
@@ -35,7 +35,7 @@ impl XAPRequest for RGBMatrixCapabilitiesQuery {
 pub struct RGBMatrixEffects(u64);
 
 impl RGBMatrixEffects {
-    pub fn enabled_effect_list(&self) -> Vec<u8> {
+    #[must_use] pub fn enabled_effect_list(&self) -> Vec<u8> {
         let mut effects = Vec::with_capacity(64);
 
         let bits = self.0;

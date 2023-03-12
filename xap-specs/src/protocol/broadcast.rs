@@ -31,7 +31,7 @@ pub struct BroadcastRaw {
 }
 
 impl BroadcastRaw {
-    pub fn broadcast_type(&self) -> &BroadcastType {
+    #[must_use] pub fn broadcast_type(&self) -> &BroadcastType {
         &self.broadcast_type
     }
 

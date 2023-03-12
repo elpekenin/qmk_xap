@@ -10,7 +10,7 @@ pub trait XAPRequest: Sized + Debug + BinWrite<Args = ()> {
 
     fn id() -> &'static [u8];
 
-    fn is_secure() -> bool {
+    #[must_use] fn is_secure() -> bool {
         false
     }
 }

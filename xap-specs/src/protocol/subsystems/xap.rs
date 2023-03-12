@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use binrw::*;
+use binrw::{BinRead, BinReaderExt, BinResult, BinWrite, ReadOptions, binread};
 use bitflags::bitflags;
 use serde::Serialize;
 use ts_rs::TS;
@@ -110,9 +110,9 @@ impl BinRead for XAPSecureStatus {
 impl Display for XAPSecureStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            XAPSecureStatus::Locked => write!(f, "Locked"),
-            XAPSecureStatus::Unlocking => write!(f, "Unlocking"),
-            XAPSecureStatus::Unlocked => write!(f, "Unlocked"),
+            Self::Locked => write!(f, "Locked"),
+            Self::Unlocking => write!(f, "Unlocking"),
+            Self::Unlocked => write!(f, "Unlocked"),
         }
     }
 }

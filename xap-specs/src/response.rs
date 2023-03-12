@@ -33,7 +33,7 @@ pub struct RawResponse {
 impl RawResponse {
     pub fn from_raw_report(report: &[u8]) -> XAPResult<Self> {
         let mut reader = Cursor::new(report);
-        let response = RawResponse::read_le(&mut reader)?;
+        let response = Self::read_le(&mut reader)?;
 
         trace!("received raw XAP response: {:#?}", response);
 
@@ -46,11 +46,11 @@ impl RawResponse {
         Ok(response)
     }
 
-    pub fn token(&self) -> &Token {
+    #[must_use] pub fn token(&self) -> &Token {
         &self.token
     }
 
-    pub fn payload(&self) -> &[u8] {
+    #[must_use] pub fn payload(&self) -> &[u8] {
         &self.payload
     }
 
@@ -82,9 +82,9 @@ impl BinRead for UTF8StringResponse {
 #[derive(BinRead, Debug)]
 pub struct SecureActionResponse(u8);
 
-impl Into<XAPResult<()>> for SecureActionResponse {
-    fn into(self) -> XAPResult<()> {
-        if self.0 == 0 {
+impl From<SecureActionResponse> for XAPResult<()> {
+    fn from(val: SecureActionResponse) -> Self {
+        if val.0 == 0 {
             Err(XAPError::SecureLocked)
         } else {
             Ok(())
