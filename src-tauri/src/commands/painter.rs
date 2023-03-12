@@ -5,9 +5,9 @@ use tauri::State;
 use uuid::Uuid;
 
 use xap_specs::protocol::painter::{
-    PainterCircle, PainterDevice, PainterDrawCircle, PainterDrawClear, PainterDrawEllipse,
-    PainterDrawLine, PainterDrawPixel, PainterDrawRect, PainterDrawText, PainterEllipse,
-    PainterGeometry, PainterGetGeometry, PainterLine, PainterPixel, PainterRect, PainterText,
+    PainterCircle, PainterDrawCircle, PainterDrawClear, PainterDrawEllipse, PainterDrawLine,
+    PainterDrawPixel, PainterDrawRect, PainterDrawText, PainterEllipse, PainterGeometry,
+    PainterGetGeometry, PainterLine, PainterPixel, PainterRect, PainterText,
 };
 
 use crate::xap::{hid::XAPClient, ClientResult};
@@ -15,7 +15,7 @@ use crate::xap::{hid::XAPClient, ClientResult};
 #[tauri::command]
 pub(crate) async fn painter_clear(
     id: Uuid,
-    arg: PainterDevice,
+    arg: u8,
     state: State<'_, Arc<Mutex<XAPClient>>>,
 ) -> ClientResult<()> {
     state.lock().query(id, PainterDrawClear(arg))
@@ -78,7 +78,7 @@ pub(crate) async fn painter_text(
 #[tauri::command]
 pub(crate) async fn painter_geometry(
     id: Uuid,
-    arg: PainterDevice,
+    arg: u8,
     state: State<'_, Arc<Mutex<XAPClient>>>,
 ) -> ClientResult<PainterGeometry> {
     state.lock().query(id, PainterGetGeometry(arg))

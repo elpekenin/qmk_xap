@@ -45,33 +45,30 @@ static SCREENS: Lazy<Vec<Screen>> = Lazy::new(|| {
             buttons: vec![],
             sliders: vec![],
         },
-        // // ILI9341
-        // Screen {
-        //     width: 240,
-        //     height: 320,
-        //     id: 1,
-        //     buttons: vec![
-        //         Button {
-        //             x: 50,
-        //             y: 50,
-        //             img: 0,
-        //         }
-        //     ],
-        //     sliders: vec![
-        //         // Slider {
-        //         //     direction: SliderDirection::Horizontal,
-        //         //     start: 270,
-        //         //     size: 50,
-        //         //     x: 50,
-        //         //     y: 120,
-        //         //     img_map: HashMap::from([
-        //         //         ("0", 0),
-        //         //         ("1", 1),
-        //         //     ]),
-        //         // }
-        //     ],
-        // },
-
+        // ILI9341
+        Screen {
+            width: 240,
+            height: 320,
+            id: 1,
+            buttons: vec![Button {
+                x: 50,
+                y: 50,
+                img: 0,
+            }],
+            sliders: vec![
+                // Slider {
+                //     direction: SliderDirection::Horizontal,
+                //     start: 270,
+                //     size: 50,
+                //     x: 50,
+                //     y: 120,
+                //     img_map: HashMap::from([
+                //         ("0", 0),
+                //         ("1", 1),
+                //     ]),
+                // }
+            ],
+        },
         // // ILI9486
         // Screen {
         //     width: 480,

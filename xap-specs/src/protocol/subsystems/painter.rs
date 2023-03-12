@@ -48,17 +48,10 @@ impl HSVColor {
     }
 }
 
-#[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
-#[ts(export)]
-#[ts(export_to = "../bindings/")]
-pub struct PainterDevice {
-    pub id: u8,
-}
-
 // ==============================
 // 0x3 0x2 0x1
 #[derive(BinWrite, Debug)]
-pub struct PainterDrawClear(pub PainterDevice);
+pub struct PainterDrawClear(pub u8);
 
 impl XAPRequest for PainterDrawClear {
     type Response = ();
@@ -354,12 +347,70 @@ pub struct PainterGeometry {
 }
 
 #[derive(BinWrite, Debug)]
-pub struct PainterGetGeometry(pub PainterDevice);
+pub struct PainterGetGeometry(pub u8);
 
 impl XAPRequest for PainterGetGeometry {
     type Response = PainterGeometry;
 
     fn id() -> &'static [u8] {
         &[0x3, 0x2, 0xD]
+    }
+}
+
+// ==============================
+// 0x3 0x2 0xF
+#[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
+#[ts(export)]
+#[ts(export_to = "../bindings/")]
+pub struct PainterViewport {
+    pub screen_id: u8,
+    pub left: u16,
+    pub top: u16,
+    pub right: u16,
+    pub bottom: u16,
+}
+
+#[derive(BinWrite, Debug)]
+pub struct PainterSetViewport(pub PainterViewport);
+
+impl XAPRequest for PainterSetViewport {
+    type Response = ();
+
+    fn id() -> &'static [u8] {
+        &[0x3, 0x2, 0xF]
+    }
+}
+
+// ==============================
+// 0x3 0x2 0x10
+#[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
+#[ts(export)]
+#[ts(export_to = "../bindings/")]
+pub struct PainterPixdata {
+    pub screen_id: u8,
+    pub pixels: Vec<u8>,
+}
+
+#[derive(BinWrite, Debug)]
+pub struct PainterDrawPixdata(pub PainterPixdata);
+
+impl XAPRequest for PainterDrawPixdata {
+    type Response = ();
+
+    fn id() -> &'static [u8] {
+        &[0x3, 0x2, 0x10]
+    }
+}
+
+// ==============================
+// 0x3 0x2 0x11
+#[derive(BinWrite, Debug)]
+pub struct PainterSurfaceDrawText(pub PainterText);
+
+impl XAPRequest for PainterSurfaceDrawText {
+    type Response = ();
+
+    fn id() -> &'static [u8] {
+        &[0x3, 0x2, 0x11]
     }
 }

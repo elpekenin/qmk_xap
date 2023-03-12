@@ -34,22 +34,21 @@ pub struct XAPDeviceInfo {
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
 pub struct FeaturesInfo {
-    pub audio: bool,
-    pub backlight: bool,
-    pub bootmagic: bool,
-    pub console: bool,
-    pub deferred_exec: bool,
-    pub encoder: bool,
-    pub extrakey: bool,
-    pub mousekey: bool,
-    pub nkro: bool,
-    pub quantum_painter: bool,
-    // pub quantum_painter_animations: bool,
-    pub rgb_matrix: bool,
-    pub unicode: bool,
-    pub usbpd: bool,
-    pub wpm: bool,
-    pub xap: bool,
+    pub audio: Option<bool>,
+    pub backlight: Option<bool>,
+    pub bootmagic: Option<bool>,
+    pub console: Option<bool>,
+    pub encoder: Option<bool>,
+    pub extrakey: Option<bool>,
+    pub mousekey: Option<bool>,
+    pub nkro: Option<bool>,
+    pub quantum_painter: Option<bool>,
+    pub rgb_matrix: Option<bool>,
+    pub tap_dance: Option<bool>,
+    pub unicode: Option<bool>,
+    pub usbpd: Option<bool>,
+    pub wpm: Option<bool>,
+    pub xap: Option<bool>,
 }
 
 #[derive(Debug, Serialize, TS, Clone)]

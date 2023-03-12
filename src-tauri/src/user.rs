@@ -6,7 +6,7 @@ mod spotify;
 
 use crate::xap::hid::{XAPClient, XAPDevice};
 use dotenvy::dotenv;
-use log::{debug, info, warn};
+use log::{debug, info, trace, warn};
 use parking_lot::Mutex;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -65,7 +65,7 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &Arc<Mutex<UserData>>)
     let mut user_data = user_data.lock();
 
     if !user_data.connected {
-        info!("No device connected, quitting");
+        trace!("housekeeping: no device connected, quitting");
         user_data.last_song = String::new();
         return;
     }

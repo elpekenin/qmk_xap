@@ -1,8 +1,8 @@
 use crate::xap::hid::XAPDevice;
-use xap_specs::protocol::painter::{
-    HSVColor, PainterDrawImage, PainterDrawImageRecolor, PainterDrawPixel, PainterDrawRect,
-    PainterDrawTextRecolor, PainterImage, PainterImageRecolor, PainterPixel, PainterRect,
-    PainterTextRecolor,
+use log::info;
+use xap_specs::{
+    protocol::painter::*,
+    request::XAPRequest,
 };
 
 pub fn image(device: &XAPDevice, screen_id: u8, x: u16, y: u16, img: u8) {
@@ -105,6 +105,27 @@ pub fn text_recolor(
     }));
 }
 
+pub fn surface_text(
+    device: &XAPDevice,
+    screen_id: u8,
+    x: u16,
+    y: u16,
+    font: u8,
+    text: impl Into<Vec<u8>>,
+) {
+    let input = String::from_utf8(text.into()).unwrap();
+    let normalized = normalize_string(input);
+    let text = normalized.as_bytes().to_vec();
+
+    let _ = device.query(PainterSurfaceDrawText(PainterText {
+        screen_id,
+        x,
+        y,
+        font,
+        text,
+    }));
+}
+
 pub fn rect(
     device: &XAPDevice,
     screen_id: u8,
@@ -134,4 +155,23 @@ pub fn pixel(device: &XAPDevice, screen_id: u8, x: u16, y: u16, color: HSVColor)
         y,
         color,
     }));
+}
+
+pub fn geometry(device: &XAPDevice, screen_id: u8) -> PainterGeometry {
+    device.query(PainterGetGeometry(screen_id)).unwrap()
+}
+
+pub fn viewport(device: &XAPDevice, screen_id: u8, left: u16, top: u16, right: u16, bottom: u16) {
+    let _ = device.query(PainterSetViewport(PainterViewport {
+        screen_id,
+        left,
+        top,
+        right,
+        bottom,
+    }));
+}
+
+pub fn pixdata(device: &XAPDevice, screen_id: u8, pixels: impl Into<Vec<u8>>) {
+    let pixels = pixels.into();
+    let _ = device.query(PainterDrawPixdata(PainterPixdata { screen_id, pixels }));
 }

@@ -1,13 +1,12 @@
 import { queryDevice } from '@/commands/core'
 import { PainterCircle } from '@bindings/PainterCircle';
-import { PainterDevice } from '@bindings/PainterDevice';
 import { PainterGeometry } from '@bindings/PainterGeometry';
 import { PainterLine } from '@bindings/PainterLine'
 import { PainterPixel } from '@bindings/PainterPixel'
 import { PainterRect } from '@bindings/PainterRect'
 import { PainterEllipse } from '@bindings/PainterEllipse';
 
-export async function drawClear(id: string, screen: PainterDevice) {
+export async function drawClear(id: string, screen: number) {
     // clear command -- on some devices this does nothing
     await queryDevice('painter_clear', id, screen)
 
@@ -16,7 +15,7 @@ export async function drawClear(id: string, screen: PainterDevice) {
     await drawRect(
         id,
         {
-            screen_id: screen.id,
+            screen_id: screen,
             left: 0,
             top: 0,
             right: geometry.width,
@@ -51,6 +50,6 @@ export async function drawEllipse(id: string, ellipse: PainterEllipse) {
     await queryDevice('painter_ellipse', id, ellipse);
 }
 
-export async function getGeometry(id: string, screen: PainterDevice): Promise<PainterGeometry> {
+export async function getGeometry(id: string, screen: number): Promise<PainterGeometry> {
     return await queryDevice('painter_geometry', id, screen);
 }

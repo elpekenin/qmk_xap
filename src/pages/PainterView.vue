@@ -7,7 +7,6 @@
     import ColorPicker from '@radial-color-picker/vue-color-picker'
 
     import { HSVColor } from '@bindings/HSVColor'
-    import { PainterDevice } from '@bindings/PainterDevice'
     import { PainterGeometry } from '@bindings/PainterGeometry'
     import { useXAPDeviceStore } from '@/stores/devices'
     import { drawClear, drawCircle, drawLine, drawPixel, drawRect, drawEllipse, getGeometry } from '@/commands/painter'
@@ -78,8 +77,7 @@
             return;
         }
 
-        const painter_device: PainterDevice = { id: 0 };
-        const geometry: PainterGeometry = await getGeometry(device.value.id, painter_device)
+        const geometry: PainterGeometry = await getGeometry(device.value.id, 0)
 
         canvas.style.width = `${geometry.width}px`;
         canvas.style.height = `${geometry.height}px`;
@@ -283,8 +281,7 @@
                 return;
         }
 
-        const painter_device: PainterDevice = { id: 0 };
-        await drawClear(device.value.id, painter_device);
+        await drawClear(device.value.id, 0);
     }
 </script>
 
