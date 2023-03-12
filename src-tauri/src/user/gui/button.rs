@@ -13,7 +13,7 @@ pub struct Button {
 
 impl Button {
     pub const TOLERANCE: u16 = 30;
-    pub const SIZE: u16 = IMAGE_SIZE + 2 * Button::TOLERANCE;
+    pub const SIZE: u16 = IMAGE_SIZE + 2 * Self::TOLERANCE;
 
     pub fn draw(&self, device: &XAPDevice, screen: &Screen, pressed: bool) {
         draw::image_recolor(

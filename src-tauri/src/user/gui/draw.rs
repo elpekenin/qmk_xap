@@ -1,9 +1,6 @@
 use crate::xap::hid::XAPDevice;
 use log::info;
-use xap_specs::{
-    protocol::painter::*,
-    request::XAPRequest,
-};
+use xap_specs::{protocol::painter::*, request::XAPRequest};
 
 pub fn image(device: &XAPDevice, screen_id: u8, x: u16, y: u16, img: u8) {
     let _ = device.query(PainterDrawImage(PainterImage {
@@ -33,8 +30,8 @@ pub fn image_recolor(
     }));
 }
 
-fn normalize_string(input: String) -> String {
-    let mut text = input.clone();
+fn normalize_string(input: &str) -> String {
+    let mut text = input.to_string();
 
     text = text.replace('á', "a");
     text = text.replace('ä', "a");
@@ -72,12 +69,12 @@ fn normalize_string(input: String) -> String {
     text = text.replace('Ù', "U");
 
     text = text.replace('ñ', "n");
-    text = text.replace('N', "N");
+    text = text.replace('Ñ', "N");
 
     text = text.replace('ç', "c");
     text = text.replace('Ç', "C");
 
-    text.to_owned()
+    text
 }
 
 pub fn text_recolor(
@@ -91,7 +88,7 @@ pub fn text_recolor(
     text: impl Into<Vec<u8>>,
 ) {
     let input = String::from_utf8(text.into()).unwrap();
-    let normalized = normalize_string(input);
+    let normalized = normalize_string(&input);
     let text = normalized.as_bytes().to_vec();
 
     let _ = device.query(PainterDrawTextRecolor(PainterTextRecolor {
@@ -114,7 +111,7 @@ pub fn surface_text(
     text: impl Into<Vec<u8>>,
 ) {
     let input = String::from_utf8(text.into()).unwrap();
-    let normalized = normalize_string(input);
+    let normalized = normalize_string(&input);
     let text = normalized.as_bytes().to_vec();
 
     let _ = device.query(PainterSurfaceDrawText(PainterText {

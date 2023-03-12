@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use binrw::{BinRead, BinWrite, binread};
+use binrw::{binread, BinRead, BinWrite};
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;

@@ -35,20 +35,20 @@ pub fn login() {
 }
 
 fn refresh_token(token: Token) -> AuthCodeSpotify {
-    match token.is_expired() {
-        true => {
-            let spotify = init();
+    if token.is_expired() {
+        let spotify = init();
 
-            *spotify.token.lock().unwrap() = Some(token);
+        *spotify.token.lock().unwrap() = Some(token);
 
-            match spotify.refresh_token() {
-                Err(e) => error!("Failed to refresh token {}", e),
-                Ok(_) => debug!("Refreshed token succesfully"),
-            }
-
-            spotify
+        if let Err(e) = spotify.refresh_token() {
+            error!("Failed to refresh token {e}");
+        } else {
+            debug!("Refreshed token succesfully");
         }
-        false => AuthCodeSpotify::from_token(token),
+
+        spotify
+    } else {
+        AuthCodeSpotify::from_token(token)
     }
 }
 
@@ -60,18 +60,16 @@ fn playing_track(spotify: &AuthCodeSpotify) -> Option<FullTrack> {
         .current_playing(Some(market), Some(&additional_types))
         .unwrap();
 
-    let playing_item = match playing_context {
-        Some(context) => match context.item {
-            Some(item) => item,
-            None => {
-                debug!("Couldn't get item from context");
-                return None;
-            }
-        },
-        None => {
-            debug!("Not listening to music");
+    let playing_item = if let Some(context) = playing_context {
+        if let Some(item) = context.item {
+            item
+        } else {
+            debug!("Couldn't get item from context");
             return None;
         }
+    } else {
+        debug!("Not listening to music");
+        return None;
     };
 
     match playing_item {
@@ -80,23 +78,17 @@ fn playing_track(spotify: &AuthCodeSpotify) -> Option<FullTrack> {
     }
 }
 
-pub(crate) fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
-    let token = match Token::from_cache(DEFAULT_CACHE_PATH) {
-        Ok(t) => t,
-        Err(_) => {
-            error!("Can't get token from cache");
-            return;
-        }
+pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
+    let Ok(token) = Token::from_cache(DEFAULT_CACHE_PATH) else {
+        error!("Can't get token from cache");
+        return;
     };
 
     let spotify = refresh_token(token);
 
-    let track = match playing_track(&spotify) {
-        Some(track) => track,
-        None => {
-            debug!("No functionality implemented for podcasts");
-            return;
-        }
+    let Some(track) = playing_track(&spotify) else {
+        debug!("No functionality implemented for podcasts");
+        return;
     };
 
     let song = track.name;
@@ -111,12 +103,11 @@ pub(crate) fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     let url = &track.album.images.last().unwrap().url;
     // let url = "https://elpekenin.dev/static/test.png";
 
-    let img_bytes = match reqwest::blocking::get(url) {
-        Ok(response) => response.bytes().unwrap(),
-        Err(_) => {
-            error!("Couldn't get image from url {}", url);
-            return;
-        }
+    let img_bytes = if let Ok(response) = reqwest::blocking::get(url) {
+        response.bytes().unwrap()
+    } else {
+        error!("Couldn't get image from url {}", url);
+        return;
     };
 
     let target = 0;
@@ -138,8 +129,8 @@ pub(crate) fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     let image = image::load_from_memory(&img_bytes)
         .unwrap()
         .resize(
-            geometry.width as u32,
-            geometry.height as u32,
+            u32::from(geometry.width),
+            u32::from(geometry.height),
             image::imageops::FilterType::Nearest,
         )
         .to_rgb8();
@@ -171,20 +162,6 @@ pub(crate) fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
 
     let artist = &track.artists.first().unwrap().name;
 
-    gui::draw::surface_text(
-        device,
-        0,
-        0,
-        0,
-        0,
-        format!("{}", song),
-    );
-    gui::draw::surface_text(
-        device,
-        0,
-        0,
-        gui::FONT_SIZE,
-        0,
-        format!("{}", artist),
-    );
+    gui::draw::surface_text(device, 0, 0, 0, 0, song.as_bytes());
+    gui::draw::surface_text(device, 0, 0, gui::FONT_SIZE, 0, artist.as_bytes());
 }

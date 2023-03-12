@@ -111,7 +111,7 @@ impl XAPDevice {
         Ok(device)
     }
 
-    pub fn id(&self) -> Uuid {
+    pub const fn id(&self) -> Uuid {
         self.id
     }
 
@@ -206,9 +206,7 @@ impl XAPDevice {
             }
         };
 
-        response
-            .into_xap_response::<T>()
-            .map_err(ClientError::from)
+        response.into_xap_response::<T>().map_err(ClientError::from)
     }
 
     pub fn query_secure_status(&self) -> ClientResult<XAPSecureStatus> {

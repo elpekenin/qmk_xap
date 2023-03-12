@@ -47,20 +47,19 @@ impl XAPClient {
     where
         F: FnOnce(&XAPDevice) -> ClientResult<T>,
     {
-        match self.devices.get(&id) {
-            Some(device) => action(device),
-            None => Err(ClientError::UnknownDevice(id)),
-        }
+        self.devices
+            .get(&id)
+            .map_or_else(|| Err(ClientError::UnknownDevice(id)), action)
     }
 
     pub fn query<T>(&self, id: Uuid, request: T) -> ClientResult<T::Response>
     where
         T: XAPRequest,
     {
-        match self.devices.get(&id) {
-            Some(device) => device.query(request),
-            None => Err(ClientError::UnknownDevice(id)),
-        }
+        self.devices.get(&id).map_or_else(
+            || Err(ClientError::UnknownDevice(id)),
+            |device| device.query(request),
+        )
     }
 
     pub fn xap_constants(&self) -> XAPConstants {

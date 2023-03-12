@@ -21,7 +21,7 @@ pub(crate) fn slider(
     match screen.id {
         1 => match slider_id {
             0 => {
-                let intensity = (coord * 2 / 241) as u16;
+                let intensity = coord * 2 / 241;
                 slider.draw(state.lock().get_device(id).unwrap(), screen, intensity);
                 ha::set_light_intensity(intensity);
             }
@@ -31,7 +31,7 @@ pub(crate) fn slider(
 
         2 => match slider_id {
             0 => {
-                let intensity = 5 - (coord * 6 / 321) as u16;
+                let intensity = 5 - (coord * 6 / 321);
                 slider.draw(state.lock().get_device(id).unwrap(), screen, intensity);
                 ha::set_light_intensity(intensity);
             }
@@ -57,8 +57,7 @@ pub(crate) fn button(state: &Arc<Mutex<XAPClient>>, id: &Uuid, screen: &Screen, 
                 let attributes = json["attributes"].clone();
 
                 screen.clear_text(state.lock().get_device(id).unwrap());
-                let text = format!("Temperature: {} C", attributes["temperature"].to_string())
-                    .replace('"', "");
+                let text = format!("Temperature: {} C", attributes["temperature"]).replace('"', "");
                 screen.draw_text(state.lock().get_device(id).unwrap(), text);
             }
 

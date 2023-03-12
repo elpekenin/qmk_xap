@@ -10,8 +10,7 @@ pub fn text(text: impl Into<String>) {
 
     let escaped_text = utf8_percent_encode(&text, FRAGMENT).to_string();
     let url = format!(
-        "https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}",
-        tg_token, tg_id, escaped_text
+        "https://api.telegram.org/bot{tg_token}/sendMessage?chat_id={tg_id}&text={escaped_text}"
     );
 
     super::request(Method::GET, url, None, None);

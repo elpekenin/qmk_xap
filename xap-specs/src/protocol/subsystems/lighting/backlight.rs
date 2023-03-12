@@ -1,4 +1,4 @@
-use binrw::{BinRead, BinWrite, binread};
+use binrw::{binread, BinRead, BinWrite};
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
@@ -35,7 +35,8 @@ impl XAPRequest for BacklightCapabilitiesQuery {
 pub struct BacklightEffects(u8);
 
 impl BacklightEffects {
-    #[must_use] pub fn enabled_effect_list(&self) -> Vec<u8> {
+    #[must_use]
+    pub fn enabled_effect_list(&self) -> Vec<u8> {
         let mut effects = Vec::with_capacity(64);
 
         let bits = self.0;

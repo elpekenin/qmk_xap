@@ -22,20 +22,20 @@ fn request(
     headers: Option<HeaderMap>,
     payload: Option<HashMap<&str, String>>,
 ) -> Option<Map<String, Value>> {
-    let _client = reqwest::blocking::Client::new();
+    let client = reqwest::blocking::Client::new();
 
     let url = url.into();
 
-    let mut client = match method {
-        Method::GET => _client.get(&url),
+    let mut request_builder = match method {
+        Method::GET => client.get(&url),
 
         Method::POST => {
-            if payload == None {
+            if payload.is_none() {
                 error!("Tried to POST without payload");
                 return None;
             }
 
-            _client.post(&url).json(&payload)
+            client.post(&url).json(&payload)
         }
 
         _ => {
@@ -44,24 +44,18 @@ fn request(
         }
     };
 
-    if headers != None {
-        client = client.headers(headers.unwrap());
+    if let Some(headers) = headers {
+        request_builder = request_builder.headers(headers);
     }
 
-    let response = match client.send() {
-        Ok(r) => r,
-        Err(_) => {
-            error!("Couldn't make a request to {url}");
-            return None;
-        }
+    let Ok(response) = request_builder.send() else {
+        error!("Couldn't make a request to {url}");
+        return None;
     };
 
-    let text = match response.text() {
-        Ok(t) => t,
-        Err(_) => {
-            error!("Couldn't read text from response");
-            return None;
-        }
+    let Ok(text) = response.text() else {
+        error!("Couldn't read text from response");
+        return None;
     };
 
     // let status_code = response.status();
@@ -70,8 +64,5 @@ fn request(
     //     return None;
     // };
 
-    match serde_json::from_str(&text) {
-        Ok(r) => r,
-        _ => None,
-    }
+    serde_json::from_str(&text).map_or(None, |r| r)
 }

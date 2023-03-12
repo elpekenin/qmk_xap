@@ -16,7 +16,8 @@ pub struct HSVColor {
 }
 
 impl HSVColor {
-    #[must_use] pub fn from_rgb(r: u8, g: u8, b: u8) -> Self {
+    #[must_use]
+    pub fn from_rgb(r: u8, g: u8, b: u8) -> Self {
         let c_max = f32::from(max(max(r, g), b)) / 255.0;
         let c_min = f32::from(min(min(r, g), b)) / 255.0;
         let delta = c_max - c_min;

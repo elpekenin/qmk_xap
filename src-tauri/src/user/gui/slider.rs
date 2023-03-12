@@ -23,10 +23,9 @@ pub struct Slider {
 
 impl Slider {
     fn get_image(&self, value: u16) -> u8 {
-        match self.img_map.get(&value.to_string() as &str) {
-            Some(v) => *v,
-            _ => u8::MAX,
-        }
+        self.img_map
+            .get(&value.to_string() as &str)
+            .map_or(u8::MAX, |v| *v)
     }
 
     pub fn draw(&self, device: &XAPDevice, screen: &Screen, value: u16) {

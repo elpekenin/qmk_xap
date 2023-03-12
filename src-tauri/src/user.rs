@@ -55,7 +55,7 @@ pub(crate) fn broadcast_callback(broadcast: BroadcastRaw, id: Uuid, state: &Arc<
     // info!("Received {msg:?}");
 
     // Clear any leftover graphics
-    gui::clear(&state, &id);
+    gui::clear(state, &id);
 
     // Run logic, code assumes that sliders and buttons don't overlap, if they do button will have preference
     gui::handle(state, &id, &msg);

@@ -161,7 +161,7 @@ impl From<xap_specs::constants::XAPConstants> for XAPConstants {
                 .into_iter()
                 .fold(HashMap::new(), |mut category, (_, keycode)| {
                     category
-                        .entry(keycode.group.clone().unwrap_or("other".to_owned()))
+                        .entry(keycode.group.clone().unwrap_or_else(|| "other".to_owned()))
                         .or_insert(Vec::new())
                         .push(keycode);
 

@@ -155,26 +155,32 @@ fn main() -> ClientResult<()> {
     tauri::Builder::default()
         .plugin(shutdown_event_loop(event_channel_tx))
         // Prevent window from closing
-        .on_window_event(|event| if let tauri::WindowEvent::CloseRequested { api, .. } = event.event() {
-            event.window().hide().unwrap();
-            api.prevent_close()
+        .on_window_event(|event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event.event() {
+                event.window().hide().unwrap();
+                api.prevent_close();
+            }
         })
         // Add system tray
         .system_tray(system_tray)
         // And its logic
-        .on_system_tray_event(move |app, event| if let SystemTrayEvent::MenuItemClick { id, .. } = event { match id.as_str() {
-            "hide" => {
-                app.get_window("main").unwrap().hide().unwrap();
+        .on_system_tray_event(move |app, event| {
+            if let SystemTrayEvent::MenuItemClick { id, .. } = event {
+                match id.as_str() {
+                    "hide" => {
+                        app.get_window("main").unwrap().hide().unwrap();
+                    }
+                    "quit" => {
+                        user::on_close(cloned_state.clone());
+                        std::process::exit(0);
+                    }
+                    "show" => {
+                        app.get_window("main").unwrap().show().unwrap();
+                    }
+                    _ => {}
+                }
             }
-            "quit" => {
-                user::on_close(cloned_state.clone());
-                std::process::exit(0);
-            }
-            "show" => {
-                app.get_window("main").unwrap().show().unwrap();
-            }
-            _ => {}
-        } })
+        })
         .invoke_handler(tauri::generate_handler![
             xap_constants_get,
             secure_lock,
@@ -212,7 +218,7 @@ fn main() -> ClientResult<()> {
                 .expect("failed to resolve resource");
             state
                 .lock()
-                .set_xap_constants(XAPConstants::new(resource_path.into())?);
+                .set_xap_constants(XAPConstants::new(resource_path)?);
             app.manage(state.clone());
             app.listen_global("frontend-loaded", move |_| {
                 event_channel_tx_listen_frontend

@@ -46,11 +46,13 @@ impl RawResponse {
         Ok(response)
     }
 
-    #[must_use] pub fn token(&self) -> &Token {
+    #[must_use]
+    pub fn token(&self) -> &Token {
         &self.token
     }
 
-    #[must_use] pub fn payload(&self) -> &[u8] {
+    #[must_use]
+    pub fn payload(&self) -> &[u8] {
         &self.payload
     }
 

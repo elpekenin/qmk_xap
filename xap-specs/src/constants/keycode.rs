@@ -30,7 +30,8 @@ pub struct XAPKeyCode {
 }
 
 impl XAPKeyCode {
-    #[must_use] pub fn new_custom(code: u16) -> Self {
+    #[must_use]
+    pub fn new_custom(code: u16) -> Self {
         Self {
             code,
             key: format!("USER-CUSTOM-{code}"),

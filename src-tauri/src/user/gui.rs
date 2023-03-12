@@ -122,7 +122,7 @@ pub fn on_connect(device: &XAPDevice) {
         // Print buttons
         for button in &screen.buttons {
             draw::image_recolor(
-                &device, screen.id, button.x, button.y, button.img, FG_COLOR, BG_COLOR,
+                device, screen.id, button.x, button.y, button.img, FG_COLOR, BG_COLOR,
             );
         }
     }
@@ -172,6 +172,6 @@ pub(crate) fn clear(state: &Arc<Mutex<XAPClient>>, id: &Uuid) {
 
 pub(crate) fn handle(state: &Arc<Mutex<XAPClient>>, id: &Uuid, msg: &UserBroadcast) {
     for screen in &*SCREENS {
-        screen.handle(state, &id, &msg);
+        screen.handle(state, id, msg);
     }
 }

@@ -11,13 +11,13 @@ pub fn get_state(entity_id: impl Into<String>) -> Map<String, Value> {
 
     let hasst_token = std::env::var("HASST_TOKEN").unwrap();
     let hasst_base_url =
-        std::env::var("HASST_BASE_URL").unwrap_or("http://localhost:8123".to_string());
-    let url = format!("{}/api/states/{}", hasst_base_url, entity_id);
+        std::env::var("HASST_BASE_URL").unwrap_or_else(|_| "http://localhost:8123".to_string());
+    let url = format!("{hasst_base_url}/api/states/{entity_id}");
 
     let mut headers = HeaderMap::new();
     headers.insert(
         header::AUTHORIZATION,
-        format!("Bearer {}", hasst_token).parse().unwrap(),
+        format!("Bearer {hasst_token}").parse().unwrap(),
     );
 
     http::request(Method::GET, url, Some(headers), None).unwrap()
@@ -31,7 +31,7 @@ pub fn set_light_intensity(level: u16) {
         std::env::var("HASST_BASE_URL").unwrap_or("http://localhost:8123".to_string());
     let lightbulb = std::env::var("LIGHTBULB_ID").unwrap();
 
-    let url = format!("{}/api/services/light/turn_on", hasst_base_url);
+    let url = format!("{hasst_base_url}/api/services/light/turn_on");
 
     let mut payload = HashMap::new();
     payload.insert("entity_id", lightbulb);

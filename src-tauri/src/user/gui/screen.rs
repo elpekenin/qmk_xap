@@ -48,16 +48,12 @@ impl Screen {
     }
 
     fn get_button(&self, msg: &UserBroadcast) -> Option<&Button> {
-        for button in &self.buttons {
-            if button.x - Button::TOLERANCE <= msg.x
+        self.buttons.iter().find(|&button| {
+            button.x - Button::TOLERANCE <= msg.x
                 && msg.x <= button.x + Button::SIZE
                 && button.y - Button::TOLERANCE <= msg.y
                 && msg.y <= button.y + Button::SIZE
-            {
-                return Some(button);
-            }
-        }
-        None
+        })
     }
 
     fn get_slider(&self, msg: &UserBroadcast) -> Option<&Slider> {
@@ -83,21 +79,16 @@ impl Screen {
             return;
         }
 
-        match self.get_button(msg) {
-            None => {}
-            Some(button) => handlers::button(state, id, self, button),
-        }
+        self.get_button(msg)
+            .map_or((), |button| handlers::button(state, id, self, button));
 
-        match self.get_slider(msg) {
-            None => {}
-            Some(slider) => {
-                let coord = match slider.direction {
-                    SliderDirection::Vertical => msg.y,
-                    SliderDirection::Horizontal => msg.x,
-                };
+        self.get_slider(msg).map_or((), |slider| {
+            let coord = match slider.direction {
+                SliderDirection::Vertical => msg.y,
+                SliderDirection::Horizontal => msg.x,
+            };
 
-                handlers::slider(state, id, self, slider, coord);
-            }
-        }
+            handlers::slider(state, id, self, slider, coord);
+        });
     }
 }

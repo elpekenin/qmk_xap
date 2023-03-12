@@ -20,7 +20,8 @@ impl XAPConstants {
         })
     }
 
-    #[must_use] pub fn get_keycode(&self, code: u16) -> XAPKeyCode {
+    #[must_use]
+    pub fn get_keycode(&self, code: u16) -> XAPKeyCode {
         self.keycodes
             .get(&code)
             .cloned()
