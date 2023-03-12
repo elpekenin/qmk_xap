@@ -85,7 +85,7 @@ fn start_event_loop(
                         Ok(XAPEvent::AnnounceAllDevices) => {
                             let mut state = state.lock();
                             info!("announcing all xap devices to the frontend");
-                            if let Ok(()) = state.enumerate_xap_devices() {
+                            if matches!(state.enumerate_xap_devices(), Ok(())) {
                                 for device in state.get_devices() {
                                     app.emit_all("new-device", FrontendEvent::NewDevice{ device: device.as_dto() }).unwrap();
                                 }
@@ -137,7 +137,7 @@ fn main() -> ClientResult<()> {
     let (event_channel_tx, event_channel_rx): (Sender<XAPEvent>, Receiver<XAPEvent>) = unbounded();
 
     let state = Arc::new(Mutex::new(XAPClient::new(event_channel_tx.clone())?));
-    let _state = state.clone();
+    let cloned_state = state.clone();
 
     let user_data = Arc::new(Mutex::new(UserData::default()));
 
@@ -155,34 +155,26 @@ fn main() -> ClientResult<()> {
     tauri::Builder::default()
         .plugin(shutdown_event_loop(event_channel_tx))
         // Prevent window from closing
-        .on_window_event(|event| match event.event() {
-            tauri::WindowEvent::CloseRequested { api, .. } => {
-                event.window().hide().unwrap();
-                api.prevent_close()
-            }
-
-            _ => {}
+        .on_window_event(|event| if let tauri::WindowEvent::CloseRequested { api, .. } = event.event() {
+            event.window().hide().unwrap();
+            api.prevent_close()
         })
         // Add system tray
         .system_tray(system_tray)
         // And its logic
-        .on_system_tray_event(move |app, event| match event {
-            SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
-                "hide" => {
-                    app.get_window("main").unwrap().hide().unwrap();
-                }
-                "quit" => {
-                    user::on_close(_state.clone());
-                    std::process::exit(0);
-                }
-                "show" => {
-                    app.get_window("main").unwrap().show().unwrap();
-                }
-                _ => {}
-            },
-
+        .on_system_tray_event(move |app, event| if let SystemTrayEvent::MenuItemClick { id, .. } = event { match id.as_str() {
+            "hide" => {
+                app.get_window("main").unwrap().hide().unwrap();
+            }
+            "quit" => {
+                user::on_close(cloned_state.clone());
+                std::process::exit(0);
+            }
+            "show" => {
+                app.get_window("main").unwrap().show().unwrap();
+            }
             _ => {}
-        })
+        } })
         .invoke_handler(tauri::generate_handler![
             xap_constants_get,
             secure_lock,

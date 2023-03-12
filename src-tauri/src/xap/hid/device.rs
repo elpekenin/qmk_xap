@@ -192,7 +192,7 @@ impl XAPDevice {
             let response = self
                 .rx_channel
                 .recv_timeout(Duration::from_millis(500))
-                .map_err(|err| XAPError::Protocol(format!("failed to reveice response {}", err)))?;
+                .map_err(|err| XAPError::Protocol(format!("failed to reveice response {err}")))?;
 
             if response.token() == request.token() {
                 break response;
@@ -208,7 +208,7 @@ impl XAPDevice {
 
         response
             .into_xap_response::<T>()
-            .map_err(|err| ClientError::from(err))
+            .map_err(ClientError::from)
     }
 
     pub fn query_secure_status(&self) -> ClientResult<XAPSecureStatus> {
@@ -469,7 +469,7 @@ fn start_rx_thread(
                 break;
             }
             if let Err(err) = handle_report(id, &state, report, &tx_channel, &event_channel) {
-                error!("handling response failed: {err}")
+                error!("handling response failed: {err}");
             }
         }
         info!("terminating capture thread for {id}");
@@ -486,7 +486,7 @@ fn handle_report(
     let mut reader = Cursor::new(&report);
     let token = Token::read_le(&mut reader)?;
 
-    if let Token::Broadcast = token {
+    if token == Token::Broadcast {
         let broadcast = BroadcastRaw::from_raw_report(&report)?;
 
         match broadcast.broadcast_type() {

@@ -122,8 +122,6 @@ pub(crate) fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     let target = 0;
     let geometry = gui::draw::geometry(device, target);
 
-    info!("{:?}", geometry);
-
     // reset display
     gui::draw::rect(
         device,
