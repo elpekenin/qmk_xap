@@ -44,7 +44,7 @@ pub(crate) async fn get_xy_from_rowcol(
     id: Uuid,
     state: State<'_, Arc<Mutex<XAPClient>>>,
     row: u8,
-    col: u8
+    col: u8,
 ) -> ClientResult<Option<KeyLocation>> {
     Ok(state.lock().get_device(&id)?.xy_from_rowcol(row, col))
 }

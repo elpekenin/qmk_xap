@@ -21,8 +21,8 @@ use xap_specs::{
     error::{XAPError, XAPResult},
     protocol::{
         keymap::{
-            KeyCode, KeyPosition, KeymapCapabilities, KeymapCapabilitiesQuery, KeymapKeycodeQuery,
-            KeymapLayerCountQuery, KeyLocation,
+            KeyCode, KeyLocation, KeyPosition, KeymapCapabilities, KeymapCapabilitiesQuery,
+            KeymapKeycodeQuery, KeymapLayerCountQuery,
         },
         lighting::{
             BacklightCapabilities, BacklightCapabilitiesQuery, BacklightEffectsQuery,
@@ -132,15 +132,17 @@ impl XAPDevice {
     }
 
     pub fn xy_from_rowcol(&self, row: u8, col: u8) -> Option<KeyLocation> {
-        let json: Map<String, Value> = serde_json::from_str(self.xap_info().qmk.config.as_str()).ok()?;
+        let json: Map<String, Value> =
+            serde_json::from_str(self.xap_info().qmk.config.as_str()).ok()?;
 
         // TODO: Dynamic layout name
-        let layout_info = json.get("layouts")?.get("LAYOUT")?.get("layout")?.as_array()?;
+        let layout_info = json
+            .get("layouts")?
+            .get("LAYOUT")?
+            .get("layout")?
+            .as_array()?;
 
-        let Some(key) = layout_info.iter().find(|&key| {
-            let matrix = key.get("matrix").unwrap().as_array().unwrap();
-            matrix[0] == row && matrix[1] == col
-        }) else {
+        let Some(key) = layout_info.iter().find(|&key| key.get("matrix").unwrap().as_array().unwrap() == &[row, col]) else {
             info!("There's no key at matrix ({row}, {col})");
             return None;
         };
@@ -151,7 +153,6 @@ impl XAPDevice {
         info!("matrix ({row}, {col}) -> position ({x}, {y})");
 
         Some(KeyLocation { x, y })
-
     }
 
     pub fn as_dto(&self) -> XAPDeviceDto {
