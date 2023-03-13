@@ -2,6 +2,8 @@ use crate::xap::hid::XAPDevice;
 use log::info;
 use xap_specs::{protocol::painter::*, request::XAPRequest};
 
+use super::{HSV_BLACK, HSV_WHITE};
+
 pub fn image(device: &XAPDevice, screen_id: u8, x: u16, y: u16, img: u8) {
     let _ = device.query(PainterDrawImage(PainterImage {
         screen_id,
@@ -30,8 +32,8 @@ pub fn image_recolor(
     }));
 }
 
-fn normalize_string(input: &str) -> String {
-    let mut text = input.to_string();
+fn normalize_string(input: impl Into<Vec<u8>>) -> Vec<u8> {
+    let mut text = String::from_utf8(input.into()).unwrap().to_string();
 
     text = text.replace('á', "a");
     text = text.replace('ä', "a");
@@ -74,7 +76,7 @@ fn normalize_string(input: &str) -> String {
     text = text.replace('ç', "c");
     text = text.replace('Ç', "C");
 
-    text
+    text.as_bytes().to_vec()
 }
 
 pub fn text_recolor(
@@ -87,9 +89,7 @@ pub fn text_recolor(
     bg_color: HSVColor,
     text: impl Into<Vec<u8>>,
 ) {
-    let input = String::from_utf8(text.into()).unwrap();
-    let normalized = normalize_string(&input);
-    let text = normalized.as_bytes().to_vec();
+    let text = normalize_string(text);
 
     let _ = device.query(PainterDrawTextRecolor(PainterTextRecolor {
         screen_id,
@@ -102,6 +102,10 @@ pub fn text_recolor(
     }));
 }
 
+pub fn text(device: &XAPDevice, screen_id: u8, x: u16, y: u16, font: u8, text: impl Into<Vec<u8>>) {
+    text_recolor(device, screen_id, x, y, font, HSV_BLACK, HSV_WHITE, text);
+}
+
 pub fn surface_text(
     device: &XAPDevice,
     screen_id: u8,
@@ -110,9 +114,7 @@ pub fn surface_text(
     font: u8,
     text: impl Into<Vec<u8>>,
 ) {
-    let input = String::from_utf8(text.into()).unwrap();
-    let normalized = normalize_string(&input);
-    let text = normalized.as_bytes().to_vec();
+    let text = normalize_string(text);
 
     let _ = device.query(PainterSurfaceDrawText(PainterText {
         screen_id,
@@ -171,4 +173,11 @@ pub fn viewport(device: &XAPDevice, screen_id: u8, left: u16, top: u16, right: u
 pub fn pixdata(device: &XAPDevice, screen_id: u8, pixels: impl Into<Vec<u8>>) {
     let pixels = pixels.into();
     let _ = device.query(PainterDrawPixdata(PainterPixdata { screen_id, pixels }));
+}
+
+pub fn text_width(device: &XAPDevice, font: u8, text: impl Into<Vec<u8>>) -> u16 {
+    let text = normalize_string(text);
+    device
+        .query(PainterGetTextWidth(PainterTextWidth { font, text }))
+        .unwrap()
 }

@@ -415,3 +415,24 @@ impl XAPRequest for PainterSurfaceDrawText {
         &[0x3, 0x2, 0x11]
     }
 }
+
+// ==============================
+// 0x3 0x2 0x12
+#[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
+#[ts(export)]
+#[ts(export_to = "../bindings/")]
+pub struct PainterTextWidth {
+    pub font: u8,
+    pub text: Vec<u8>,
+}
+
+#[derive(BinWrite, Debug)]
+pub struct PainterGetTextWidth(pub PainterTextWidth);
+
+impl XAPRequest for PainterGetTextWidth {
+    type Response = u16;
+
+    fn id() -> &'static [u8] {
+        &[0x3, 0x2, 0x12]
+    }
+}

@@ -39,8 +39,8 @@ static SCREENS: Lazy<Vec<Screen>> = Lazy::new(|| {
     vec![
         // ILI9163
         Screen {
-            width: 128,
-            height: 128,
+            width: 129,
+            height: 129,
             id: 0,
             buttons: vec![],
             sliders: vec![],

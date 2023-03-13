@@ -1,5 +1,5 @@
 use crate::{
-    user::gui::{self, HSV_BLACK},
+    user::gui::{self, HSV_BLACK, HSV_WHITE},
     xap::hid::XAPDevice,
     UserData,
 };
@@ -12,7 +12,9 @@ use rspotify::{
     prelude::*,
     scopes, AuthCodeSpotify, Config, Credentials, OAuth, Token, DEFAULT_CACHE_PATH,
 };
-use xap_specs::protocol::painter::HSVColor;
+use xap_specs::protocol::painter::{HSVColor, PainterGeometry};
+
+use super::gui::{draw::text, FONT_SIZE};
 
 fn init() -> AuthCodeSpotify {
     let config = Config {
@@ -78,70 +80,33 @@ fn playing_track(spotify: &AuthCodeSpotify) -> Option<FullTrack> {
     }
 }
 
-pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
-    let Ok(token) = Token::from_cache(DEFAULT_CACHE_PATH) else {
-        error!("Can't get token from cache");
-        return;
-    };
-
-    let spotify = refresh_token(token);
-
-    let Some(track) = playing_track(&spotify) else {
-        debug!("No functionality implemented for podcasts");
-        return;
-    };
-
-    let song = track.name;
-
-    if user_data.last_song == song {
-        trace!("album_cover: same song, quitting");
-        return;
-    }
-
-    user_data.last_song = song.clone();
-
-    let url = &track.album.images.last().unwrap().url;
-    // let url = "https://elpekenin.dev/static/test.png";
-
+fn draw_album_img(device: &XAPDevice, url: &String, screen_id: u8, geometry: &PainterGeometry) {
     let img_bytes = if let Ok(response) = reqwest::blocking::get(url) {
         response.bytes().unwrap()
     } else {
-        error!("Couldn't get image from url {}", url);
+        error!("Couldn't get image from url {url}");
         return;
     };
-
-    let target = 0;
-    let geometry = gui::draw::geometry(device, target);
-
-    // reset display
-    gui::draw::rect(
-        device,
-        target,
-        0,
-        0,
-        geometry.width - 1,
-        geometry.height - 1,
-        HSV_BLACK,
-        1,
-    );
 
     // draw image
     let image = image::load_from_memory(&img_bytes)
         .unwrap()
-        .resize(
-            u32::from(geometry.width),
-            u32::from(geometry.height),
-            image::imageops::FilterType::Nearest,
-        )
+        .resize(64, 64, image::imageops::FilterType::Nearest)
         .to_rgb8();
+
+    let width = image.width() as u16;
+    let height = image.height() as u16;
+
+    let left = (geometry.width - width) / 2;
+    let top = (geometry.height - height) / 2;
 
     gui::draw::viewport(
         device,
-        target,
-        0,
-        0,
-        image.width() as u16 - 1,
-        image.height() as u16 - 1,
+        screen_id,
+        left,
+        top,
+        left + width - 1,
+        top + height - 1,
     );
 
     image
@@ -158,10 +123,98 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
         })
         .collect::<Vec<_>>()
         .chunks(56)
-        .for_each(|chunk| gui::draw::pixdata(device, target, chunk));
+        .for_each(|pixels| gui::draw::pixdata(device, screen_id, pixels));
+}
 
-    let artist = &track.artists.first().unwrap().name;
+pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
+    let Ok(token) = Token::from_cache(DEFAULT_CACHE_PATH) else {
+        error!("Can't get token from cache");
+        return;
+    };
 
-    gui::draw::surface_text(device, 0, 0, 0, 0, song.as_bytes());
-    gui::draw::surface_text(device, 0, 0, gui::FONT_SIZE, 0, artist.as_bytes());
+    let spotify = refresh_token(token);
+
+    let Some(track) = playing_track(&spotify) else {
+        debug!("No functionality implemented for podcasts");
+        return;
+    };
+
+    let song = track.name;
+    if user_data.last_song == song {
+        trace!("album_cover: same song, quitting");
+        return;
+    }
+    user_data.last_song = song.clone();
+
+    let screen_id = 0;
+    let geometry = gui::draw::geometry(device, screen_id);
+    let url = &track.album.images.last().unwrap().url;
+    if &user_data.last_url != url {
+        draw_album_img(device, url, screen_id, &geometry);
+    }
+    user_data.last_url = url.to_string();
+
+    // show track info
+    let gap = (geometry.height - 64) / 2;
+    let font = 0;
+
+    let mut artist = track.artists.first().unwrap().name.as_bytes();
+    let mut textwidth = gui::draw::text_width(device, font, artist);
+    if (textwidth > geometry.width) {
+        artist = "...".as_bytes();
+        textwidth = gui::draw::text_width(device, font, artist);
+    }
+
+    let x = (geometry.width - textwidth) / 2;
+    let y = geometry.height / 2 - 32 - FONT_SIZE;
+    gui::draw::rect(
+        device,
+        screen_id,
+        0,
+        0,
+        geometry.width,
+        gap,
+        HSV_BLACK,
+        true,
+    );
+    gui::draw::text_recolor(
+        device,
+        screen_id,
+        x,
+        y,
+        font,
+        HSV_WHITE,
+        HSV_BLACK,
+        artist,
+    );
+
+    // Track
+    let mut song = song.as_bytes();
+    let mut textwidth = gui::draw::text_width(device, font, song);
+    if (textwidth > geometry.width) {
+        song = "...".as_bytes();
+        textwidth = gui::draw::text_width(device, font, song);
+    }
+
+    let x = (geometry.width - textwidth) / 2;
+    gui::draw::rect(
+        device,
+        screen_id,
+        0,
+        geometry.height - gap,
+        geometry.width,
+        geometry.height,
+        HSV_BLACK,
+        true,
+    );
+    gui::draw::text_recolor(
+        device,
+        screen_id,
+        x,
+        geometry.height - gap,
+        font,
+        HSV_WHITE,
+        HSV_BLACK,
+        song,
+    );
 }
