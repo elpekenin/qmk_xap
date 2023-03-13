@@ -65,6 +65,7 @@ const XAP_REPORT_SIZE: usize = 64;
 struct XAPDeviceState {
     xap_info: Option<XAPDeviceInfo>,
     keymap: Vec<Vec<Vec<XAPKeyCodeConfig>>>,
+    layout: Vec<Vec<Option<KeyLocation>>>,
     secure_status: XAPSecureStatus,
 }
 
@@ -107,6 +108,7 @@ impl XAPDevice {
         };
         device.query_device_info()?;
         device.query_keymap()?;
+        device.query_layout()?;
         device.query_secure_status()?;
         Ok(device)
     }
@@ -129,6 +131,10 @@ impl XAPDevice {
 
     pub fn keymap(&self) -> Vec<Vec<Vec<XAPKeyCodeConfig>>> {
         self.state.read().keymap.clone()
+    }
+
+    pub fn layout(&self) -> Vec<Vec<Option<KeyLocation>>> {
+        self.state.read().layout.clone()
     }
 
     pub fn xy_from_rowcol(&self, row: u8, col: u8) -> Option<KeyLocation> {
@@ -467,6 +473,30 @@ impl XAPDevice {
                 .collect();
 
             self.state.write().keymap = keymap?;
+        }
+
+        Ok(())
+    }
+
+    fn query_layout(&self) -> ClientResult<()> {
+        // Reset layout
+        self.state.write().layout = Default::default();
+
+        if let Some(keymap) = &self.xap_info().keymap {
+            let cols = keymap.matrix.cols;
+            let rows = keymap.matrix.rows;
+
+            let layout: Vec<Vec<Option<KeyLocation>>> = (0..rows)
+                .map(|row| {
+                    (0..cols)
+                        .map(|col| {
+                            self.xy_from_rowcol(row, col)
+                        })
+                        .collect()
+                })
+                .collect();
+
+            self.state.write().layout = layout;
         }
 
         Ok(())
