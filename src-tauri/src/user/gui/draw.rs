@@ -33,50 +33,50 @@ pub fn image_recolor(
 }
 
 fn normalize_string(input: impl Into<Vec<u8>>) -> Vec<u8> {
-    let mut text = String::from_utf8(input.into()).unwrap().to_string();
+    let text = String::from_utf8(input.into()).unwrap().to_string()
+        .replace('á', "a")
+        .replace('ä', "a")
+        .replace('à', "a")
+        .replace('Á', "A")
+        .replace('Ä', "A")
+        .replace('À', "A")
+        .replace('é', "e")
+        .replace('ë', "e")
+        .replace('è', "e")
+        .replace('É', "E")
+        .replace('Ë', "E")
+        .replace('À', "E")
+        .replace('í', "i")
+        .replace('ï', "i")
+        .replace('ì', "i")
+        .replace('Í', "I")
+        .replace('Ï', "I")
+        .replace('Ì', "I")
+        .replace('ó', "o")
+        .replace('ö', "o")
+        .replace('ò', "o")
+        .replace('Ó', "O")
+        .replace('Ö', "O")
+        .replace('Ò', "O")
+        .replace('ú', "u")
+        .replace('ü', "u")
+        .replace('ù', "u")
+        .replace('Ú', "U")
+        .replace('Ü', "U")
+        .replace('Ù', "U")
+        .replace('ñ', "n")
+        .replace('Ñ', "N")
+        .replace('ç', "c")
+        .replace('Ç', "C")
+        .replace("&", "");
 
-    text = text.replace('á', "a");
-    text = text.replace('ä', "a");
-    text = text.replace('à', "a");
-    text = text.replace('Á', "A");
-    text = text.replace('Ä', "A");
-    text = text.replace('À', "A");
+    let mut array = text.as_bytes();
 
-    text = text.replace('é', "e");
-    text = text.replace('ë', "e");
-    text = text.replace('è', "e");
-    text = text.replace('É', "E");
-    text = text.replace('Ë', "E");
-    text = text.replace('À', "E");
+    if array.len() > 40 {
+        array = &array[..40];
+    }
 
-    text = text.replace('í', "i");
-    text = text.replace('ï', "i");
-    text = text.replace('ì', "i");
-    text = text.replace('Í', "I");
-    text = text.replace('Ï', "I");
-    text = text.replace('Ì', "I");
-
-    text = text.replace('ó', "o");
-    text = text.replace('ö', "o");
-    text = text.replace('ò', "o");
-    text = text.replace('Ó', "O");
-    text = text.replace('Ö', "O");
-    text = text.replace('Ò', "O");
-
-    text = text.replace('ú', "u");
-    text = text.replace('ü', "u");
-    text = text.replace('ù', "u");
-    text = text.replace('Ú', "U");
-    text = text.replace('Ü', "U");
-    text = text.replace('Ù', "U");
-
-    text = text.replace('ñ', "n");
-    text = text.replace('Ñ', "N");
-
-    text = text.replace('ç', "c");
-    text = text.replace('Ç', "C");
-
-    text.as_bytes().to_vec()
+    array.to_vec()
 }
 
 pub fn text_recolor(
@@ -177,7 +177,7 @@ pub fn pixdata(device: &XAPDevice, screen_id: u8, pixels: impl Into<Vec<u8>>) {
 
 pub fn text_width(device: &XAPDevice, font: u8, text: impl Into<Vec<u8>>) -> u16 {
     let text = normalize_string(text);
-    device
-        .query(PainterGetTextWidth(PainterTextWidth { font, text }))
-        .unwrap()
+    let value = device.query(PainterGetTextWidth(PainterTextWidth { font, text })).unwrap();
+
+    if value < 0 { u16::MAX } else { value as u16 }
 }

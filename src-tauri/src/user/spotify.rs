@@ -160,7 +160,7 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
 
     let mut artist = track.artists.first().unwrap().name.as_bytes();
     let mut textwidth = gui::draw::text_width(device, font, artist);
-    if (textwidth > geometry.width) {
+    if textwidth > geometry.width {
         artist = "...".as_bytes();
         textwidth = gui::draw::text_width(device, font, artist);
     }
@@ -191,7 +191,7 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     // Track
     let mut song = song.as_bytes();
     let mut textwidth = gui::draw::text_width(device, font, song);
-    if (textwidth > geometry.width) {
+    if textwidth > geometry.width {
         song = "...".as_bytes();
         textwidth = gui::draw::text_width(device, font, song);
     }

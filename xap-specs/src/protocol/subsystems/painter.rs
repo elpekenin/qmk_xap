@@ -430,7 +430,7 @@ pub struct PainterTextWidth {
 pub struct PainterGetTextWidth(pub PainterTextWidth);
 
 impl XAPRequest for PainterGetTextWidth {
-    type Response = u16;
+    type Response = i16;
 
     fn id() -> &'static [u8] {
         &[0x3, 0x2, 0x12]
