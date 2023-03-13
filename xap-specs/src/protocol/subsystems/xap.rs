@@ -78,6 +78,7 @@ impl XAPRequest for XAPEnabledSubsystemsQuery {
 // 0x0 0x3
 #[derive(Debug, Serialize, TS, Clone, Copy)]
 #[ts(export)]
+#[ts(export_to = "../bindings/")]
 pub enum XAPSecureStatus {
     Locked,
     Unlocking,

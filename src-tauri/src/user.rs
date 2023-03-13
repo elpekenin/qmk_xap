@@ -67,8 +67,7 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &Arc<Mutex<UserData>>)
 
     if !user_data.connected {
         trace!("housekeeping: no device connected, quitting");
-        user_data.last_song = String::new();
-        user_data.last_url = String::new();
+        *user_data.last_song = UserData::default();
         return;
     }
 
