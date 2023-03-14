@@ -11,7 +11,7 @@ use binrw::{BinRead, BinWriterExt};
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use flate2::read::GzDecoder;
 use hidapi::{DeviceInfo, HidDevice};
-use log::{error, info, trace};
+use log::{debug, error, info, trace};
 use parking_lot::RwLock;
 use serde_json::{Map, Value};
 use uuid::Uuid;
@@ -21,8 +21,8 @@ use xap_specs::{
     error::{XAPError, XAPResult},
     protocol::{
         keymap::{
-            KeyCode, KeyLocation, KeyPosition, KeymapCapabilities, KeymapCapabilitiesQuery,
-            KeymapKeycodeQuery, KeymapLayerCountQuery,
+            KeyCode, KeyLocation, KeyPosition, KeymapCapabilities,
+            KeymapCapabilitiesQuery, KeymapKeycodeQuery, KeymapLayerCountQuery, XAPKeyInfo,
         },
         lighting::{
             BacklightCapabilities, BacklightCapabilitiesQuery, BacklightEffectsQuery,
@@ -53,7 +53,7 @@ use xap_specs::{
 use crate::{
     aggregation::{
         BacklightInfo, FeaturesInfo, KeymapInfo, LightingInfo, QMKInfo, RGBLightInfo,
-        RGBMatrixInfo, RemapInfo, XAPDevice as XAPDeviceDto, XAPDeviceInfo, XAPInfo,
+        RGBMatrixInfo, RemapInfo, XAPDevice as XAPDeviceDto, XAPDeviceInfo, XAPInfo, SplitInfo,
     },
     xap::{ClientError, ClientResult},
     XAPEvent,
@@ -65,7 +65,7 @@ const XAP_REPORT_SIZE: usize = 64;
 struct XAPDeviceState {
     xap_info: Option<XAPDeviceInfo>,
     keymap: Vec<Vec<Vec<XAPKeyCodeConfig>>>,
-    layout: Vec<Vec<Option<KeyLocation>>>,
+    xy_from_rowcol: Vec<Vec<Option<KeyLocation>>>,
     secure_status: XAPSecureStatus,
 }
 
@@ -108,8 +108,10 @@ impl XAPDevice {
         };
         device.query_device_info()?;
         device.query_keymap()?;
-        device.query_layout()?;
         device.query_secure_status()?;
+
+        device.generate_xy_from_rowcol()?;
+
         Ok(device)
     }
 
@@ -133,11 +135,50 @@ impl XAPDevice {
         self.state.read().keymap.clone()
     }
 
-    pub fn layout(&self) -> Vec<Vec<Option<KeyLocation>>> {
-        self.state.read().layout.clone()
+    fn xy_from_rowcol(&self) -> Vec<Vec<Option<KeyLocation>>> {
+        self.state.read().xy_from_rowcol.clone()
     }
 
-    pub fn xy_from_rowcol(&self, row: u8, col: u8) -> Option<KeyLocation> {
+    pub fn frontend_keymap(&self) -> Vec<Vec<Vec<Option<XAPKeyInfo>>>> {
+        let values = self.xy_from_rowcol();
+
+        let values: Vec<_> = values.iter().flatten().flatten().collect();
+
+        let max_x = values.iter().max_by_key(|value| value.x).unwrap().x;
+        let max_y = values.iter().max_by_key(|value| value.y).unwrap().y;
+
+        let keymap = self.keymap();
+        let layers = keymap.len();
+
+        let front_keymap: Vec<Vec<Vec<Option<XAPKeyInfo>>>> = (0..layers)
+            .map(|layer| {
+                (0..=max_y)
+                    .map(|y| {
+                        (0..=max_x)
+                            .map(|x| {
+                                let mut position = self.rowcol_from_xy(x, y)?;
+                                position.layer = layer as u8;
+
+                                let KeyPosition{layer: _, row, col} = position;
+
+                                let keycode = keymap[layer][row as usize][col as usize].code.clone();
+
+                                Some(XAPKeyInfo {
+                                    location: KeyLocation { x, y },
+                                    keycode,
+                                    position,
+                                })
+                            })
+                            .collect()
+                    })
+                    .collect()
+            })
+            .collect();
+
+        front_keymap
+    }
+
+    fn _xy_from_rowcol(&self, row: u8, col: u8) -> Option<KeyLocation> {
         let json: Map<String, Value> =
             serde_json::from_str(self.xap_info().qmk.config.as_str()).ok()?;
 
@@ -149,16 +190,36 @@ impl XAPDevice {
             .as_array()?;
 
         let Some(key) = layout_info.iter().find(|&key| key.get("matrix").unwrap().as_array().unwrap() == &[row, col]) else {
-            info!("There's no key at matrix ({row}, {col})");
+            debug!("There's no key at matrix ({row}, {col})");
             return None;
         };
 
         let x = key.get("x")?.as_u64()? as u8;
         let y = key.get("y")?.as_u64()? as u8;
 
-        info!("matrix ({row}, {col}) -> position ({x}, {y})");
+        debug!("matrix ({row}, {col}) -> position ({x}, {y})");
 
         Some(KeyLocation { x, y })
+    }
+
+    fn rowcol_from_xy(&self, x: u8, y: u8) -> Option<KeyPosition> {
+        for (row, values) in self.xy_from_rowcol().iter().enumerate() {
+            for (col, value) in values.iter().enumerate() {
+                if let Some(key) = value {
+                    if key.x == x && key.y == y {
+                        let row = row as u8;
+                        let col = col as u8;
+                        return Some(KeyPosition {
+                            layer: 0,
+                            row,
+                            col,
+                        });
+                    }
+                }
+            }
+        }
+
+        None
     }
 
     pub fn as_dto(&self) -> XAPDeviceDto {
@@ -280,7 +341,8 @@ impl XAPDevice {
             eeprom_reset_enabled: qmk_caps.contains(QMKCapabilities::EEPROM_RESET),
         };
 
-        let features_info: FeaturesInfo = serde_json::from_value(config["features"].clone())?;
+        let split_info = serde_json::from_value(config["split"].clone()).ok();
+        let features_info = serde_json::from_value(config["features"].clone())?;
 
         let keymap_info = if subsystems.contains(XAPEnabledSubsystems::KEYMAP) {
             let keymap_caps = self.query(KeymapCapabilitiesQuery)?;
@@ -410,6 +472,7 @@ impl XAPDevice {
             keymap: keymap_info,
             remap: remap_info,
             lighting: lighting_info,
+            split: split_info
         });
 
         Ok(())
@@ -478,9 +541,9 @@ impl XAPDevice {
         Ok(())
     }
 
-    fn query_layout(&self) -> ClientResult<()> {
+    fn generate_xy_from_rowcol(&self) -> ClientResult<()> {
         // Reset layout
-        self.state.write().layout = Default::default();
+        self.state.write().xy_from_rowcol = Default::default();
 
         if let Some(keymap) = &self.xap_info().keymap {
             let cols = keymap.matrix.cols;
@@ -489,14 +552,12 @@ impl XAPDevice {
             let layout: Vec<Vec<Option<KeyLocation>>> = (0..rows)
                 .map(|row| {
                     (0..cols)
-                        .map(|col| {
-                            self.xy_from_rowcol(row, col)
-                        })
+                        .map(|col| self._xy_from_rowcol(row, col))
                         .collect()
                 })
                 .collect();
 
-            self.state.write().layout = layout;
+            self.state.write().xy_from_rowcol = layout;
         }
 
         Ok(())

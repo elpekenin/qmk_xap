@@ -33,7 +33,9 @@ pub fn image_recolor(
 }
 
 fn normalize_string(input: impl Into<Vec<u8>>) -> Vec<u8> {
-    let text = String::from_utf8(input.into()).unwrap().to_string()
+    let text = String::from_utf8(input.into())
+        .unwrap()
+        .to_string()
         .replace('á', "a")
         .replace('ä', "a")
         .replace('à', "a")
@@ -177,7 +179,13 @@ pub fn pixdata(device: &XAPDevice, screen_id: u8, pixels: impl Into<Vec<u8>>) {
 
 pub fn text_width(device: &XAPDevice, font: u8, text: impl Into<Vec<u8>>) -> u16 {
     let text = normalize_string(text);
-    let value = device.query(PainterGetTextWidth(PainterTextWidth { font, text })).unwrap();
+    let value = device
+        .query(PainterGetTextWidth(PainterTextWidth { font, text }))
+        .unwrap();
 
-    if value < 0 { u16::MAX } else { value as u16 }
+    if value < 0 {
+        u16::MAX
+    } else {
+        value as u16
+    }
 }

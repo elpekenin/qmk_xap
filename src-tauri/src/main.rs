@@ -199,7 +199,7 @@ fn main() -> ClientResult<()> {
             keycode_get,
             keycode_set,
             keymap_get,
-            get_xy_from_rowcol,
+            frontend_keymap_get,
             encoder_keycode_get,
             encoder_keycode_set,
             backlight_config_get,

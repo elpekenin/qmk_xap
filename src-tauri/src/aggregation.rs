@@ -28,6 +28,7 @@ pub struct XAPDeviceInfo {
     pub keymap: Option<KeymapInfo>,
     pub remap: Option<RemapInfo>,
     pub lighting: Option<LightingInfo>,
+    pub split: Option<SplitInfo>,
 }
 
 #[derive(Debug, Deserialize, Serialize, TS, Clone)]
@@ -70,6 +71,14 @@ pub struct QMKInfo {
     pub hardware_id: String,
     pub jump_to_bootloader_enabled: bool,
     pub eeprom_reset_enabled: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize, TS, Clone)]
+#[ts(export)]
+#[ts(export_to = "../bindings/")]
+pub struct SplitInfo {
+    pub enabled: bool,
+    pub main: String,
 }
 
 #[derive(Deserialize, Debug, Serialize, TS, Clone)]

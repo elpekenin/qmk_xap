@@ -3,7 +3,7 @@ use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::request::XAPRequest;
+use crate::{request::XAPRequest, constants::keycode::XAPKeyCode};
 
 // ==============================
 // 0x4 0x1
@@ -54,18 +54,27 @@ pub struct KeyCode(pub u16);
 #[derive(BinWrite, Debug, Default, Clone, TS, Serialize, Deserialize)]
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
-pub struct KeyPosition {
-    pub layer: u8,
-    pub row: u8,
-    pub col: u8,
+pub struct KeyLocation {
+    pub x: u8,
+    pub y: u8,
+}
+
+#[derive(Debug, TS, Serialize, Deserialize)]
+#[ts(export)]
+#[ts(export_to = "../bindings/")]
+pub struct XAPKeyInfo {
+    pub location: KeyLocation,
+    pub position: KeyPosition,
+    pub keycode: XAPKeyCode,
 }
 
 #[derive(BinWrite, Debug, Default, Clone, TS, Serialize, Deserialize)]
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
-pub struct KeyLocation {
-    pub x: u8,
-    pub y: u8,
+pub struct KeyPosition {
+    pub layer: u8,
+    pub row: u8,
+    pub col: u8,
 }
 
 #[derive(BinWrite, Debug)]

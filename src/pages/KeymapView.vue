@@ -8,9 +8,10 @@
     import { KeyPositionConfig } from '@bindings/KeyPositionConfig'
     import { XAPConstants } from '@bindings/XAPConstants'
     import { setKeyCode } from '@/commands/remap'
-    import { getKeyMap } from '@/commands/keymap'
+    import { getKeyMap, getFrontEndKeyMap } from '@/commands/keymap'
     import { notifyError } from '@/utils/utils'
     import { getXapConstants } from '../commands/constants'
+import { XAPKeyInfo } from '@bindings/XAPKeyInfo'
 
     const store = useXAPDeviceStore()
     const { device } = storeToRefs(store)
@@ -38,27 +39,45 @@
                 // attempt to set keycode
                 await setKeyCode(device.value.id, config)
                 // read-back updated keymap - state handling is done in the backend
-                device.value.keymap = await getKeyMap(device.value.id)
+                device.value.keymap = await getFrontEndKeyMap(device.value.id)
             } catch (err: unknown) {
                 notifyError(err)
             }
         }
     }
 
-    function selectKey(layer: number, row: number, col: number) {
-        selectedKey.value = { layer: layer, row: row, col: col }
+    function selectKey(key: XAPKeyInfo | undefined) {
+        if (key === undefined) {
+            return
+        }
+        selectedKey.value = { layer: key.position.layer, row: key.position.row, col: key.position.col }
     }
 
-    function colorButton(layer: number, row: number, col: number): string {
+    function colorButton(key: XAPKeyInfo | undefined): string {
+        if (key === undefined) {
+            return 'white'
+        }
+
         if (
-            selectedKey.value?.layer == layer &&
-            selectedKey.value?.row == row &&
-            selectedKey.value?.col == col
+            selectedKey.value?.layer == key.position.layer &&
+            selectedKey.value?.row == key.position.row &&
+            selectedKey.value?.col == key.position.col
         ) {
             return 'grey'
         }
         return 'white'
     }
+
+    function keyLabel(key: XAPKeyInfo | undefined): string {
+        if (key === undefined || key.keycode === undefined) {
+            return ""
+        }
+
+        console.log(key.keycode)
+
+        return key.keycode.label ?? key.keycode.key
+    }
+
 
     watch(device, async () => {
         selectedKey.value = null
@@ -106,7 +125,7 @@
                                 <!--  TODO create proper Key and Keycode components -->
                                 <!-- eslint-disable-next-line vue/valid-v-for -->
                                 <q-responsive
-                                    v-for="col in row"
+                                    v-for="key in row"
                                     class="col"
                                     style="max-width: 3rem"
                                     :ratio="1"
@@ -114,20 +133,20 @@
                                     <q-btn
                                         :color="
                                             colorButton(
-                                                col.position.layer,
-                                                col.position.row,
-                                                col.position.col
+                                                key
                                             )
                                         "
                                         text-color="black"
-                                        :label="col.code.label ?? col.code.key"
+                                        :label="
+                                            keyLabel(
+                                                key
+                                            )
+                                        "
                                         square
                                         @click="
                                             () =>
                                                 selectKey(
-                                                    col.position.layer,
-                                                    col.position.row,
-                                                    col.position.col
+                                                    key
                                                 )
                                         "
                                     />

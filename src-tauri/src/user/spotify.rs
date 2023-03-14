@@ -177,16 +177,7 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
         HSV_BLACK,
         true,
     );
-    gui::draw::text_recolor(
-        device,
-        screen_id,
-        x,
-        y,
-        font,
-        HSV_WHITE,
-        HSV_BLACK,
-        artist,
-    );
+    gui::draw::text_recolor(device, screen_id, x, y, font, HSV_WHITE, HSV_BLACK, artist);
 
     // Track
     let mut song = song.as_bytes();
