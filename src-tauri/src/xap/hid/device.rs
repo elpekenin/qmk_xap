@@ -21,8 +21,8 @@ use xap_specs::{
     error::{XAPError, XAPResult},
     protocol::{
         keymap::{
-            KeyCode, KeyLocation, KeyPosition, KeymapCapabilities,
-            KeymapCapabilitiesQuery, KeymapKeycodeQuery, KeymapLayerCountQuery, XAPKeyInfo,
+            KeyCode, KeyLocation, KeyPosition, KeymapCapabilities, KeymapCapabilitiesQuery,
+            KeymapKeycodeQuery, KeymapLayerCountQuery, XAPKeyInfo,
         },
         lighting::{
             BacklightCapabilities, BacklightCapabilitiesQuery, BacklightEffectsQuery,
@@ -53,7 +53,7 @@ use xap_specs::{
 use crate::{
     aggregation::{
         BacklightInfo, FeaturesInfo, KeymapInfo, LightingInfo, QMKInfo, RGBLightInfo,
-        RGBMatrixInfo, RemapInfo, XAPDevice as XAPDeviceDto, XAPDeviceInfo, XAPInfo, SplitInfo,
+        RGBMatrixInfo, RemapInfo, SplitInfo, XAPDevice as XAPDeviceDto, XAPDeviceInfo, XAPInfo,
     },
     xap::{ClientError, ClientResult},
     XAPEvent,
@@ -66,6 +66,7 @@ struct XAPDeviceState {
     xap_info: Option<XAPDeviceInfo>,
     keymap: Vec<Vec<Vec<XAPKeyCodeConfig>>>,
     xy_from_rowcol: Vec<Vec<Option<KeyLocation>>>,
+    frontend_keymap: Vec<Vec<Vec<Option<XAPKeyInfo>>>>,
     secure_status: XAPSecureStatus,
 }
 
@@ -111,6 +112,7 @@ impl XAPDevice {
         device.query_secure_status()?;
 
         device.generate_xy_from_rowcol()?;
+        device._generate_frontend_keymap();
 
         Ok(device)
     }
@@ -131,15 +133,19 @@ impl XAPDevice {
             .expect("XAP device wasn't properly initialized")
     }
 
-    pub fn keymap(&self) -> Vec<Vec<Vec<XAPKeyCodeConfig>>> {
+    fn keymap(&self) -> Vec<Vec<Vec<XAPKeyCodeConfig>>> {
         self.state.read().keymap.clone()
+    }
+
+    pub fn frontend_keymap(&self) -> Vec<Vec<Vec<Option<XAPKeyInfo>>>> {
+        self.state.read().frontend_keymap.clone()
     }
 
     fn xy_from_rowcol(&self) -> Vec<Vec<Option<KeyLocation>>> {
         self.state.read().xy_from_rowcol.clone()
     }
 
-    pub fn frontend_keymap(&self) -> Vec<Vec<Vec<Option<XAPKeyInfo>>>> {
+    fn _generate_frontend_keymap(&self) {
         let values = self.xy_from_rowcol();
 
         let values: Vec<_> = values.iter().flatten().flatten().collect();
@@ -150,7 +156,7 @@ impl XAPDevice {
         let keymap = self.keymap();
         let layers = keymap.len();
 
-        let front_keymap: Vec<Vec<Vec<Option<XAPKeyInfo>>>> = (0..layers)
+        let frontend_keymap: Vec<Vec<Vec<Option<XAPKeyInfo>>>> = (0..layers)
             .map(|layer| {
                 (0..=max_y)
                     .map(|y| {
@@ -159,9 +165,10 @@ impl XAPDevice {
                                 let mut position = self.rowcol_from_xy(x, y)?;
                                 position.layer = layer as u8;
 
-                                let KeyPosition{layer: _, row, col} = position;
+                                let KeyPosition { layer: _, row, col } = position;
 
-                                let keycode = keymap[layer][row as usize][col as usize].code.clone();
+                                let keycode =
+                                    keymap[layer][row as usize][col as usize].code.clone();
 
                                 Some(XAPKeyInfo {
                                     location: KeyLocation { x, y },
@@ -175,7 +182,7 @@ impl XAPDevice {
             })
             .collect();
 
-        front_keymap
+        self.state.write().frontend_keymap = frontend_keymap;
     }
 
     fn _xy_from_rowcol(&self, row: u8, col: u8) -> Option<KeyLocation> {
@@ -209,11 +216,7 @@ impl XAPDevice {
                     if key.x == x && key.y == y {
                         let row = row as u8;
                         let col = col as u8;
-                        return Some(KeyPosition {
-                            layer: 0,
-                            row,
-                            col,
-                        });
+                        return Some(KeyPosition { layer: 0, row, col });
                     }
                 }
             }
@@ -231,7 +234,7 @@ impl XAPDevice {
                 .as_ref()
                 .expect("XAP device wasn't properly initialized")
                 .clone(),
-            keymap: state.keymap.clone(),
+            keymap: state.frontend_keymap.clone(),
             secure_status: state.secure_status,
         }
     }
@@ -472,7 +475,7 @@ impl XAPDevice {
             keymap: keymap_info,
             remap: remap_info,
             lighting: lighting_info,
-            split: split_info
+            split: split_info,
         });
 
         Ok(())

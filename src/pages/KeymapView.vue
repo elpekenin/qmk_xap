@@ -8,7 +8,7 @@
     import { KeyPositionConfig } from '@bindings/KeyPositionConfig'
     import { XAPConstants } from '@bindings/XAPConstants'
     import { setKeyCode } from '@/commands/remap'
-    import { getKeyMap, getFrontEndKeyMap } from '@/commands/keymap'
+    import { getKeyMap } from '@/commands/keymap'
     import { notifyError } from '@/utils/utils'
     import { getXapConstants } from '../commands/constants'
 import { XAPKeyInfo } from '@bindings/XAPKeyInfo'
@@ -39,22 +39,22 @@ import { XAPKeyInfo } from '@bindings/XAPKeyInfo'
                 // attempt to set keycode
                 await setKeyCode(device.value.id, config)
                 // read-back updated keymap - state handling is done in the backend
-                device.value.keymap = await getFrontEndKeyMap(device.value.id)
+                device.value.keymap = await getKeyMap(device.value.id)
             } catch (err: unknown) {
                 notifyError(err)
             }
         }
     }
 
-    function selectKey(key: XAPKeyInfo | undefined) {
-        if (key === undefined) {
+    function selectKey(key: XAPKeyInfo | null) {
+        if (key === null) {
             return
         }
         selectedKey.value = { layer: key.position.layer, row: key.position.row, col: key.position.col }
     }
 
-    function colorButton(key: XAPKeyInfo | undefined): string {
-        if (key === undefined) {
+    function colorButton(key: XAPKeyInfo | null): string {
+        if (key === null) {
             return 'white'
         }
 
@@ -68,8 +68,8 @@ import { XAPKeyInfo } from '@bindings/XAPKeyInfo'
         return 'white'
     }
 
-    function keyLabel(key: XAPKeyInfo | undefined): string {
-        if (key === undefined || key.keycode === undefined) {
+    function keyLabel(key: XAPKeyInfo | null): string {
+        if (key === null) {
             return ""
         }
 
@@ -131,6 +131,7 @@ import { XAPKeyInfo } from '@bindings/XAPKeyInfo'
                                     :ratio="1"
                                 >
                                     <q-btn
+                                        v-if="key !== null"
                                         :color="
                                             colorButton(
                                                 key

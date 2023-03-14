@@ -5,7 +5,7 @@ use ts_rs::TS;
 use uuid::Uuid;
 use xap_specs::{
     constants::keycode::{XAPKeyCode, XAPKeyCodeConfig},
-    protocol::{qmk::QMKBoardIdentifiers, xap::XAPSecureStatus},
+    protocol::{qmk::QMKBoardIdentifiers, xap::XAPSecureStatus, keymap::XAPKeyInfo},
 };
 
 #[derive(Clone, Serialize, TS)]
@@ -14,7 +14,7 @@ use xap_specs::{
 pub struct XAPDevice {
     pub id: Uuid,
     pub info: XAPDeviceInfo,
-    pub keymap: Vec<Vec<Vec<XAPKeyCodeConfig>>>,
+    pub keymap: Vec<Vec<Vec<Option<XAPKeyInfo>>>>,
     pub secure_status: XAPSecureStatus,
 }
 

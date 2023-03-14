@@ -39,17 +39,6 @@ pub(crate) fn new_device(device: &XAPDevice, user_data: &Arc<Mutex<UserData>>) {
     std::thread::sleep(std::time::Duration::from_millis(3000));
     gui::on_connect(device);
     user_data.lock().connected = true;
-
-    for row in &device.frontend_keymap()[0] {
-        for col in row {
-            if let Some(key) = col {
-                print!("{: >13} ", &key.keycode.label.as_ref().unwrap());
-            } else {
-                print!(" --- ");
-            }
-        }
-        println!();
-    }
 }
 
 pub(crate) fn removed_device(_id: &Uuid, user_data: &Arc<Mutex<UserData>>) {
