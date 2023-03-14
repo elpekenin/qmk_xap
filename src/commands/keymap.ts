@@ -6,6 +6,6 @@ export async function getKeycode(id: string, position: KeyPosition): Promise<num
     return await queryDevice('keycode_get', id, position)
 }
 
-export async function getKeyMap(id: string): Promise<Array<Array<Array<XAPKeyInfo|undefined>>>> {
+export async function getKeyMap(id: string): Promise<Array<Array<Array<XAPKeyInfo|null>>>> {
     return await queryDevice('keymap_get', id, null)
 }

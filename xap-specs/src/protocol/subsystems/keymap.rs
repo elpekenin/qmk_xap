@@ -54,16 +54,18 @@ pub struct KeyCode(pub u16);
 #[derive(BinWrite, Debug, Default, Clone, TS, Serialize, Deserialize)]
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
-pub struct KeyLocation {
+pub struct KeyCoords {
     pub x: u8,
     pub y: u8,
+    pub w: u8,
+    pub h: u8,
 }
 
 #[derive(Debug, TS, Serialize, Deserialize, Clone)]
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
 pub struct XAPKeyInfo {
-    pub location: KeyLocation,
+    pub coords: KeyCoords,
     pub position: KeyPosition,
     pub keycode: XAPKeyCode,
 }

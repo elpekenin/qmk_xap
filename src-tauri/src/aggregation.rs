@@ -14,7 +14,7 @@ use xap_specs::{
 pub struct XAPDevice {
     pub id: Uuid,
     pub info: XAPDeviceInfo,
-    pub keymap: Vec<Vec<Vec<Option<XAPKeyInfo>>>>,
+    pub key_info: Vec<Vec<Vec<Option<XAPKeyInfo>>>>,
     pub secure_status: XAPSecureStatus,
 }
 

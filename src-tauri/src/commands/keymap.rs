@@ -7,7 +7,7 @@ use uuid::Uuid;
 use xap_specs::{
     constants::keycode::XAPKeyCodeConfig,
     protocol::keymap::{
-        EncoderPosition, KeyCode, KeyLocation, KeyPosition, KeymapEncoderQuery, KeymapKeycodeQuery,
+        EncoderPosition, KeyCode, KeyCoords, KeyPosition, KeymapEncoderQuery, KeymapKeycodeQuery,
         XAPKeyInfo,
     },
 };
@@ -37,5 +37,5 @@ pub(crate) async fn keymap_get(
     id: Uuid,
     state: State<'_, Arc<Mutex<XAPClient>>>,
 ) -> ClientResult<Vec<Vec<Vec<Option<XAPKeyInfo>>>>> {
-    Ok(state.lock().get_device(&id)?.frontend_keymap())
+    Ok(state.lock().get_device(&id)?.key_info())
 }

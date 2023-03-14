@@ -4,6 +4,7 @@ import type { KeymapInfo } from "./KeymapInfo";
 import type { LightingInfo } from "./LightingInfo";
 import type { QMKInfo } from "./QMKInfo";
 import type { RemapInfo } from "./RemapInfo";
+import type { SplitInfo } from "./SplitInfo";
 import type { XAPInfo } from "./XAPInfo";
 
-export interface XAPDeviceInfo { xap: XAPInfo, qmk: QMKInfo, features: FeaturesInfo, keymap: KeymapInfo | null, remap: RemapInfo | null, lighting: LightingInfo | null, }
+export interface XAPDeviceInfo { xap: XAPInfo, qmk: QMKInfo, features: FeaturesInfo, keymap: KeymapInfo | null, remap: RemapInfo | null, lighting: LightingInfo | null, split: SplitInfo | null, }

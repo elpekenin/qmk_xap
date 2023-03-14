@@ -11,7 +11,7 @@
     import { getKeyMap } from '@/commands/keymap'
     import { notifyError } from '@/utils/utils'
     import { getXapConstants } from '../commands/constants'
-import { XAPKeyInfo } from '@bindings/XAPKeyInfo'
+    import { XAPKeyInfo } from '@bindings/XAPKeyInfo'
 
     const store = useXAPDeviceStore()
     const { device } = storeToRefs(store)
@@ -39,7 +39,7 @@ import { XAPKeyInfo } from '@bindings/XAPKeyInfo'
                 // attempt to set keycode
                 await setKeyCode(device.value.id, config)
                 // read-back updated keymap - state handling is done in the backend
-                device.value.keymap = await getKeyMap(device.value.id)
+                device.value.key_info = await getKeyMap(device.value.id)
             } catch (err: unknown) {
                 notifyError(err)
             }
@@ -103,7 +103,7 @@ import { XAPKeyInfo } from '@bindings/XAPKeyInfo'
                         <h5>Layer</h5>
                         <!-- eslint-disable-next-line vue/valid-v-for -->
                         <q-tab
-                            v-for="(layer, index) in device?.keymap"
+                            v-for="(layer, index) in device?.key_info"
                             :name="index"
                             :label="index"
                         />
@@ -119,7 +119,7 @@ import { XAPKeyInfo } from '@bindings/XAPKeyInfo'
                         transition-next="jump-up"
                     >
                         <!-- eslint-disable-next-line vue/valid-v-for -->
-                        <q-tab-panel v-for="(layer, layer_idx) in device?.keymap" :name="layer_idx">
+                        <q-tab-panel v-for="(layer, layer_idx) in device?.key_info" :name="layer_idx">
                             <!-- eslint-disable-next-line vue/require-v-for-key -->
                             <div v-for="row in layer" class="row q-gutter-x-md q-ma-md">
                                 <!--  TODO create proper Key and Keycode components -->
