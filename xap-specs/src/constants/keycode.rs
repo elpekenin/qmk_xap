@@ -58,20 +58,19 @@ pub(crate) fn read_xap_keycodes(path: PathBuf) -> XAPResult<HashMap<u16, XAPKeyC
             let input = read_to_string(&path)?;
             match deser_hjson::from_str::<KeyCodes>(&input) {
                 Ok(mut codes) => {
-                    // TODO: Dynamic ranges from hjson files
-                    for (code, keycode) in codes.keycodes.iter_mut() {
-                        keycode.label = match code {
-                            // MO(0) makes no sense
-                            0x5220..=0x523F => Some(format!("MO({})", code - 0x5220)),
-                            // TD
-                            0x5700..=0x57FF => Some(format!("TD({})", code - 0x5700)),
-                            // Anything else, use first alias(shorter) if available
-                            _ => match keycode.aliases.len() {
-                                0 => keycode.label.clone(),
-                                _ => Some(keycode.aliases[0].clone())
+                    for (_code, keycode) in codes.keycodes.iter_mut() {
+                        // Get shorter name
+                        if let Some(alias) = keycode.aliases.first() {
+                            let alias = alias.to_string();
+                            if let Some(label) = &keycode.label {
+                                if alias.len() < label.len() {
+                                    keycode.label = Some(alias);
+                                }
+                            } else {
+                                keycode.label = Some(alias);
                             }
-                        }
-                    };
+                        };
+                    }
 
                     all.extend(codes.keycodes);
                 }
@@ -84,7 +83,7 @@ pub(crate) fn read_xap_keycodes(path: PathBuf) -> XAPResult<HashMap<u16, XAPKeyC
             }
         }
     }
-
+    
     Ok(all)
 }
 

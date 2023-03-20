@@ -158,15 +158,6 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     let gap = (geometry.height - 64) / 2;
     let font = 0;
 
-    let mut artist = track.artists.first().unwrap().name.as_bytes();
-    let mut textwidth = gui::draw::text_width(device, font, artist);
-    if textwidth > geometry.width {
-        artist = "...".as_bytes();
-        textwidth = gui::draw::text_width(device, font, artist);
-    }
-
-    let x = (geometry.width - textwidth) / 2;
-    let y = geometry.height / 2 - 32 - FONT_SIZE;
     gui::draw::rect(
         device,
         screen_id,
@@ -177,17 +168,13 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
         HSV_BLACK,
         true,
     );
-    gui::draw::text_recolor(device, screen_id, x, y, font, HSV_WHITE, HSV_BLACK, artist);
+    let artist = track.artists.first().unwrap().name.as_bytes();
+    let x = geometry.width / 2;
+    let y = geometry.height / 2 - 32 - FONT_SIZE;
+    gui::draw::text_centered_recolor(device, screen_id, x, y, font, HSV_WHITE, HSV_BLACK, artist);
 
     // Track
-    let mut song = song.as_bytes();
-    let mut textwidth = gui::draw::text_width(device, font, song);
-    if textwidth > geometry.width {
-        song = "...".as_bytes();
-        textwidth = gui::draw::text_width(device, font, song);
-    }
-
-    let x = (geometry.width - textwidth) / 2;
+    let song = song.as_bytes();
     gui::draw::rect(
         device,
         screen_id,
@@ -198,7 +185,7 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
         HSV_BLACK,
         true,
     );
-    gui::draw::text_recolor(
+    gui::draw::text_centered_recolor(
         device,
         screen_id,
         x,

@@ -46,18 +46,11 @@
         }
     }
 
-    function selectKey(key: XAPKeyInfo | null) {
-        if (key === null) {
-            return
-        }
+    function selectKey(key: XAPKeyInfo) {
         selectedKey.value = { layer: key.position.layer, row: key.position.row, col: key.position.col }
     }
 
-    function colorButton(key: XAPKeyInfo | null): string {
-        if (key === null) {
-            return 'white'
-        }
-
+    function colorButton(key: XAPKeyInfo): string {
         if (
             selectedKey.value?.layer == key.position.layer &&
             selectedKey.value?.row == key.position.row &&
@@ -68,16 +61,9 @@
         return 'white'
     }
 
-    function keyLabel(key: XAPKeyInfo | null): string {
-        if (key === null) {
-            return ""
-        }
-
-        console.log(key.keycode)
-
+    function keyLabel(key: XAPKeyInfo): string {
         return key.keycode.label ?? key.keycode.key
     }
-
 
     watch(device, async () => {
         selectedKey.value = null
@@ -86,7 +72,6 @@
     onMounted(async () => {
         try {
             xapConstants.value = await getXapConstants()
-            console.log(xapConstants.value)
         } catch (err) {
             notifyError(err)
         }

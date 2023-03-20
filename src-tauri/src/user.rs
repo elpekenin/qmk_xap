@@ -1,6 +1,7 @@
 mod gui;
 mod handlers;
 mod http;
+mod machine;
 mod os;
 mod spotify;
 
@@ -9,6 +10,7 @@ use dotenvy::dotenv;
 use log::{debug, info, trace, warn};
 use parking_lot::Mutex;
 use std::sync::Arc;
+use sysinfo::{System, SystemExt};
 use uuid::Uuid;
 use xap_specs::protocol::{BroadcastRaw, UserBroadcast};
 
@@ -18,8 +20,17 @@ pub struct UserData {
     pub last_song: String,
     pub last_url: String,
     pub connected: bool,
-    // up to 256/2 => 128 seconds timer
-    pub counter: u8,
+    pub counter: u8,       // up to 256/2 => 128 seconds timer
+    pub sys: System,
+}
+
+impl UserData {
+    pub fn new() -> Self {
+        Self {
+            sys: System::new_all(),
+            ..Default::default()
+        }
+    }
 }
 
 // Hooks
@@ -67,7 +78,7 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &Arc<Mutex<UserData>>)
 
     if !user_data.connected {
         trace!("housekeeping: no device connected, quitting");
-        *user_data = UserData::default();
+        *user_data = UserData::new();
         return;
     }
 
@@ -77,5 +88,6 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &Arc<Mutex<UserData>>)
     // ticks are 0.5s
     if user_data.counter % 10 == 0 {
         spotify::album_cover(client.get_devices()[0], &mut user_data);
+        machine::stats(client.get_devices()[0], &mut user_data);
     }
 }

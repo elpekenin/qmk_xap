@@ -139,7 +139,7 @@ fn main() -> ClientResult<()> {
     let state = Arc::new(Mutex::new(XAPClient::new(event_channel_tx.clone())?));
     let cloned_state = state.clone();
 
-    let user_data = Arc::new(Mutex::new(UserData::default()));
+    let user_data = Arc::new(Mutex::new(UserData::new()));
 
     let event_channel_tx_listen_frontend = event_channel_tx.clone();
 

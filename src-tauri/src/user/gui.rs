@@ -39,8 +39,8 @@ static SCREENS: Lazy<Vec<Screen>> = Lazy::new(|| {
     vec![
         // ILI9163
         Screen {
-            width: 129,
-            height: 129,
+            width: 130,
+            height: 130,
             id: 0,
             buttons: vec![],
             sliders: vec![],
@@ -50,11 +50,13 @@ static SCREENS: Lazy<Vec<Screen>> = Lazy::new(|| {
             width: 240,
             height: 320,
             id: 1,
-            buttons: vec![Button {
-                x: 50,
-                y: 50,
-                img: 0,
-            }],
+            buttons: vec![
+                // Button {
+                //     x: 50,
+                //     y: 50,
+                //     img: 0,
+                // }
+            ],
             sliders: vec![
                 // Slider {
                 //     direction: SliderDirection::Horizontal,
@@ -117,7 +119,7 @@ pub fn on_connect(device: &XAPDevice) {
         );
 
         // Show connection
-        draw::text_recolor(device, screen.id, 15, 15, 0, FG_COLOR, BG_COLOR, "Tauri ON");
+        draw::text_recolor(device, screen.id, 15, 15, 0, FG_COLOR, BG_COLOR, ":)");
 
         // Print buttons
         for button in &screen.buttons {
@@ -152,7 +154,7 @@ pub(crate) fn close(state: &Arc<Mutex<XAPClient>>) {
                 0,
                 FG_COLOR,
                 BG_COLOR,
-                "Tauri OFF",
+                ":(",
             );
         }
     }

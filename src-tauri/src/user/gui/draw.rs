@@ -108,6 +108,30 @@ pub fn text(device: &XAPDevice, screen_id: u8, x: u16, y: u16, font: u8, text: i
     text_recolor(device, screen_id, x, y, font, HSV_BLACK, HSV_WHITE, text);
 }
 
+pub fn text_centered_recolor(
+    device: &XAPDevice,
+    screen_id: u8,
+    x: u16,
+    y: u16,
+    font: u8,
+    fg_color: HSVColor,
+    bg_color: HSVColor,
+    text: impl Into<Vec<u8>>,
+) {
+    let mut text = text.into();
+    let geometry = geometry(device, screen_id);
+
+    let mut textwidth = text_width(device, font, text.clone());
+    if textwidth > geometry.width {
+        text = Vec::from("...".as_bytes());
+        textwidth = text_width(device, font, text.clone());
+    }
+
+    let x = x - textwidth / 2;
+
+    text_recolor(device, screen_id, x, y, font, fg_color, bg_color, text);
+}
+
 pub fn surface_text(
     device: &XAPDevice,
     screen_id: u8,
