@@ -39,16 +39,12 @@ static SCREENS: Lazy<Vec<Screen>> = Lazy::new(|| {
     vec![
         // ILI9163
         Screen {
-            width: 130,
-            height: 130,
             id: 0,
             buttons: vec![],
             sliders: vec![],
         },
         // ILI9341
         Screen {
-            width: 240,
-            height: 320,
             id: 1,
             buttons: vec![
                 // Button {
@@ -106,17 +102,7 @@ static SCREENS: Lazy<Vec<Screen>> = Lazy::new(|| {
 
 pub fn on_connect(device: &XAPDevice) {
     for screen in &*SCREENS {
-        // Clear screen
-        draw::rect(
-            device,
-            screen.id,
-            0,
-            0,
-            screen.width,
-            screen.height,
-            BG_COLOR,
-            true,
-        );
+        draw::clear(device, screen.id);
 
         // Show connection
         draw::text_recolor(device, screen.id, 15, 15, 0, FG_COLOR, BG_COLOR, ":)");
@@ -133,17 +119,7 @@ pub fn on_connect(device: &XAPDevice) {
 pub(crate) fn close(state: &Arc<Mutex<XAPClient>>) {
     for device in state.clone().lock().get_devices() {
         for screen in &*SCREENS {
-            // Clear screen
-            draw::rect(
-                device,
-                screen.id,
-                0,
-                0,
-                screen.width,
-                screen.height,
-                BG_COLOR,
-                true,
-            );
+            draw::clear(device, screen.id);
 
             // Show text
             draw::text_recolor(device, screen.id, 15, 15, 0, FG_COLOR, BG_COLOR, ":(");

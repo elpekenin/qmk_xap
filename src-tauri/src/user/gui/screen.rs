@@ -13,8 +13,6 @@ use xap_specs::protocol::UserBroadcast;
 
 #[derive(Debug, Clone)]
 pub struct Screen {
-    pub width: u16,
-    pub height: u16,
     pub id: u8,
     pub buttons: Vec<Button>,
     pub sliders: Vec<Slider>,
@@ -22,11 +20,12 @@ pub struct Screen {
 
 impl Screen {
     pub fn draw_text(&self, device: &XAPDevice, text: impl Into<Vec<u8>>) {
+        let height = draw::geometry(device, self.id).height;
         draw::text_recolor(
             device,
             self.id,
             0,
-            self.height - gui::FONT_SIZE,
+            height - gui::FONT_SIZE,
             0,
             gui::FG_COLOR,
             gui::BG_COLOR,
@@ -35,13 +34,14 @@ impl Screen {
     }
 
     pub fn clear_text(&self, device: &XAPDevice) {
+        let geometry = draw::geometry(device, self.id);
         draw::rect(
             device,
             self.id,
             0,
-            self.height - gui::FONT_SIZE,
-            self.width,
-            self.height,
+            geometry.height - gui::FONT_SIZE,
+            geometry.width,
+            geometry.height,
             gui::BG_COLOR,
             true,
         );

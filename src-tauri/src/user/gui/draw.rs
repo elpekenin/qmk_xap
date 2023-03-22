@@ -192,3 +192,17 @@ pub fn text_width(device: &XAPDevice, font: u8, text: impl Into<Vec<u8>>) -> u16
         value as u16
     }
 }
+
+pub fn clear(device: &XAPDevice, screen_id: u8) {
+    let geometry = geometry(device, screen_id);
+    let _ = rect(
+        device,
+        screen_id,
+        0,
+        0,
+        geometry.width,
+        geometry.height,
+        HSV_BLACK,
+        true,
+    );
+}

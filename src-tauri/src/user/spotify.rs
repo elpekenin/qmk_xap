@@ -134,7 +134,10 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
 
     let spotify = refresh_token(token);
 
+    let screen_id = 0;
+
     let Some(track) = playing_track(&spotify) else {
+        gui::draw::clear(device, screen_id);
         debug!("No functionality implemented for podcasts");
         return;
     };
@@ -146,7 +149,6 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     }
     user_data.last_song = song.clone();
 
-    let screen_id = 0;
     let geometry = gui::draw::geometry(device, screen_id);
     let url = &track.album.images.last().unwrap().url;
     if &user_data.last_url != url {

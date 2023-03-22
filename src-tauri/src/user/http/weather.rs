@@ -8,6 +8,7 @@ use crate::{
 };
 use chrono::{self, Timelike};
 
+use log::info;
 use percent_encoding::utf8_percent_encode;
 use reqwest::Method;
 
@@ -18,8 +19,7 @@ fn get_forecast() -> u8 {
     let longitude = -0.97;
     let url = format!(
         "https://api.open-meteo.com/v1/forecast?latitude={:.2}&longitude={:.2}&hourly=weathercode",
-        latitude,
-        longitude
+        latitude, longitude
     );
 
     let response = super::request(Method::GET, url, None, None).unwrap();
@@ -49,6 +49,7 @@ fn forecast_to_img_id(forecast: u8) -> Option<u8> {
     };
 
     if temp == u8::MAX {
+        info!("No img for forecast with id: {forecast}");
         return None;
     }
 

@@ -80,8 +80,6 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
         return;
     }
 
-    (user_data.counter, _) = user_data.counter.overflowing_add(1);
-
     let devices = client.get_devices();
 
     let device = match devices.first() {
@@ -104,4 +102,6 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
     if user_data.counter % (60 * 10 * 2) == 0 {
         http::weather::draw(device, user_data);
     }
+
+    (user_data.counter, _) = user_data.counter.overflowing_add(1);
 }
