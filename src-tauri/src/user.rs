@@ -22,6 +22,8 @@ pub struct UserData {
     pub connected: bool,
     pub counter: u32,
     pub sys: System,
+    pub ram: u8,
+    pub cpu: u8,
 }
 
 impl UserData {

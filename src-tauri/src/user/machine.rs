@@ -11,63 +11,42 @@ use log::info;
 use sysinfo::{CpuExt, NetworkExt, NetworksExt, System, SystemExt};
 use xap_specs::protocol::painter::HSVColor;
 
-pub fn stats(device: &XAPDevice, user_data: &mut UserData) {
-    user_data.sys.refresh_all();
-    let ram =
-        100_f64 * user_data.sys.used_memory() as f64 / (user_data.sys.total_memory() + 1) as f64;
-    let cpu = user_data.sys.global_cpu_info().cpu_usage();
+const GAP: u16 = 10;
+const WIDTH: u16 = 50;
+const FONT: u8 = 0;
+const SCREEN_ID: u8 = 1;
+const FIRST_BAR: u16 = 2 * GAP;
+const SECOND_BAR: u16 = 3 * GAP + WIDTH;
 
-    let screen_id = 1;
-
-    let ram_height = ram as u16;
-    let cpu_height = cpu as u16;
-
-    let geometry = gui::draw::geometry(device, screen_id);
-
-    let gap = 10;
-    let bottom = geometry.height - FONT_SIZE - gap;
+fn draw(device: &XAPDevice, bottom: u16, value: u8, cpu: bool){
+    // Clear previous bar
+    let left = if cpu { SECOND_BAR } else { FIRST_BAR };
     let top = bottom - 100 - FONT_SIZE;
-    let width = 50;
-
-    let first_bar = 2 * gap;
-    let second_bar = 3 * gap + width;
-
-    // Clear previous bars
     gui::draw::rect(
         device,
-        screen_id,
-        first_bar,
+        SCREEN_ID,
+        left,
         top,
-        first_bar + width,
-        bottom,
-        HSV_BLACK,
-        true,
-    );
-    gui::draw::rect(
-        device,
-        screen_id,
-        second_bar,
-        top,
-        second_bar + width,
+        left + WIDTH,
         bottom,
         HSV_BLACK,
         true,
     );
 
-    // Draw bars
-    let x = first_bar + width / 2;
-    let y = bottom - ram_height;
-    let hue = match ram_height {
+    // Draw new bar
+    let x = left + WIDTH / 2;
+    let y = bottom - value as u16;
+    let hue = match value {
         0..=30 => 105,
         31..=70 => 45,
         _ => 0,
     };
     gui::draw::rect(
         device,
-        screen_id,
-        first_bar,
+        SCREEN_ID,
+        left,
         y,
-        first_bar + width,
+        left + WIDTH,
         bottom,
         HSVColor {
             hue,
@@ -76,57 +55,46 @@ pub fn stats(device: &XAPDevice, user_data: &mut UserData) {
         },
         true,
     );
-    gui::draw::text_centered_recolor(device, screen_id, x, bottom, 0, HSV_WHITE, HSV_BLACK, "RAM");
+
+    // Draw texts
+    gui::draw::text_centered_recolor(device, SCREEN_ID, x, bottom, FONT,HSV_WHITE, HSV_BLACK, if cpu { "CPU" } else { "RAM" });
     gui::draw::text_centered_recolor(
         device,
-        screen_id,
+        SCREEN_ID,
         x,
         y - FONT_SIZE,
-        0,
+        FONT,
         HSV_WHITE,
         HSV_BLACK,
-        format!("{ram:.2}%"),
+        format!("{value}%"),
     );
+}
 
-    let x = second_bar + width / 2;
-    let y = bottom - cpu_height;
-    let hue = match cpu_height {
-        0..=30 => 128,
-        31..=70 => 170,
-        _ => 240,
-    };
+pub fn stats(device: &XAPDevice, user_data: &mut UserData) {
+    user_data.sys.refresh_all();
+    let ram = (100_f64 * user_data.sys.used_memory() as f64 / (user_data.sys.total_memory() + 1) as f64) as u8;
+    let cpu = user_data.sys.global_cpu_info().cpu_usage() as u8;
+
+    let geometry = gui::draw::geometry(device, SCREEN_ID);
+    let bottom = geometry.height - FONT_SIZE - GAP;
+
+    if ram != user_data.ram {
+        user_data.ram = ram;
+        draw(device, bottom, ram, false);
+    }
+
+    if cpu != user_data.cpu {
+        user_data.cpu = cpu;
+        draw(device, bottom, cpu, true);
+    }
+
+    // Horizontal line
     gui::draw::rect(
         device,
-        screen_id,
-        second_bar,
-        y,
-        second_bar + width,
+        SCREEN_ID,
+        GAP,
         bottom,
-        HSVColor {
-            hue,
-            sat: 255,
-            val: 255,
-        },
-        true,
-    );
-    gui::draw::text_centered_recolor(device, screen_id, x, bottom, 0, HSV_WHITE, HSV_BLACK, "CPU");
-    gui::draw::text_centered_recolor(
-        device,
-        screen_id,
-        x,
-        y - FONT_SIZE,
-        0,
-        HSV_WHITE,
-        HSV_BLACK,
-        format!("{cpu:.2}%"),
-    );
-
-    gui::draw::rect(
-        device,
-        screen_id,
-        gap,
-        bottom,
-        second_bar + width + gap,
+        SECOND_BAR + WIDTH + GAP,
         bottom,
         HSV_WHITE,
         true,
