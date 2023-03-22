@@ -135,10 +135,25 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     let spotify = refresh_token(token);
 
     let screen_id = 0;
+    let font = 0;
+    let geometry = gui::draw::geometry(device, screen_id);
+    let x = geometry.width / 2;
+    let gap = (geometry.height - 64) / 2;
 
     let Some(track) = playing_track(&spotify) else {
         gui::draw::clear(device, screen_id);
-        debug!("No functionality implemented for podcasts");
+        gui::draw::text_centered_recolor(
+            device,
+            screen_id,
+            x,
+            (geometry.height - FONT_SIZE) / 2,
+            font,
+            HSV_WHITE,
+            HSV_BLACK,
+            "No song on Spotify"
+        );
+        user_data.last_song = Default::default();
+        user_data.last_url = Default::default();
         return;
     };
 
@@ -149,17 +164,23 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     }
     user_data.last_song = song.clone();
 
-    let geometry = gui::draw::geometry(device, screen_id);
     let url = &track.album.images.last().unwrap().url;
     if &user_data.last_url != url {
+        gui::draw::rect(
+            device,
+            screen_id,
+            0,
+            gap,
+            geometry.width,
+            geometry.height - gap,
+            HSV_BLACK,
+            true,
+        );
         draw_album_img(device, url, screen_id, &geometry);
     }
     user_data.last_url = url.to_string();
 
     // show track info
-    let gap = (geometry.height - 64) / 2;
-    let font = 0;
-
     gui::draw::rect(
         device,
         screen_id,
@@ -171,7 +192,6 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
         true,
     );
     let artist = track.artists.first().unwrap().name.as_bytes();
-    let x = geometry.width / 2;
     let y = geometry.height / 2 - 32 - FONT_SIZE;
     gui::draw::text_centered_recolor(device, screen_id, x, y, font, HSV_WHITE, HSV_BLACK, artist);
 

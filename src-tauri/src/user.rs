@@ -85,6 +85,7 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
     let device = match devices.first() {
         Some(dev) => dev,
         None => {
+            user_data.connected = false;
             return;
         }
     };
@@ -92,10 +93,10 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
     // NOTE: ticks are 0.5s
 
     os::active_window(device, user_data);
+    machine::stats(device, user_data);
 
     if user_data.counter % (5 * 2) == 0 {
         spotify::album_cover(device, user_data);
-        machine::stats(device, user_data);
     }
 
     // once every 10 mins
