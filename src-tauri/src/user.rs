@@ -20,7 +20,7 @@ pub struct UserData {
     pub last_song: String,
     pub last_url: String,
     pub connected: bool,
-    pub counter: u8, // up to 256/2 => 128 seconds timer
+    pub counter: u32,
     pub sys: System,
 }
 
@@ -80,23 +80,28 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
         return;
     }
 
-    // modulo to prevent overflow
-    user_data.counter = (user_data.counter + 1) % 255;
+    (user_data.counter, _) = user_data.counter.overflowing_add(1);
 
-    // ticks are 0.5s
-    if user_data.counter % 10 == 0 {
-        let devices = client.get_devices();
+    let devices = client.get_devices();
 
-        let device = match devices.first() {
-            Some(dev) => dev,
-            None => {
-                return;
-            }
-        };
+    let device = match devices.first() {
+        Some(dev) => dev,
+        None => {
+            return;
+        }
+    };
 
+    // NOTE: ticks are 0.5s
+
+    os::active_window(device, user_data);
+
+    if user_data.counter % (5 * 2) == 0 {
         spotify::album_cover(device, user_data);
         machine::stats(device, user_data);
-        os::active_window(device, user_data);
+    }
+
+    // once every 10 mins
+    if user_data.counter % (60 * 10 * 2) == 0 {
         http::weather::draw(device, user_data);
     }
 }
