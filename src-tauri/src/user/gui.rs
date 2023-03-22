@@ -146,16 +146,7 @@ pub(crate) fn close(state: &Arc<Mutex<XAPClient>>) {
             );
 
             // Show text
-            draw::text_recolor(
-                device,
-                screen.id,
-                15,
-                15,
-                0,
-                FG_COLOR,
-                BG_COLOR,
-                ":(",
-            );
+            draw::text_recolor(device, screen.id, 15, 15, 0, FG_COLOR, BG_COLOR, ":(");
         }
     }
 }

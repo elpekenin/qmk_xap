@@ -115,7 +115,8 @@ fn start_event_loop(
                                 return;
                             }
 
-                            user::housekeeping(&state, &user_data);
+                            let mut user_data = user_data.lock();
+                            user::housekeeping(&state, &mut user_data);
                         },
                         Err(err) => {
                             error!("failed receiving tick {err}");

@@ -1,5 +1,6 @@
 pub mod home_assistant;
 pub mod telegram;
+pub mod weather;
 
 use log::error;
 use percent_encoding::{AsciiSet, CONTROLS};

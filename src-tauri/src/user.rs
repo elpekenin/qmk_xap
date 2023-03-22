@@ -20,7 +20,7 @@ pub struct UserData {
     pub last_song: String,
     pub last_url: String,
     pub connected: bool,
-    pub counter: u8,       // up to 256/2 => 128 seconds timer
+    pub counter: u8, // up to 256/2 => 128 seconds timer
     pub sys: System,
 }
 
@@ -73,9 +73,7 @@ pub(crate) fn broadcast_callback(broadcast: BroadcastRaw, id: Uuid, state: &Arc<
     gui::handle(state, &id, &msg);
 }
 
-pub(crate) fn housekeeping(client: &XAPClient, user_data: &Arc<Mutex<UserData>>) {
-    let mut user_data = user_data.lock();
-
+pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
     if !user_data.connected {
         trace!("housekeeping: no device connected, quitting");
         *user_data = UserData::new();
@@ -87,7 +85,18 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &Arc<Mutex<UserData>>)
 
     // ticks are 0.5s
     if user_data.counter % 10 == 0 {
-        spotify::album_cover(client.get_devices()[0], &mut user_data);
-        machine::stats(client.get_devices()[0], &mut user_data);
+        let devices = client.get_devices();
+
+        let device = match devices.first() {
+            Some(dev) => dev,
+            None => {
+                return;
+            }
+        };
+
+        spotify::album_cover(device, user_data);
+        machine::stats(device, user_data);
+        os::active_window(device, user_data);
+        http::weather::draw(device, user_data);
     }
 }

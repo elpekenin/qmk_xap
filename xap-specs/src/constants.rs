@@ -22,12 +22,12 @@ impl XAPConstants {
 
     #[must_use]
     pub fn get_keycode(&self, code: u16) -> XAPKeyCode {
-        let mut keycode = self.keycodes
+        let mut keycode = self
+            .keycodes
             .get(&code)
             .cloned()
             .unwrap_or_else(|| XAPKeyCode::new_custom(code));
 
-        
         // TODO: Dynamic ranges from hjson files
         keycode.label = match code {
             0 => Some("KC_NO".to_string()),

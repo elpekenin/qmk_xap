@@ -83,7 +83,7 @@ pub(crate) fn read_xap_keycodes(path: PathBuf) -> XAPResult<HashMap<u16, XAPKeyC
             }
         }
     }
-    
+
     Ok(all)
 }
 
