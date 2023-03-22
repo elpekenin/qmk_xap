@@ -129,11 +129,11 @@ fn start_event_loop(
 }
 
 fn main() -> ClientResult<()> {
+    user::pre_init();
+
     env_logger::Builder::from_env(Env::default().default_filter_or("info"))
         .format_timestamp(None)
         .init();
-
-    user::pre_init();
 
     let (event_channel_tx, event_channel_rx): (Sender<XAPEvent>, Receiver<XAPEvent>) = unbounded();
 

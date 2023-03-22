@@ -18,7 +18,7 @@ const SCREEN_ID: u8 = 1;
 const FIRST_BAR: u16 = 2 * GAP;
 const SECOND_BAR: u16 = 3 * GAP + WIDTH;
 
-fn draw(device: &XAPDevice, bottom: u16, value: u8, cpu: bool){
+fn draw(device: &XAPDevice, bottom: u16, value: u8, cpu: bool) {
     // Clear previous bar
     let left = if cpu { SECOND_BAR } else { FIRST_BAR };
     let top = bottom - 100 - FONT_SIZE;
@@ -57,7 +57,16 @@ fn draw(device: &XAPDevice, bottom: u16, value: u8, cpu: bool){
     );
 
     // Draw texts
-    gui::draw::text_centered_recolor(device, SCREEN_ID, x, bottom, FONT,HSV_WHITE, HSV_BLACK, if cpu { "CPU" } else { "RAM" });
+    gui::draw::text_centered_recolor(
+        device,
+        SCREEN_ID,
+        x,
+        bottom,
+        FONT,
+        HSV_WHITE,
+        HSV_BLACK,
+        if cpu { "CPU" } else { "RAM" },
+    );
     gui::draw::text_centered_recolor(
         device,
         SCREEN_ID,
@@ -72,7 +81,8 @@ fn draw(device: &XAPDevice, bottom: u16, value: u8, cpu: bool){
 
 pub fn stats(device: &XAPDevice, user_data: &mut UserData) {
     user_data.sys.refresh_all();
-    let ram = (100_f64 * user_data.sys.used_memory() as f64 / (user_data.sys.total_memory() + 1) as f64) as u8;
+    let ram = (100_f64 * user_data.sys.used_memory() as f64
+        / (user_data.sys.total_memory() + 1) as f64) as u8;
     let cpu = user_data.sys.global_cpu_info().cpu_usage() as u8;
 
     let geometry = gui::draw::geometry(device, SCREEN_ID);

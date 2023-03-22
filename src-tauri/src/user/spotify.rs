@@ -58,25 +58,16 @@ fn playing_track(spotify: &AuthCodeSpotify) -> Option<FullTrack> {
     let market = Market::Country(Country::Spain);
     let additional_types = [AdditionalType::Episode];
 
-    let playing_context = spotify
+    match spotify
         .current_playing(Some(market), Some(&additional_types))
-        .unwrap();
-
-    let playing_item = if let Some(context) = playing_context {
-        if let Some(item) = context.item {
-            item
-        } else {
-            debug!("Couldn't get item from context");
-            return None;
+        .ok()??
+        .item
+    {
+        Some(PlayableItem::Track(t)) => Some(t),
+        x => {
+            debug!("No logic defined for {:#?}", x);
+            None
         }
-    } else {
-        debug!("Not listening to music");
-        return None;
-    };
-
-    match playing_item {
-        PlayableItem::Track(t) => Some(t),
-        PlayableItem::Episode(_) => None,
     }
 }
 
