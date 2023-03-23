@@ -132,6 +132,9 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     let gap = (geometry.height - 64) / 2;
 
     let Some(track) = playing_track(&spotify) else {
+        if user_data.last_song == "__none__" {
+            return;
+        }
         gui::draw::clear(device, screen_id);
         gui::draw::text_centered_recolor(
             device,
@@ -143,7 +146,7 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
             HSV_BLACK,
             "No song on Spotify"
         );
-        user_data.last_song = Default::default();
+        user_data.last_song = String::from("__none__");
         user_data.last_url = Default::default();
         return;
     };
