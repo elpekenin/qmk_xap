@@ -56,7 +56,7 @@ fn forecast_to_img_id(forecast: u8) -> Option<u8> {
     Some(temp)
 }
 
-pub fn draw(device: &XAPDevice, user_data: &mut UserData) {
+pub fn draw(device: &XAPDevice, _user_data: &mut UserData) {
     let img = forecast_to_img_id(get_forecast());
 
     let screen_id = 1;

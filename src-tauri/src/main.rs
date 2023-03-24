@@ -58,7 +58,9 @@ fn start_event_loop(
                     match msg {
                         Ok(XAPEvent::Exit) => {
                             info!("received shutdown signal, exiting!");
-                            user::on_close(state);
+                            let client = state.lock();
+                            let user_data = user_data.lock();
+                            user::on_close(&client, &user_data);
                             break 'event_loop;
                         },
                         Ok(XAPEvent::LogReceived{id, log}) => {
@@ -74,6 +76,8 @@ fn start_event_loop(
                                 info!("detected new device - notifying frontend!");
 
                                 app.emit_all("new-device", FrontendEvent::NewDevice{ device: device.as_dto() }).unwrap();
+
+                                let user_data = user_data.lock();
                                 user::new_device(device, &user_data);
                             }
                         },
@@ -97,7 +101,10 @@ fn start_event_loop(
                             }
                         },
                         Ok(XAPEvent::ReceivedUserBroadcast{broadcast, id}) => {
-                            user::broadcast_callback(broadcast, id, &state);
+                            let state = state.lock();
+                            let device = state.get_device(&id).unwrap();
+                            let user_data = user_data.lock();
+                            user::broadcast_callback(broadcast, device, &user_data);
                         },
                         Err(err) => {
                             error!("error receiving event {err}");
@@ -141,6 +148,7 @@ fn main() -> ClientResult<()> {
     let cloned_state = state.clone();
 
     let user_data = Arc::new(Mutex::new(UserData::new()));
+    let cloned_user_data = user_data.clone();
 
     let event_channel_tx_listen_frontend = event_channel_tx.clone();
 
@@ -172,7 +180,7 @@ fn main() -> ClientResult<()> {
                         app.get_window("main").unwrap().hide().unwrap();
                     }
                     "quit" => {
-                        user::on_close(cloned_state.clone());
+                        user::on_close(&cloned_state.lock(), &cloned_user_data.lock());
                         std::process::exit(0);
                     }
                     "show" => {

@@ -39,7 +39,6 @@ ts-rs = { git = "https://github.com/Aleph-Alpha/ts-rs", branch = "main", feature
 uuid = { version = "1.2.1", features = ["serde", "v4"] }
 xap-specs = { path = "../xap-specs" }
 reqwest = { version = "0.11", features = ["blocking", "json"] }
-once_cell = "1.16"
 percent-encoding = "2.1"
 phf = { version = "0.11", features = ["macros"] }
 dotenvy = "0.15.6"

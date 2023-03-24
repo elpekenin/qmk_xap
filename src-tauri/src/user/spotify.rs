@@ -14,7 +14,7 @@ use rspotify::{
 };
 use xap_specs::protocol::painter::{HSVColor, PainterGeometry};
 
-use super::gui::{draw::text, FONT_SIZE};
+use super::gui::FONT_SIZE;
 
 fn init() -> AuthCodeSpotify {
     let config = Config {

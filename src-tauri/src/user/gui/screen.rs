@@ -2,7 +2,7 @@
 use crate::{
     user::{
         gui::{self, draw, Button, Slider, SliderDirection},
-        handlers,
+        handlers, UserData,
     },
     xap::hid::{XAPClient, XAPDevice},
 };
@@ -74,13 +74,16 @@ impl Screen {
         None
     }
 
-    pub(crate) fn handle(&self, state: &Arc<Mutex<XAPClient>>, id: &Uuid, msg: &UserBroadcast) {
+    pub(crate) fn handle(&self, device: &XAPDevice, msg: &UserBroadcast, user_data: &UserData) {
         if msg.screen_id != self.id {
             return;
         }
 
-        self.get_button(msg)
-            .map_or((), |button| handlers::button(state, id, self, button));
+        self.get_button(msg).map_or((), |button| {
+            handlers::button(device, self, button, user_data)
+        });
+        // self.get_button(msg)
+        // .map_or((), |button| (button.handler)(device, msg));
 
         self.get_slider(msg).map_or((), |slider| {
             let coord = match slider.direction {
@@ -88,7 +91,7 @@ impl Screen {
                 SliderDirection::Horizontal => msg.x,
             };
 
-            handlers::slider(state, id, self, slider, coord);
+            handlers::slider(device, self, slider, coord, user_data);
         });
     }
 }

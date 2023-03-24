@@ -3,12 +3,15 @@ use crate::{
     user::gui::{draw, Screen, BG_COLOR, FG_COLOR, IMAGE_SIZE},
     xap::hid::XAPDevice,
 };
+use xap_specs::protocol::UserBroadcast;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Button {
     pub x: u16,
     pub y: u16,
     pub img: u8,
+    // TODO: Each instance storing its own logic
+    // pub handler: Box<dyn Fn(&XAPDevice, &UserBroadcast)>,
 }
 
 impl Button {

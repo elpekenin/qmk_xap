@@ -15,7 +15,7 @@ pub fn start_home_assistant() {
     }
 }
 
-pub fn active_window(device: &XAPDevice, user_data: &mut UserData) {
+pub fn active_window(device: &XAPDevice, _user_data: &mut UserData) {
     let output = match OS {
         "windows" => windows::active_window(),
         _ => {

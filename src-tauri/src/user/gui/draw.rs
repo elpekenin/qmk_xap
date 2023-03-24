@@ -83,10 +83,6 @@ pub fn text_recolor(
     }));
 }
 
-pub fn text(device: &XAPDevice, screen_id: u8, x: u16, y: u16, font: u8, text: impl Into<Vec<u8>>) {
-    text_recolor(device, screen_id, x, y, font, HSV_BLACK, HSV_WHITE, text);
-}
-
 pub fn text_centered_recolor(
     device: &XAPDevice,
     screen_id: u8,
@@ -111,25 +107,6 @@ pub fn text_centered_recolor(
     text_recolor(device, screen_id, x, y, font, fg_color, bg_color, text);
 }
 
-pub fn surface_text(
-    device: &XAPDevice,
-    screen_id: u8,
-    x: u16,
-    y: u16,
-    font: u8,
-    text: impl Into<Vec<u8>>,
-) {
-    let text = normalize_string(text);
-
-    let _ = device.query(PainterSurfaceDrawText(PainterText {
-        screen_id,
-        x,
-        y,
-        font,
-        text,
-    }));
-}
-
 pub fn rect(
     device: &XAPDevice,
     screen_id: u8,
@@ -149,15 +126,6 @@ pub fn rect(
         bottom,
         color,
         filled,
-    }));
-}
-
-pub fn pixel(device: &XAPDevice, screen_id: u8, x: u16, y: u16, color: HSVColor) {
-    let _ = device.query(PainterDrawPixel(PainterPixel {
-        screen_id,
-        x,
-        y,
-        color,
     }));
 }
 
@@ -195,7 +163,7 @@ pub fn text_width(device: &XAPDevice, font: u8, text: impl Into<Vec<u8>>) -> u16
 
 pub fn clear(device: &XAPDevice, screen_id: u8) {
     let geometry = geometry(device, screen_id);
-    let _ = rect(
+    rect(
         device,
         screen_id,
         0,
