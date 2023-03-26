@@ -6,7 +6,7 @@ mod spotify;
 
 use crate::{
     user::{
-        gui::{Button, Screen, Slider, SliderDirection},
+        gui::{Button, Screen, Slider, SliderDirection, IMAGE_SIZE},
         http::{home_assistant as ha, telegram as tg},
     },
     xap::hid::{XAPClient, XAPDevice},
@@ -29,6 +29,7 @@ pub struct UserData {
     pub ram: u8,
     pub cpu: u8,
     pub screens: Vec<Screen>,
+    pub connected: bool,
 }
 
 impl UserData {
@@ -46,8 +47,8 @@ impl UserData {
                 Screen {
                     id: 1,
                     buttons: vec![Button {
-                        x: 150,
-                        y: 100,
+                        x: 320 - IMAGE_SIZE,
+                        y: 240 - 3 * IMAGE_SIZE,
                         img: 0,
                         handler: Box::new(
                             |device: &XAPDevice,
@@ -63,8 +64,8 @@ impl UserData {
                         direction: SliderDirection::Horizontal,
                         start: 190,
                         size: 50,
-                        x: 150,
-                        y: 100,
+                        x: 320 - 3 * IMAGE_SIZE,
+                        y: 240 - 2 * IMAGE_SIZE,
                         img_map: HashMap::from([
                             ("0", 0),
                             ("1", 1),
@@ -105,8 +106,6 @@ pub(crate) fn pre_init() {
 }
 
 pub(crate) fn new_device(device: &XAPDevice, user_data: &UserData) {
-    // Sleep is needed, so that screen is init'ed
-    std::thread::sleep(std::time::Duration::from_millis(3000));
     gui::on_connect(device, user_data);
 }
 
@@ -143,6 +142,11 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
             return;
         }
     };
+
+    if !user_data.connected {
+        info!("Waiting until displays are clear");
+        return;
+    }
 
     // NOTE: ticks are 0.5s
 

@@ -34,7 +34,7 @@ impl fmt::Debug for Button {
 }
 
 impl Button {
-    pub const TOLERANCE: u16 = 30;
+    pub const TOLERANCE: u16 = 15;
     pub const SIZE: u16 = IMAGE_SIZE + 2 * Self::TOLERANCE;
 
     pub fn draw(&self, device: &XAPDevice, screen: &Screen, pressed: bool) {

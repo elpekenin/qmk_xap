@@ -77,8 +77,12 @@ fn start_event_loop(
 
                                 app.emit_all("new-device", FrontendEvent::NewDevice{ device: device.as_dto() }).unwrap();
 
-                                let user_data = user_data.lock();
+                                let mut user_data = user_data.lock();
                                 user::new_device(device, &user_data);
+
+                                // prevents drawing before the screen gets cleared
+                                // otherwise we'll remove some of our own drawing
+                                user_data.connected = true;
                             }
                         },
                         Ok(XAPEvent::RemovedDevice(id)) => {
