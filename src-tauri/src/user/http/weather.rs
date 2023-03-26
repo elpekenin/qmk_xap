@@ -1,6 +1,6 @@
 use crate::{
     user::{
-        gui::{self, HSV_BLACK},
+        gui::{self, HSV_BLACK, FONT_SIZE},
         http::FRAGMENT,
         UserData,
     },
@@ -13,6 +13,9 @@ use percent_encoding::utf8_percent_encode;
 use reqwest::Method;
 
 use super::home_assistant;
+
+const SCREEN_ID: u8 = 1;
+const IMG_SIZE: u16 = 24;
 
 fn get_forecast() -> u8 {
     let latitude = 37.60;
@@ -59,17 +62,12 @@ fn forecast_to_img_id(forecast: u8) -> Option<u8> {
 pub fn draw(device: &XAPDevice, _user_data: &mut UserData) {
     let img = forecast_to_img_id(get_forecast());
 
-    let screen_id = 1;
-    let geometry = gui::draw::geometry(device, screen_id);
-    let width = geometry.width;
-    let height = geometry.height;
-    let img_size = 24;
-
-    let x = width - img_size;
-    let y = height - img_size;
+    let width = gui::draw::geometry(device, SCREEN_ID).width;
+    let x = width - IMG_SIZE;
+    let y = FONT_SIZE;
 
     match img {
-        Some(img) => gui::draw::image(device, screen_id, x, y, img),
-        None => gui::draw::rect(device, screen_id, x, y, width, height, HSV_BLACK, true),
+        Some(img) => gui::draw::image(device, SCREEN_ID, x, y, img),
+        None => gui::draw::rect(device, SCREEN_ID, x, y, x + IMG_SIZE, y + IMG_SIZE, HSV_BLACK, true),
     }
 }

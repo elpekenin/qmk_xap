@@ -38,11 +38,6 @@ pub const FG_COLOR: HSVColor = HSV_WHITE;
 
 pub fn on_connect(device: &XAPDevice, user_data: &UserData) {
     for screen in &user_data.screens {
-        draw::clear(device, screen.id);
-
-        // Show connection
-        draw::text_recolor(device, screen.id, 15, 15, 0, FG_COLOR, BG_COLOR, ":)");
-
         // Print buttons
         for button in &screen.buttons {
             draw::image_recolor(

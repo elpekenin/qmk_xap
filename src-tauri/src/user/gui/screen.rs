@@ -1,8 +1,8 @@
-/// Screens contain information about their geometry and elements on them
+/// Screens contain their own ID and elements on them
 use crate::{
     user::{
         gui::{self, draw, Button, Slider, SliderDirection},
-        handlers, UserData,
+        UserData,
     },
     xap::hid::{XAPClient, XAPDevice},
 };
@@ -11,7 +11,7 @@ use std::sync::Arc;
 use uuid::Uuid;
 use xap_specs::protocol::UserBroadcast;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Screen {
     pub id: u8,
     pub buttons: Vec<Button>,
@@ -79,19 +79,11 @@ impl Screen {
             return;
         }
 
-        self.get_button(msg).map_or((), |button| {
-            handlers::button(device, self, button, user_data)
-        });
-        // self.get_button(msg)
-        // .map_or((), |button| (button.handler)(device, msg));
+        self.get_button(msg)
+            .map_or((), |button| button.handle(device, self, msg, user_data));
 
         self.get_slider(msg).map_or((), |slider| {
-            let coord = match slider.direction {
-                SliderDirection::Vertical => msg.y,
-                SliderDirection::Horizontal => msg.x,
-            };
-
-            handlers::slider(device, self, slider, coord, user_data);
+            (slider.handler)(device, self, slider, msg, user_data)
         });
     }
 }

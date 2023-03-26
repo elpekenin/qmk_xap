@@ -1,18 +1,20 @@
 mod gui;
-mod handlers;
 mod http;
 mod machine;
 mod os;
 mod spotify;
 
 use crate::{
-    user::gui::{Button, Screen},
+    user::{
+        gui::{Button, Screen, Slider, SliderDirection},
+        http::{home_assistant as ha, telegram as tg},
+    },
     xap::hid::{XAPClient, XAPDevice},
 };
 use dotenvy::dotenv;
 use log::{debug, info, trace, warn};
 use parking_lot::Mutex;
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 use sysinfo::{System, SystemExt};
 use uuid::Uuid;
 use xap_specs::protocol::{BroadcastRaw, UserBroadcast};
@@ -41,30 +43,49 @@ impl UserData {
                     sliders: vec![],
                 },
                 // ILI9341
-                // Screen {
-                //     id: 1,
-                //     buttons: vec![
-                //         Button {
-                //             x: 150,
-                //             y: 100,
-                //             img: 0,
-                //             // handler: Box::new(|dev: &XAPDevice, msg: &UserBroadcast| { println!("{:?} {:?}", dev, msg)})
-                //         }
-                //     ],
-                //     sliders: vec![
-                //         // Slider {
-                //         //     direction: SliderDirection::Horizontal,
-                //         //     start: 270,
-                //         //     size: 50,
-                //         //     x: 50,
-                //         //     y: 120,
-                //         //     img_map: HashMap::from([
-                //         //         ("0", 0),
-                //         //         ("1", 1),
-                //         //     ]),
-                //         // }
-                //     ],
-                // },
+                Screen {
+                    id: 1,
+                    buttons: vec![Button {
+                        x: 150,
+                        y: 100,
+                        img: 0,
+                        handler: Box::new(
+                            |device: &XAPDevice,
+                             screen: &Screen,
+                             button: &Button,
+                             msg: &UserBroadcast,
+                             user_data: &UserData| {
+                                tg::text("QMK -XAP-> TauriClient -HTTP-> Telegram");
+                            },
+                        ),
+                    }],
+                    sliders: vec![Slider {
+                        direction: SliderDirection::Horizontal,
+                        start: 190,
+                        size: 50,
+                        x: 150,
+                        y: 100,
+                        img_map: HashMap::from([
+                            ("0", 0),
+                            ("1", 1),
+                            ("2", 2),
+                            ("3", 3),
+                            ("4", 4),
+                            ("5", 5),
+                        ]),
+                        handler: Box::new(
+                            |device: &XAPDevice,
+                             screen: &Screen,
+                             slider: &Slider,
+                             msg: &UserBroadcast,
+                             user_data: &UserData| {
+                                let intensity = slider.coord(msg) * 6 / 321;
+                                slider.draw(device, screen, intensity);
+                                // ha::set_light_intensity(intensity);
+                            },
+                        ),
+                    }],
+                },
             ],
             ..Default::default()
         }
@@ -132,8 +153,7 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
         spotify::album_cover(device, user_data);
     }
 
-    // once every 10 mins
-    if user_data.counter % (60 * 10 * 2) == 0 {
+    if user_data.counter % (60 * 1 * 2) == 0 {
         http::weather::draw(device, user_data);
     }
 
