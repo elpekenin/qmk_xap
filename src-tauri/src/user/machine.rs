@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 use crate::{
     user::{
         gui::{self, FONT_SIZE, HSV_BLACK, HSV_WHITE},
@@ -7,8 +5,7 @@ use crate::{
     },
     xap::hid::XAPDevice,
 };
-use log::info;
-use sysinfo::{CpuExt, NetworkExt, NetworksExt, System, SystemExt};
+use sysinfo::{CpuExt, SystemExt};
 use xap_specs::protocol::painter::HSVColor;
 
 const GAP: u16 = 10;

@@ -12,7 +12,7 @@ use crate::{
     xap::hid::{XAPClient, XAPDevice},
 };
 use dotenvy::dotenv;
-use log::{debug, info, trace, warn};
+use log::{info, trace};
 use parking_lot::Mutex;
 use std::{collections::HashMap, sync::Arc};
 use sysinfo::{System, SystemExt};
@@ -51,11 +51,11 @@ impl UserData {
                         y: 240 - 3 * IMAGE_SIZE,
                         img: 0,
                         handler: Box::new(
-                            |device: &XAPDevice,
-                             screen: &Screen,
-                             button: &Button,
-                             msg: &UserBroadcast,
-                             user_data: &UserData| {
+                            |_device: &XAPDevice,
+                             _screen: &Screen,
+                             _button: &Button,
+                             _msg: &UserBroadcast,
+                             _user_data: &UserData| {
                                 tg::text("QMK -XAP-> TauriClient -HTTP-> Telegram");
                             },
                         ),
@@ -79,7 +79,7 @@ impl UserData {
                              screen: &Screen,
                              slider: &Slider,
                              msg: &UserBroadcast,
-                             user_data: &UserData| {
+                             _user_data: &UserData| {
                                 let intensity = slider.coord(msg) * 6 / 321;
                                 slider.draw(device, screen, intensity);
                                 // ha::set_light_intensity(intensity);
@@ -157,7 +157,7 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
         spotify::album_cover(device, user_data);
     }
 
-    if user_data.counter % (60 * 1 * 2) == 0 {
+    if user_data.counter % (60 * 10 * 2) == 0 {
         http::weather::draw(device, user_data);
     }
 

@@ -1,7 +1,6 @@
 use crate::{
     user::{
-        gui::{self, HSV_BLACK, FONT_SIZE},
-        http::FRAGMENT,
+        gui::{self, FONT_SIZE, HSV_BLACK},
         UserData,
     },
     xap::hid::XAPDevice,
@@ -9,10 +8,7 @@ use crate::{
 use chrono::{self, Timelike};
 
 use log::info;
-use percent_encoding::utf8_percent_encode;
 use reqwest::Method;
-
-use super::home_assistant;
 
 const SCREEN_ID: u8 = 1;
 const IMG_SIZE: u16 = 24;
@@ -68,6 +64,15 @@ pub fn draw(device: &XAPDevice, _user_data: &mut UserData) {
 
     match img {
         Some(img) => gui::draw::image(device, SCREEN_ID, x, y, img),
-        None => gui::draw::rect(device, SCREEN_ID, x, y, x + IMG_SIZE, y + IMG_SIZE, HSV_BLACK, true),
+        None => gui::draw::rect(
+            device,
+            SCREEN_ID,
+            x,
+            y,
+            x + IMG_SIZE,
+            y + IMG_SIZE,
+            HSV_BLACK,
+            true,
+        ),
     }
 }

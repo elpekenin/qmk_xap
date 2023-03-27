@@ -1,6 +1,5 @@
 use crate::xap::hid::XAPDevice;
-use log::info;
-use xap_specs::{protocol::painter::*, request::XAPRequest};
+use xap_specs::protocol::painter::*;
 
 use super::{HSV_BLACK, HSV_WHITE};
 
@@ -97,7 +96,7 @@ pub fn text_centered_recolor(
     let geometry = geometry(device, screen_id);
 
     let mut textwidth = text_width(device, font, text.clone());
-    if textwidth > geometry.width {
+    if (x + textwidth / 2) > geometry.width {
         text = Vec::from("...".as_bytes());
         textwidth = text_width(device, font, text.clone());
     }

@@ -3,16 +3,15 @@ use crate::{
     xap::hid::XAPDevice,
     UserData,
 };
-use core::slice::Iter;
 use image;
-use log::{debug, error, info, trace, warn};
+use log::{debug, error, trace};
 use reqwest;
 use rspotify::{
     model::{AdditionalType, Country, FullTrack, Market, PlayableItem},
     prelude::*,
     scopes, AuthCodeSpotify, Config, Credentials, OAuth, Token, DEFAULT_CACHE_PATH,
 };
-use xap_specs::protocol::painter::{HSVColor, PainterGeometry};
+use xap_specs::protocol::painter::PainterGeometry;
 
 use super::gui::FONT_SIZE;
 

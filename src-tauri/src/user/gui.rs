@@ -9,9 +9,6 @@ pub use screen::Screen;
 pub use slider::{Slider, SliderDirection};
 
 use crate::xap::hid::{XAPClient, XAPDevice};
-use parking_lot::Mutex;
-use std::sync::Arc;
-use uuid::Uuid;
 use xap_specs::protocol::{painter::HSVColor, UserBroadcast};
 
 use super::UserData;

@@ -4,11 +4,8 @@ use crate::{
         gui::{self, draw, Button, Slider, SliderDirection},
         UserData,
     },
-    xap::hid::{XAPClient, XAPDevice},
+    xap::hid::XAPDevice,
 };
-use parking_lot::Mutex;
-use std::sync::Arc;
-use uuid::Uuid;
 use xap_specs::protocol::UserBroadcast;
 
 #[derive(Debug)]

@@ -5,9 +5,8 @@ use tauri::State;
 use uuid::Uuid;
 
 use xap_specs::{
-    constants::keycode::XAPKeyCodeConfig,
     protocol::keymap::{
-        EncoderPosition, KeyCode, KeyCoords, KeyPosition, KeymapEncoderQuery, KeymapKeycodeQuery,
+        EncoderPosition, KeyCode, KeyPosition, KeymapEncoderQuery, KeymapKeycodeQuery,
         XAPKeyInfo,
     },
 };

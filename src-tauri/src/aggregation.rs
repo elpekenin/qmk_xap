@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 use uuid::Uuid;
 use xap_specs::{
-    constants::keycode::{XAPKeyCode, XAPKeyCodeConfig},
+    constants::keycode::XAPKeyCode,
     protocol::{keymap::XAPKeyInfo, qmk::QMKBoardIdentifiers, xap::XAPSecureStatus},
 };
 
