@@ -96,7 +96,7 @@ pub fn text_centered_recolor(
     let geometry = geometry(device, screen_id);
 
     let mut textwidth = text_width(device, font, text.clone());
-    if (x + textwidth / 2) > geometry.width {
+    if (x + textwidth / 2) > geometry.width || (textwidth / 2) > x {
         text = Vec::from("...".as_bytes());
         textwidth = text_width(device, font, text.clone());
     }

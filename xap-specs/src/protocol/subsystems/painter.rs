@@ -6,7 +6,7 @@ use ts_rs::TS;
 
 use crate::request::XAPRequest;
 
-#[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
+#[derive(BinWrite, Clone, Debug, TS, Serialize, Deserialize)]
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
 pub struct HSVColor {

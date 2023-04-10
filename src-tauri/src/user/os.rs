@@ -15,7 +15,7 @@ pub fn start_home_assistant() {
     }
 }
 
-pub fn active_window(device: &XAPDevice, _user_data: &mut UserData) {
+pub fn active_window(device: &XAPDevice, user_data: &mut UserData) {
     let output = match OS {
         "windows" => windows::active_window(),
         _ => {
@@ -31,13 +31,26 @@ pub fn active_window(device: &XAPDevice, _user_data: &mut UserData) {
         }
     };
 
+    // Same window, don't update
+    if user_data.active_window == text {
+        return;
+    }
+
     let screen_id = 1;
-    let font = 0;
-
-    let width = gui::draw::geometry(device, screen_id).width;
-    let x = width - gui::draw::text_width(device, font, text.clone());
     let y = 0;
+    let font = 0;
+    let fg_color = HSV_WHITE;
+    let bg_color = HSV_BLACK;
 
-    gui::draw::rect(device, screen_id, 0, 0, width, FONT_SIZE, HSV_BLACK, true);
-    gui::draw::text_recolor(device, screen_id, x, y, font, HSV_WHITE, HSV_BLACK, text);
+    // Get screen's size
+    let screen_width = gui::draw::geometry(device, screen_id).width;
+
+    // Clear previous string
+    let x = screen_width - gui::draw::text_width(device, font, user_data.active_window.clone());
+    gui::draw::rect(device, screen_id, x, y, screen_width, y + FONT_SIZE, bg_color.clone(), true);
+
+    // Update variable and draw new text
+    user_data.active_window = text.clone();
+    let x = screen_width - gui::draw::text_width(device, font, user_data.active_window.clone());
+    gui::draw::text_recolor(device, screen_id, x, y, font, fg_color, bg_color, text);
 }

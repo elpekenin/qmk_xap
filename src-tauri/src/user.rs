@@ -3,6 +3,7 @@ mod http;
 mod machine;
 mod os;
 mod spotify;
+mod time;
 
 use crate::{
     user::{
@@ -11,6 +12,7 @@ use crate::{
     },
     xap::hid::{XAPClient, XAPDevice},
 };
+use chrono::{DateTime, Local};
 use dotenvy::dotenv;
 use log::{info, trace};
 use parking_lot::Mutex;
@@ -30,6 +32,8 @@ pub struct UserData {
     pub cpu: u8,
     pub screens: Vec<Screen>,
     pub connected: bool,
+    pub active_window: String,
+    pub time: DateTime<Local>,
 }
 
 impl UserData {
@@ -152,6 +156,7 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
 
     os::active_window(device, user_data);
     machine::stats(device, user_data);
+    time::show(device, user_data);
 
     if user_data.counter % (5 * 2) == 0 {
         spotify::album_cover(device, user_data);
