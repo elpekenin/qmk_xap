@@ -48,7 +48,7 @@ fn normalize_string(input: impl Into<Vec<u8>>) -> Vec<u8> {
         .replace('Ñ', "N")
         .replace('ç', "c")
         .replace('Ç', "C")
-        .replace('&', "");
+        .replace(['&', '¡', '¿'], "");
 
     let mut array = text.as_bytes();
 

@@ -24,7 +24,9 @@ pub fn show(device: &XAPDevice, user_data: &mut UserData) {
     user_data.time = now;
 
     // Draw it
+    let day = now.day();
+    let month = now.month();
     let hour = now.hour();
-    let text = format!("{hour:02}:{minute:02}");
+    let text = format!("{day}/{month} - {hour:02}:{minute:02}");
     gui::draw::text_recolor(device, SCREEN_ID, X, Y, FONT, HSV_WHITE, HSV_BLACK, text);
 }

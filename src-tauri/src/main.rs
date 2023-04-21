@@ -59,8 +59,8 @@ fn start_event_loop(
                         Ok(XAPEvent::Exit) => {
                             info!("received shutdown signal, exiting!");
                             let client = state.lock();
-                            let user_data = user_data.lock();
-                            user::on_close(&client, &user_data);
+                            let mut user_data = user_data.lock();
+                            user::on_close(&client, &mut user_data);
                             break 'event_loop;
                         },
                         Ok(XAPEvent::LogReceived{id, log}) => {
@@ -78,7 +78,7 @@ fn start_event_loop(
                                 app.emit_all("new-device", FrontendEvent::NewDevice{ device: device.as_dto() }).unwrap();
 
                                 let mut user_data = user_data.lock();
-                                user::new_device(device, &user_data);
+                                user::new_device(device, &mut user_data);
 
                                 // prevents drawing before the screen gets cleared
                                 // otherwise we'll remove some of our own drawing
@@ -88,7 +88,9 @@ fn start_event_loop(
                         Ok(XAPEvent::RemovedDevice(id)) => {
                             info!("removed device - notifying frontend!");
                             app.emit_all("removed-device", FrontendEvent::RemovedDevice{ id }).unwrap();
-                            user::removed_device(&id, &user_data);
+
+                            let mut user_data = user_data.lock();
+                            user::removed_device(&id, &mut user_data);
                         },
                         Ok(XAPEvent::AnnounceAllDevices) => {
                             let mut state = state.lock();
@@ -107,8 +109,8 @@ fn start_event_loop(
                         Ok(XAPEvent::ReceivedUserBroadcast{broadcast, id}) => {
                             let state = state.lock();
                             let device = state.get_device(&id).unwrap();
-                            let user_data = user_data.lock();
-                            user::broadcast_callback(broadcast, device, &user_data);
+                            let mut user_data = user_data.lock();
+                            user::broadcast_callback(broadcast, device, &mut user_data);
                         },
                         Err(err) => {
                             error!("error receiving event {err}");
@@ -184,7 +186,8 @@ fn main() -> ClientResult<()> {
                         app.get_window("main").unwrap().hide().unwrap();
                     }
                     "quit" => {
-                        user::on_close(&cloned_state.lock(), &cloned_user_data.lock());
+                        let mut user_data = cloned_user_data.lock();
+                        user::on_close(&cloned_state.lock(), &mut user_data);
                         std::process::exit(0);
                     }
                     "show" => {

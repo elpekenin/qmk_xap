@@ -15,8 +15,7 @@ use crate::{
 use chrono::{DateTime, Local};
 use dotenvy::dotenv;
 use log::{info, trace};
-use parking_lot::Mutex;
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 use sysinfo::{System, SystemExt};
 use uuid::Uuid;
 use xap_specs::protocol::{BroadcastRaw, UserBroadcast};
@@ -113,16 +112,16 @@ pub(crate) fn new_device(device: &XAPDevice, user_data: &UserData) {
     gui::on_connect(device, user_data);
 }
 
-pub(crate) fn removed_device(_id: &Uuid, _user_data: &Arc<Mutex<UserData>>) {}
+pub(crate) fn removed_device(_id: &Uuid, _user_data: &mut UserData) {}
 
-pub(crate) fn on_close(client: &XAPClient, user_data: &UserData) {
+pub(crate) fn on_close(client: &XAPClient, user_data: &mut UserData) {
     gui::close(client, user_data);
 }
 
 pub(crate) fn broadcast_callback(
     broadcast: BroadcastRaw,
     device: &XAPDevice,
-    user_data: &UserData,
+    user_data: &mut UserData,
 ) {
     // Parse raw data
     let msg: UserBroadcast = broadcast.into_xap_broadcast().unwrap();
