@@ -1,7 +1,7 @@
 use crate::xap::hid::XAPDevice;
 use xap_specs::protocol::painter::*;
 
-use super::{HSV_BLACK, HSV_WHITE};
+use super::{BG_COLOR, HSV_BLACK, HSV_WHITE};
 
 pub fn image(device: &XAPDevice, screen_id: u8, x: u16, y: u16, img: u8) {
     let _ = device.query(PainterDrawImage(PainterImage {
@@ -82,30 +82,6 @@ pub fn text_recolor(
     }));
 }
 
-pub fn text_centered_recolor(
-    device: &XAPDevice,
-    screen_id: u8,
-    x: u16,
-    y: u16,
-    font: u8,
-    fg_color: HSVColor,
-    bg_color: HSVColor,
-    text: impl Into<Vec<u8>>,
-) {
-    let mut text = text.into();
-    let geometry = geometry(device, screen_id);
-
-    let mut textwidth = text_width(device, font, text.clone());
-    if (x + textwidth / 2) > geometry.width || (textwidth / 2) > x {
-        text = Vec::from("...".as_bytes());
-        textwidth = text_width(device, font, text.clone());
-    }
-
-    let x = x - textwidth / 2;
-
-    text_recolor(device, screen_id, x, y, font, fg_color, bg_color, text);
-}
-
 pub fn rect(
     device: &XAPDevice,
     screen_id: u8,
@@ -172,4 +148,69 @@ pub fn clear(device: &XAPDevice, screen_id: u8) {
         HSV_BLACK,
         true,
     );
+}
+
+pub fn scrolling_text(
+    device: &XAPDevice,
+    screen_id: u8,
+    x: u16,
+    y: u16,
+    font: u8,
+    text: impl Into<Vec<u8>>,
+    n_chars: u8,
+    delay: u16,
+) -> u8 {
+    let text = normalize_string(text);
+
+    device
+        .query(PainterDrawScrollingText(PainterScrollingText {
+            screen_id,
+            x,
+            y,
+            font,
+            n_chars,
+            delay,
+            text,
+        }))
+        .unwrap()
+}
+
+pub fn centered_or_scrolling(
+    device: &XAPDevice,
+    screen_id: u8,
+    x: u16,
+    y: u16,
+    font: u8,
+    text: impl Into<Vec<u8>>,
+) -> Option<u8> {
+    let text = normalize_string(text);
+
+    let geometry = geometry(device, screen_id);
+    let textwidth = text_width(device, font, text.clone());
+
+    if (x + textwidth / 2) > geometry.width || (textwidth / 2) > x {
+        let x = 0;
+        let n_chars = 18; // hardcoded based on my screen
+        let delay = 100;
+        return Some(scrolling_text(
+            device, screen_id, x, y, font, text, n_chars, delay,
+        ));
+    }
+
+    let x = x - textwidth / 2;
+    let fg_color = HSV_WHITE;
+    let bg_color = HSV_BLACK;
+
+    text_recolor(device, screen_id, x, y, font, fg_color, bg_color, text);
+
+    return None;
+}
+
+pub fn stop_scrolling_text(device: &XAPDevice, token: Option<u8>) {
+    match token {
+        Some(token) => {
+            device.query(PainterDrawStopScrollingText(token));
+        }
+        None => {}
+    };
 }

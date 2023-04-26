@@ -47,7 +47,16 @@ pub fn active_window(device: &XAPDevice, user_data: &mut UserData) {
 
     // Clear previous string
     let x = screen_width - gui::draw::text_width(device, font, user_data.active_window.clone());
-    gui::draw::rect(device, screen_id, x, y, screen_width, y + FONT_SIZE, bg_color.clone(), true);
+    gui::draw::rect(
+        device,
+        screen_id,
+        x,
+        y,
+        screen_width,
+        y + FONT_SIZE,
+        bg_color.clone(),
+        true,
+    );
 
     // Update variable and draw new text
     user_data.active_window = text.clone();

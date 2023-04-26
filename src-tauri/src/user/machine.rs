@@ -54,24 +54,20 @@ fn draw(device: &XAPDevice, bottom: u16, value: u8, cpu: bool) {
     );
 
     // Draw texts
-    gui::draw::text_centered_recolor(
+    gui::draw::centered_or_scrolling(
         device,
         SCREEN_ID,
         x,
         bottom,
         FONT,
-        HSV_WHITE,
-        HSV_BLACK,
         if cpu { "CPU" } else { "RAM" },
     );
-    gui::draw::text_centered_recolor(
+    gui::draw::centered_or_scrolling(
         device,
         SCREEN_ID,
         x,
         y - FONT_SIZE,
         FONT,
-        HSV_WHITE,
-        HSV_BLACK,
         format!("{value}%"),
     );
 }

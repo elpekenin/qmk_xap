@@ -135,18 +135,22 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
             return;
         }
         gui::draw::clear(device, screen_id);
-        gui::draw::text_centered_recolor(
+        gui::draw::text_recolor(
             device,
             screen_id,
-            x,
+            0,
             (geometry.height - FONT_SIZE) / 2,
             font,
             HSV_WHITE,
             HSV_BLACK,
             "No song on Spotify"
         );
+
         user_data.last_song = String::from("__none__");
         user_data.last_url = Default::default();
+
+        gui::draw::stop_scrolling_text(device, user_data.artist_token);
+        gui::draw::stop_scrolling_text(device, user_data.song_token);
         return;
     };
 
@@ -186,28 +190,25 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     );
     let artist = track.artists.first().unwrap().name.as_bytes();
     let y = geometry.height / 2 - 32 - FONT_SIZE;
-    gui::draw::text_centered_recolor(device, screen_id, x, y, font, HSV_WHITE, HSV_BLACK, artist);
+
+    gui::draw::stop_scrolling_text(device, user_data.artist_token);
+    user_data.artist_token =
+        gui::draw::centered_or_scrolling(device, screen_id, x, y, font, artist);
 
     // Track
     let song = song.as_bytes();
+    let y = geometry.height - gap;
     gui::draw::rect(
         device,
         screen_id,
         0,
-        geometry.height - gap,
+        y,
         geometry.width,
         geometry.height,
         HSV_BLACK,
         true,
     );
-    gui::draw::text_centered_recolor(
-        device,
-        screen_id,
-        x,
-        geometry.height - gap,
-        font,
-        HSV_WHITE,
-        HSV_BLACK,
-        song,
-    );
+
+    gui::draw::stop_scrolling_text(device, user_data.song_token);
+    user_data.song_token = gui::draw::centered_or_scrolling(device, screen_id, x, y, font, song);
 }

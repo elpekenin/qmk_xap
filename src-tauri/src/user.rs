@@ -25,6 +25,8 @@ use xap_specs::protocol::{BroadcastRaw, UserBroadcast};
 pub struct UserData {
     pub last_song: String,
     pub last_url: String,
+    pub song_token: Option<u8>,
+    pub artist_token: Option<u8>,
     pub counter: u32,
     pub sys: System,
     pub ram: u8,
@@ -153,8 +155,8 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
 
     // NOTE: ticks are 0.5s
 
-    os::active_window(device, user_data);
     machine::stats(device, user_data);
+    os::active_window(device, user_data);
     time::show(device, user_data);
 
     if user_data.counter % (5 * 2) == 0 {

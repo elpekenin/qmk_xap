@@ -436,3 +436,43 @@ impl XAPRequest for PainterGetTextWidth {
         &[0x3, 0x2, 0x12]
     }
 }
+
+// ==============================
+// 0x3 0x2 0x13
+#[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
+#[ts(export)]
+#[ts(export_to = "../bindings/")]
+pub struct PainterScrollingText {
+    pub screen_id: u8,
+    pub x: u16,
+    pub y: u16,
+    pub font: u8,
+    pub n_chars: u8,
+    pub delay: u16,
+    pub text: Vec<u8>,
+}
+
+#[derive(BinWrite, Debug)]
+pub struct PainterDrawScrollingText(pub PainterScrollingText);
+
+impl XAPRequest for PainterDrawScrollingText {
+    type Response = u8;
+
+    fn id() -> &'static [u8] {
+        &[0x3, 0x2, 0x13]
+    }
+}
+
+// ==============================
+// 0x3 0x2 0x14
+
+#[derive(BinWrite, Debug)]
+pub struct PainterDrawStopScrollingText(pub u8);
+
+impl XAPRequest for PainterDrawStopScrollingText {
+    type Response = ();
+
+    fn id() -> &'static [u8] {
+        &[0x3, 0x2, 0x14]
+    }
+}

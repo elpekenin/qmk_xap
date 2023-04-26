@@ -4,11 +4,8 @@ use parking_lot::Mutex;
 use tauri::State;
 use uuid::Uuid;
 
-use xap_specs::{
-    protocol::keymap::{
-        EncoderPosition, KeyCode, KeyPosition, KeymapEncoderQuery, KeymapKeycodeQuery,
-        XAPKeyInfo,
-    },
+use xap_specs::protocol::keymap::{
+    EncoderPosition, KeyCode, KeyPosition, KeymapEncoderQuery, KeymapKeycodeQuery, XAPKeyInfo,
 };
 
 use crate::xap::{hid::XAPClient, ClientResult};
