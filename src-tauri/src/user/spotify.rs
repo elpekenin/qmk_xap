@@ -130,7 +130,11 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     let x = geometry.width / 2;
     let gap = (geometry.height - 64) / 2;
 
+    // Guard clause - No song
     let Some(track) = playing_track(&spotify) else {
+        gui::draw::stop_scrolling_text(device, user_data.artist_token);
+        gui::draw::stop_scrolling_text(device, user_data.song_token);
+
         if user_data.last_song == "__none__" {
             return;
         }
@@ -149,11 +153,10 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
         user_data.last_song = String::from("__none__");
         user_data.last_url = Default::default();
 
-        gui::draw::stop_scrolling_text(device, user_data.artist_token);
-        gui::draw::stop_scrolling_text(device, user_data.song_token);
         return;
     };
 
+    // Guard clause - Same song
     let song = track.name;
     if user_data.last_song == song {
         trace!("album_cover: same song, quitting");
@@ -161,6 +164,40 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     }
     user_data.last_song = song.clone();
 
+
+    // Draw song name
+    let song = song.as_bytes();
+    let y = geometry.height - gap;
+    gui::draw::rect(
+        device,
+        screen_id,
+        0,
+        y,
+        geometry.width,
+        geometry.height,
+        HSV_BLACK,
+        true,
+    );
+    gui::draw::stop_scrolling_text(device, user_data.song_token);
+    user_data.song_token = gui::draw::centered_or_scrolling_text(device, screen_id, y, font, song);
+
+    // Draw artist name
+    let artist = track.artists.first().unwrap().name.as_bytes();
+    let y = geometry.height / 2 - 32 - FONT_SIZE;
+    gui::draw::rect(
+        device,
+        screen_id,
+        0,
+        0,
+        geometry.width,
+        gap,
+        HSV_BLACK,
+        true,
+    );
+    gui::draw::stop_scrolling_text(device, user_data.artist_token);
+    user_data.artist_token = gui::draw::centered_or_scrolling_text(device, screen_id, y, font, artist);
+
+    // Draw song image
     let url = &track.album.images.last().unwrap().url;
     if &user_data.last_url != url {
         gui::draw::rect(
@@ -176,39 +213,4 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
         draw_album_img(device, url, screen_id, &geometry);
     }
     user_data.last_url = url.to_string();
-
-    // show track info
-    gui::draw::rect(
-        device,
-        screen_id,
-        0,
-        0,
-        geometry.width,
-        gap,
-        HSV_BLACK,
-        true,
-    );
-    let artist = track.artists.first().unwrap().name.as_bytes();
-    let y = geometry.height / 2 - 32 - FONT_SIZE;
-
-    gui::draw::stop_scrolling_text(device, user_data.artist_token);
-    user_data.artist_token =
-        gui::draw::centered_or_scrolling(device, screen_id, x, y, font, artist);
-
-    // Track
-    let song = song.as_bytes();
-    let y = geometry.height - gap;
-    gui::draw::rect(
-        device,
-        screen_id,
-        0,
-        y,
-        geometry.width,
-        geometry.height,
-        HSV_BLACK,
-        true,
-    );
-
-    gui::draw::stop_scrolling_text(device, user_data.song_token);
-    user_data.song_token = gui::draw::centered_or_scrolling(device, screen_id, x, y, font, song);
 }

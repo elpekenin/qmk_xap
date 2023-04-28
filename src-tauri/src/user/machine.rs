@@ -54,7 +54,7 @@ fn draw(device: &XAPDevice, bottom: u16, value: u8, cpu: bool) {
     );
 
     // Draw texts
-    gui::draw::centered_or_scrolling(
+    gui::draw::centered_text(
         device,
         SCREEN_ID,
         x,
@@ -62,7 +62,7 @@ fn draw(device: &XAPDevice, bottom: u16, value: u8, cpu: bool) {
         FONT,
         if cpu { "CPU" } else { "RAM" },
     );
-    gui::draw::centered_or_scrolling(
+    gui::draw::centered_text(
         device,
         SCREEN_ID,
         x,
