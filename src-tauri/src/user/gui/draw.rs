@@ -162,12 +162,6 @@ pub fn scrolling_text(
 ) -> u8 {
     let text = normalize_string(text);
 
-    // force this to draw onto the real display (__ili9163)
-    //    * otherwise we run into issues due to viewport
-    //    * improves performance as we avoid having to flush the scrolling text changes
-    //        (which happen often) from surface to real display
-    let screen_id = 2;
-
     device
         .query(PainterDrawScrollingText(PainterScrollingText {
             screen_id,
