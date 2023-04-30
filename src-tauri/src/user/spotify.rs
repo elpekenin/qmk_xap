@@ -171,6 +171,16 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     // Draw song image, if different
     let url = &track.album.images.last().unwrap().url;
     if &user_data.last_url != url {
+        gui::draw::rect(
+            device,
+            screen_id,
+            0,
+            gap,
+            geometry.width,
+            geometry.height - gap,
+            HSV_BLACK,
+            true,
+        );
         draw_album_img(device, url, screen_id, &geometry);
     }
     user_data.last_url = url.to_string();
