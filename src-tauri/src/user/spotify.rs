@@ -127,7 +127,6 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     let screen_id = 0;
     let font = 0;
     let geometry = gui::draw::geometry(device, screen_id);
-    let x = geometry.width / 2;
     let gap = (geometry.height - 64) / 2;
 
     // Guard clause - No song
@@ -138,6 +137,7 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
         if user_data.last_song == "__none__" {
             return;
         }
+
         gui::draw::clear(device, screen_id);
         gui::draw::text_recolor(
             device,
@@ -186,7 +186,6 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     user_data.last_url = url.to_string();
 
     // Draw song name
-    let song = song.as_bytes();
     let y = geometry.height - gap;
     gui::draw::rect(
         device,
@@ -201,7 +200,7 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     user_data.song_token = gui::draw::centered_or_scrolling_text(device, screen_id, y, font, song);
 
     // Draw artist name
-    let artist = track.artists.first().unwrap().name.as_bytes();
+    let artist = track.artists.first().unwrap().name.clone();
     let y = geometry.height / 2 - 32 - FONT_SIZE;
     gui::draw::rect(
         device,

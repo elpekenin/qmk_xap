@@ -32,7 +32,7 @@ pub fn image_recolor(
 }
 
 fn normalize_string(input: impl Into<Vec<u8>>) -> Vec<u8> {
-    let text = String::from_utf8(input.into())
+    String::from_utf8(input.into())
         .unwrap()
         .replace(['á', 'ä', 'à'], "a")
         .replace(['Á', 'Ä', 'À'], "A")
@@ -48,15 +48,9 @@ fn normalize_string(input: impl Into<Vec<u8>>) -> Vec<u8> {
         .replace('Ñ', "N")
         .replace('ç', "c")
         .replace('Ç', "C")
-        .replace(['&', '¡', '¿'], "");
-
-    let mut array = text.as_bytes();
-
-    if array.len() > 40 {
-        array = &array[..40];
-    }
-
-    array.to_vec()
+        .replace(['&', '¡', '¿'], "")
+        .as_bytes()
+        .to_vec()
 }
 
 pub fn text_recolor(
@@ -69,7 +63,7 @@ pub fn text_recolor(
     bg_color: HSVColor,
     text: impl Into<Vec<u8>>,
 ) {
-    let text = normalize_string(text);
+    let text = normalize_string(text).into_iter().take(46).collect();
 
     let _ = device.query(PainterDrawTextRecolor(PainterTextRecolor {
         screen_id,
@@ -123,16 +117,12 @@ pub fn pixdata(device: &XAPDevice, screen_id: u8, pixels: impl Into<Vec<u8>>) {
     let _ = device.query(PainterDrawPixdata(PainterPixdata { screen_id, pixels }));
 }
 
-pub fn text_width(device: &XAPDevice, font: u8, text: impl Into<Vec<u8>>) -> u16 {
-    let text = normalize_string(text);
-    let value = device
-        .query(PainterGetTextWidth(PainterTextWidth { font, text }))
-        .unwrap();
+pub fn text_width(device: &XAPDevice, font: u8, text: &Vec<u8>) -> u16 {
+    let text = normalize_string( text.to_owned()).into_iter().take(57).collect();
 
-    if value < 0 {
-        u16::MAX
-    } else {
-        value as u16
+    match device.query(PainterGetTextWidth(PainterTextWidth { font, text })) {
+        Ok(value) => if value < 0 { u16::MAX } else { value as u16 },
+        Err(_) => u16::MAX,
     }
 }
 
@@ -150,6 +140,17 @@ pub fn clear(device: &XAPDevice, screen_id: u8) {
     );
 }
 
+fn extend_text(device: &XAPDevice, token: u8, text: impl Into<Vec<u8>>) {
+    let text = text.into();
+
+    let _ = device
+        .query(PainterDrawExtendScrollingText(PainterExtendScrollingText {
+            token,
+            text,
+        }))
+        .unwrap();
+}
+
 pub fn scrolling_text(
     device: &XAPDevice,
     screen_id: u8,
@@ -161,8 +162,10 @@ pub fn scrolling_text(
     delay: u16,
 ) -> u8 {
     let text = normalize_string(text);
+    let msg_size = 49;
+    let first: Vec<u8> = text.clone().into_iter().take(msg_size).collect();
 
-    device
+    let token = device
         .query(PainterDrawScrollingText(PainterScrollingText {
             screen_id,
             x,
@@ -170,9 +173,17 @@ pub fn scrolling_text(
             font,
             n_chars,
             delay,
-            text,
+            text: first,
         }))
-        .unwrap()
+        .unwrap();
+
+    if text.len() > msg_size {
+        text[msg_size..]
+            .chunks(57)
+            .for_each(|text| extend_text(device, token, text));
+    }
+
+    token
 }
 
 pub fn centered_text(
@@ -183,10 +194,9 @@ pub fn centered_text(
     font: u8,
     text: impl Into<Vec<u8>>,
 ) {
-    let text = normalize_string(text);
-
+    let text = text.into();
     let geometry = geometry(device, screen_id);
-    let textwidth = text_width(device, font, text.clone());
+    let textwidth = text_width(device, font, &text);
 
     // guard clause, doesn't fit
     if x + textwidth / 2 > geometry.width || textwidth / 2 > x {
@@ -207,10 +217,9 @@ pub fn centered_or_scrolling_text(
     font: u8,
     text: impl Into<Vec<u8>>,
 ) -> Option<u8> {
-    let text = normalize_string(text);
-
+    let text = text.into();
     let geometry = geometry(device, screen_id);
-    let textwidth = text_width(device, font, text.clone());
+    let textwidth = text_width(device, font, &text);
 
     if textwidth > geometry.width {
         let x = 0;

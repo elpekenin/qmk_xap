@@ -44,10 +44,13 @@ pub fn on_connect(device: &XAPDevice, user_data: &UserData) {
 
 pub(crate) fn close(client: &XAPClient, user_data: &UserData) {
     for device in client.get_devices() {
+        draw::stop_scrolling_text(device, user_data.song_token);
+        draw::stop_scrolling_text(device, user_data.artist_token);
+
         for screen in &user_data.screens {
             draw::clear(device, screen.id);
 
-            // Show text
+            // Show goodbye text
             draw::text_recolor(device, screen.id, 15, 15, 0, FG_COLOR, BG_COLOR, ":(");
         }
     }

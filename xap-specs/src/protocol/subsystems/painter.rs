@@ -476,3 +476,27 @@ impl XAPRequest for PainterDrawStopScrollingText {
         &[0x3, 0x2, 0x14]
     }
 }
+
+// ==============================
+// 0x3 0x2 0x15
+
+#[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
+#[ts(export)]
+#[ts(export_to = "../bindings/")]
+pub struct PainterExtendScrollingText {
+    pub token: u8,
+    pub text: Vec<u8>,
+}
+
+#[derive(BinWrite, Debug)]
+
+pub struct PainterDrawExtendScrollingText(pub PainterExtendScrollingText);
+
+
+impl XAPRequest for PainterDrawExtendScrollingText {
+    type Response = ();
+
+    fn id() -> &'static [u8] {
+        &[0x3, 0x2, 0x15]
+    }
+}

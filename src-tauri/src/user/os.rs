@@ -46,7 +46,7 @@ pub fn active_window(device: &XAPDevice, user_data: &mut UserData) {
     let screen_width = gui::draw::geometry(device, screen_id).width;
 
     // Clear previous string
-    let x = screen_width - gui::draw::text_width(device, font, user_data.active_window.clone());
+    let x = screen_width - gui::draw::text_width(device, font, &user_data.active_window.as_bytes().to_vec());
     gui::draw::rect(
         device,
         screen_id,
@@ -60,6 +60,6 @@ pub fn active_window(device: &XAPDevice, user_data: &mut UserData) {
 
     // Update variable and draw new text
     user_data.active_window = text.clone();
-    let x = screen_width - gui::draw::text_width(device, font, user_data.active_window.clone());
+    let x = screen_width - gui::draw::text_width(device, font, &user_data.active_window.as_bytes().to_vec());
     gui::draw::text_recolor(device, screen_id, x, y, font, fg_color, bg_color, text);
 }
