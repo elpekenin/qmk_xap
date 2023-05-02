@@ -27,6 +27,7 @@ pub struct UserData {
     pub last_url: String,
     pub song_token: Option<u8>,
     pub artist_token: Option<u8>,
+    pub no_song_token: Option<u8>,
     pub counter: u32,
     pub sys: System,
     pub ram: u8,
@@ -34,6 +35,7 @@ pub struct UserData {
     pub screens: Vec<Screen>,
     pub connected: bool,
     pub active_window: String,
+    pub active_window_token: Option<u8>,
     pub time: DateTime<Local>,
 }
 
@@ -51,20 +53,22 @@ impl UserData {
                 // ILI9341
                 Screen {
                     id: 1,
-                    buttons: vec![Button {
-                        x: 320 - IMAGE_SIZE,
-                        y: 240 - 3 * IMAGE_SIZE,
-                        img: 0,
-                        handler: Box::new(
-                            |_device: &XAPDevice,
-                             _screen: &Screen,
-                             _button: &Button,
-                             _msg: &UserBroadcast,
-                             _user_data: &UserData| {
-                                tg::text("QMK -XAP-> TauriClient -HTTP-> Telegram");
-                            },
-                        ),
-                    }],
+                    buttons: vec![
+                        // Button {
+                        //     x: 320 - IMAGE_SIZE,
+                        //     y: 240 - 3 * IMAGE_SIZE,
+                        //     img: 0,
+                        //     handler: Box::new(
+                        //         |_device: &XAPDevice,
+                        //         _screen: &Screen,
+                        //         _button: &Button,
+                        //         _msg: &UserBroadcast,
+                        //         _user_data: &UserData| {
+                        //             tg::text("QMK -XAP-> TauriClient -HTTP-> Telegram");
+                        //         },
+                        //     ),
+                        // }
+                    ],
                     sliders: vec![Slider {
                         direction: SliderDirection::Horizontal,
                         start: 190,

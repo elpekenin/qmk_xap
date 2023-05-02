@@ -15,7 +15,7 @@ use super::UserData;
 
 // Assets size
 pub const IMAGE_SIZE: u16 = 48;
-pub const FONT_SIZE: u16 = 15;
+pub const FONT_SIZES: [u16; 2] = [15, 18]; // font height in pixels
 
 // Color definitions
 pub const HSV_WHITE: HSVColor = HSVColor {
@@ -46,6 +46,8 @@ pub(crate) fn close(client: &XAPClient, user_data: &UserData) {
     for device in client.get_devices() {
         draw::stop_scrolling_text(device, user_data.song_token);
         draw::stop_scrolling_text(device, user_data.artist_token);
+        draw::stop_scrolling_text(device, user_data.no_song_token);
+        draw::stop_scrolling_text(device, user_data.active_window_token);
 
         for screen in &user_data.screens {
             draw::clear(device, screen.id);

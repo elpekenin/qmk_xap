@@ -1,6 +1,6 @@
 use crate::{
     user::{
-        gui::{self, FONT_SIZE, HSV_BLACK, HSV_WHITE},
+        gui::{self, HSV_BLACK, HSV_WHITE},
         UserData,
     },
     xap::hid::XAPDevice,
@@ -11,6 +11,7 @@ use xap_specs::protocol::painter::HSVColor;
 const GAP: u16 = 10;
 const WIDTH: u16 = 50;
 const FONT: u8 = 0;
+const FONT_SIZE: u16 = gui::FONT_SIZES[FONT as usize];
 const SCREEN_ID: u8 = 1;
 const FIRST_BAR: u16 = 2 * GAP;
 const SECOND_BAR: u16 = 3 * GAP + WIDTH;

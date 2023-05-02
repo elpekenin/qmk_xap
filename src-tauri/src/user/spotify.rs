@@ -13,7 +13,12 @@ use rspotify::{
 };
 use xap_specs::protocol::painter::PainterGeometry;
 
-use super::gui::FONT_SIZE;
+const SCREEN_ID: u8 = 0;
+const FONT: u8 = 0;
+const FONT_SIZE: u16 = gui::FONT_SIZES[FONT as usize];
+
+const NO_SONG_FONT: u8 = 1;
+const NO_SONG_FONT_SIZE: u16 = gui::FONT_SIZES[NO_SONG_FONT as usize];
 
 fn init() -> AuthCodeSpotify {
     let config = Config {
@@ -70,7 +75,7 @@ fn playing_track(spotify: &AuthCodeSpotify) -> Option<FullTrack> {
     }
 }
 
-fn draw_album_img(device: &XAPDevice, url: &String, screen_id: u8, geometry: &PainterGeometry) {
+fn draw_album_img(device: &XAPDevice, url: &String, geometry: &PainterGeometry) {
     let img_bytes = if let Ok(response) = reqwest::blocking::get(url) {
         response.bytes().unwrap()
     } else {
@@ -92,7 +97,7 @@ fn draw_album_img(device: &XAPDevice, url: &String, screen_id: u8, geometry: &Pa
 
     gui::draw::viewport(
         device,
-        screen_id,
+        SCREEN_ID,
         left,
         top,
         left + width - 1,
@@ -113,7 +118,7 @@ fn draw_album_img(device: &XAPDevice, url: &String, screen_id: u8, geometry: &Pa
         })
         .collect::<Vec<_>>()
         .chunks(56)
-        .for_each(|pixels| gui::draw::pixdata(device, screen_id, pixels));
+        .for_each(|pixels| gui::draw::pixdata(device, SCREEN_ID, pixels));
 }
 
 pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
@@ -124,37 +129,30 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
 
     let spotify = refresh_token(token);
 
-    let screen_id = 0;
-    let font = 0;
-    let geometry = gui::draw::geometry(device, screen_id);
+    let geometry = gui::draw::geometry(device, SCREEN_ID);
     let gap = (geometry.height - 64) / 2;
 
     // Guard clause - No song
     let Some(track) = playing_track(&spotify) else {
-        gui::draw::stop_scrolling_text(device, user_data.artist_token);
-        gui::draw::stop_scrolling_text(device, user_data.song_token);
-
         if user_data.last_song == "__none__" {
             return;
         }
 
-        gui::draw::clear(device, screen_id);
-        gui::draw::text_recolor(
-            device,
-            screen_id,
-            0,
-            (geometry.height - FONT_SIZE) / 2,
-            font,
-            HSV_WHITE,
-            HSV_BLACK,
-            "No song on Spotify"
-        );
+        // Clear (potential) strings
+        gui::draw::stop_scrolling_text(device, user_data.artist_token);
+        gui::draw::stop_scrolling_text(device, user_data.song_token);
+
+        gui::draw::clear(device, SCREEN_ID);
+        user_data.no_song_token = gui::draw::centered_or_scrolling_text(device, SCREEN_ID, (geometry.height - NO_SONG_FONT_SIZE) / 2, NO_SONG_FONT, "Spotify off");
+
 
         user_data.last_song = String::from("__none__");
         user_data.last_url = Default::default();
 
         return;
     };
+
+    gui::draw::stop_scrolling_text(device, user_data.no_song_token);
 
     // Guard clause - Same song
     let song = track.name;
@@ -173,7 +171,7 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     if &user_data.last_url != url {
         gui::draw::rect(
             device,
-            screen_id,
+            SCREEN_ID,
             0,
             gap,
             geometry.width,
@@ -181,7 +179,7 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
             HSV_BLACK,
             true,
         );
-        draw_album_img(device, url, screen_id, &geometry);
+        draw_album_img(device, url, &geometry);
     }
     user_data.last_url = url.to_string();
 
@@ -189,7 +187,7 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     let y = geometry.height - gap;
     gui::draw::rect(
         device,
-        screen_id,
+        SCREEN_ID,
         0,
         y,
         geometry.width,
@@ -197,14 +195,14 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
         HSV_BLACK,
         true,
     );
-    user_data.song_token = gui::draw::centered_or_scrolling_text(device, screen_id, y, font, song);
+    user_data.song_token = gui::draw::centered_or_scrolling_text(device, SCREEN_ID, y, FONT, song);
 
     // Draw artist name
     let artist = track.artists.first().unwrap().name.clone();
     let y = geometry.height / 2 - 32 - FONT_SIZE;
     gui::draw::rect(
         device,
-        screen_id,
+        SCREEN_ID,
         0,
         0,
         geometry.width,
@@ -212,5 +210,6 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
         HSV_BLACK,
         true,
     );
-    user_data.artist_token = gui::draw::centered_or_scrolling_text(device, screen_id, y, font, artist);
+    user_data.artist_token =
+        gui::draw::centered_or_scrolling_text(device, SCREEN_ID, y, FONT, artist);
 }

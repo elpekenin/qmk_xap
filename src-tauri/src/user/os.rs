@@ -1,12 +1,19 @@
 mod linux;
 mod windows;
 
-use crate::user::gui::{self, FONT_SIZE, HSV_BLACK, HSV_WHITE};
+use crate::user::gui::{self, HSV_BLACK, HSV_WHITE};
 use log::warn;
+use xap_specs::protocol::painter::HSVColor;
 
 use crate::{user::UserData, xap::hid::XAPDevice};
 
 const OS: &str = std::env::consts::OS;
+const FONT: u8 = 1;
+pub const FONT_SIZE: u16 = gui::FONT_SIZES[FONT as usize];
+const SCREEN_ID: u8 = 1;
+pub const Y: u16 = 15;
+const FG_COLOR: HSVColor = HSV_WHITE;
+const BG_COLOR: HSVColor = HSV_BLACK;
 
 pub fn start_home_assistant() {
     match OS {
@@ -36,30 +43,22 @@ pub fn active_window(device: &XAPDevice, user_data: &mut UserData) {
         return;
     }
 
-    let screen_id = 1;
-    let y = 0;
-    let font = 0;
-    let fg_color = HSV_WHITE;
-    let bg_color = HSV_BLACK;
-
-    // Get screen's size
-    let screen_width = gui::draw::geometry(device, screen_id).width;
-
     // Clear previous string
-    let x = screen_width - gui::draw::text_width(device, font, &user_data.active_window.as_bytes().to_vec());
+    let screen_width = gui::draw::geometry(device, SCREEN_ID).width;
+    gui::draw::stop_scrolling_text(device, user_data.active_window_token);
     gui::draw::rect(
         device,
-        screen_id,
-        x,
-        y,
+        SCREEN_ID,
+        0,
+        Y,
         screen_width,
-        y + FONT_SIZE,
-        bg_color.clone(),
+        Y + FONT_SIZE,
+        BG_COLOR,
         true,
     );
 
     // Update variable and draw new text
     user_data.active_window = text.clone();
-    let x = screen_width - gui::draw::text_width(device, font, &user_data.active_window.as_bytes().to_vec());
-    gui::draw::text_recolor(device, screen_id, x, y, font, fg_color, bg_color, text);
+    user_data.active_window_token =
+        gui::draw::centered_or_scrolling_text(device, SCREEN_ID, Y, FONT, text);
 }

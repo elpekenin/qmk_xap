@@ -492,7 +492,6 @@ pub struct PainterExtendScrollingText {
 
 pub struct PainterDrawExtendScrollingText(pub PainterExtendScrollingText);
 
-
 impl XAPRequest for PainterDrawExtendScrollingText {
     type Response = ();
 

@@ -1,7 +1,7 @@
 use crate::{
     user::{
-        gui::{self, FONT_SIZE, HSV_BLACK},
-        UserData,
+        gui::{self, HSV_BLACK},
+        os, UserData,
     },
     xap::hid::XAPDevice,
 };
@@ -11,7 +11,9 @@ use log::info;
 use reqwest::Method;
 
 const SCREEN_ID: u8 = 1;
-const IMG_SIZE: u16 = 24;
+pub const IMG_SIZE: u16 = 24;
+pub const X: u16 = 15;
+pub const Y: u16 = os::FONT_SIZE + os::Y;
 
 fn get_forecast() -> u8 {
     let latitude = 37.60;
@@ -58,19 +60,15 @@ fn forecast_to_img_id(forecast: u8) -> Option<u8> {
 pub fn draw(device: &XAPDevice, _user_data: &mut UserData) {
     let img = forecast_to_img_id(get_forecast());
 
-    let width = gui::draw::geometry(device, SCREEN_ID).width;
-    let x = width - IMG_SIZE;
-    let y = FONT_SIZE;
-
     match img {
-        Some(img) => gui::draw::image(device, SCREEN_ID, x, y, img),
+        Some(img) => gui::draw::image(device, SCREEN_ID, X, Y, img),
         None => gui::draw::rect(
             device,
             SCREEN_ID,
-            x,
-            y,
-            x + IMG_SIZE,
-            y + IMG_SIZE,
+            X,
+            Y,
+            X + IMG_SIZE,
+            Y + IMG_SIZE,
             HSV_BLACK,
             true,
         ),

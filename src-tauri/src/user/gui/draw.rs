@@ -1,7 +1,10 @@
-use crate::xap::hid::XAPDevice;
+use crate::{
+    user::gui::{self, BG_COLOR, HSV_BLACK, HSV_WHITE},
+    xap::hid::XAPDevice,
+};
 use xap_specs::protocol::painter::*;
 
-use super::{BG_COLOR, HSV_BLACK, HSV_WHITE};
+use log::error;
 
 pub fn image(device: &XAPDevice, screen_id: u8, x: u16, y: u16, img: u8) {
     let _ = device.query(PainterDrawImage(PainterImage {
@@ -117,11 +120,20 @@ pub fn pixdata(device: &XAPDevice, screen_id: u8, pixels: impl Into<Vec<u8>>) {
     let _ = device.query(PainterDrawPixdata(PainterPixdata { screen_id, pixels }));
 }
 
-pub fn text_width(device: &XAPDevice, font: u8, text: &Vec<u8>) -> u16 {
-    let text = normalize_string( text.to_owned()).into_iter().take(57).collect();
+pub fn textwidth(device: &XAPDevice, font: u8, text: &Vec<u8>) -> u16 {
+    let text = normalize_string(text.to_owned())
+        .into_iter()
+        .take(57)
+        .collect();
 
     match device.query(PainterGetTextWidth(PainterTextWidth { font, text })) {
-        Ok(value) => if value < 0 { u16::MAX } else { value as u16 },
+        Ok(value) => {
+            if value < 0 {
+                u16::MAX
+            } else {
+                value as u16
+            }
+        }
         Err(_) => u16::MAX,
     }
 }
@@ -158,12 +170,21 @@ pub fn scrolling_text(
     y: u16,
     font: u8,
     text: impl Into<Vec<u8>>,
-    n_chars: u8,
     delay: u16,
-) -> u8 {
+) -> Option<u8> {
     let text = normalize_string(text);
     let msg_size = 49;
     let first: Vec<u8> = text.clone().into_iter().take(msg_size).collect();
+
+    let n_chars = match (screen_id, font) {
+        (0, 0) => 18,
+        (0, 1) => 7,
+        (1, 1) => 16,
+        (s, f) => {
+            error!("Combination not configured. Screen {s}, font: {f}");
+            return None;
+        }
+    };
 
     let token = device
         .query(PainterDrawScrollingText(PainterScrollingText {
@@ -183,7 +204,7 @@ pub fn scrolling_text(
             .for_each(|text| extend_text(device, token, text));
     }
 
-    token
+    Some(token)
 }
 
 pub fn centered_text(
@@ -196,7 +217,7 @@ pub fn centered_text(
 ) {
     let text = text.into();
     let geometry = geometry(device, screen_id);
-    let textwidth = text_width(device, font, &text);
+    let textwidth = textwidth(device, font, &text);
 
     // guard clause, doesn't fit
     if x + textwidth / 2 > geometry.width || textwidth / 2 > x {
@@ -219,18 +240,15 @@ pub fn centered_or_scrolling_text(
 ) -> Option<u8> {
     let text = text.into();
     let geometry = geometry(device, screen_id);
-    let textwidth = text_width(device, font, &text);
+    let textwidth = textwidth(device, font, &text);
 
     if textwidth > geometry.width {
         let x = 0;
-        let n_chars = 18; // hardcoded based on my screen
         let delay = 300;
-        return Some(scrolling_text(
-            device, screen_id, x, y, font, text, n_chars, delay,
-        ));
+        return scrolling_text(device, screen_id, x, y, font, text, delay);
     }
 
-    centered_text(device, screen_id, geometry.width/2, y, font, text);
+    centered_text(device, screen_id, geometry.width / 2, y, font, text);
 
     return None;
 }
@@ -238,7 +256,7 @@ pub fn centered_or_scrolling_text(
 pub fn stop_scrolling_text(device: &XAPDevice, token: Option<u8>) {
     match token {
         Some(token) => {
-            device.query(PainterDrawStopScrollingText(token));
+            let _ = device.query(PainterDrawStopScrollingText(token));
         }
         None => {}
     };

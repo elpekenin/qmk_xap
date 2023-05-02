@@ -1,5 +1,8 @@
 use crate::{
-    user::gui::{self, HSV_BLACK, HSV_WHITE},
+    user::{
+        gui::{self, HSV_BLACK, HSV_WHITE},
+        http::weather,
+    },
     xap::hid::XAPDevice,
     UserData,
 };
@@ -7,9 +10,9 @@ use chrono::prelude::*;
 use chrono::Local;
 
 const SCREEN_ID: u8 = 1;
-const X: u16 = 0;
-const Y: u16 = 0;
 const FONT: u8 = 0;
+const X: u16 = weather::X + weather::IMG_SIZE + 10;
+const Y: u16 = weather::Y + (weather::IMG_SIZE - gui::FONT_SIZES[FONT as usize]) / 2;
 
 pub fn show(device: &XAPDevice, user_data: &mut UserData) {
     let now = Local::now();
