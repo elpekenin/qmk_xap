@@ -179,7 +179,7 @@ pub fn scrolling_text(
     let n_chars = match (screen_id, font) {
         (0, 0) => 18,
         (0, 1) => 7,
-        (1, 1) => 16,
+        (1, 1) => 18,
         (s, f) => {
             error!("Combination not configured. Screen {s}, font: {f}");
             return None;

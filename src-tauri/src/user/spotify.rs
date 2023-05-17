@@ -143,7 +143,7 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
         gui::draw::stop_scrolling_text(device, user_data.song_token);
 
         gui::draw::clear(device, SCREEN_ID);
-        user_data.no_song_token = gui::draw::centered_or_scrolling_text(device, SCREEN_ID, (geometry.height - NO_SONG_FONT_SIZE) / 2, NO_SONG_FONT, "Spotify off");
+        user_data.no_song_token = gui::draw::centered_or_scrolling_text(device, SCREEN_ID, (geometry.height - NO_SONG_FONT_SIZE) / 2, NO_SONG_FONT, "🎵 off");
 
 
         user_data.last_song = String::from("__none__");

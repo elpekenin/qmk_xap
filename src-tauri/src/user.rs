@@ -14,9 +14,8 @@ use crate::{
 };
 use chrono::{DateTime, Local};
 use dotenvy::dotenv;
-use log::{info, trace};
 use std::collections::HashMap;
-use sysinfo::{System, SystemExt};
+use sysinfo::{System, SystemExt, User};
 use uuid::Uuid;
 use xap_specs::protocol::{BroadcastRaw, UserBroadcast};
 
@@ -69,32 +68,34 @@ impl UserData {
                         //     ),
                         // }
                     ],
-                    sliders: vec![Slider {
-                        direction: SliderDirection::Horizontal,
-                        start: 190,
-                        size: 50,
-                        x: 320 - 3 * IMAGE_SIZE,
-                        y: 240 - 2 * IMAGE_SIZE,
-                        img_map: HashMap::from([
-                            ("0", 0),
-                            ("1", 1),
-                            ("2", 2),
-                            ("3", 3),
-                            ("4", 4),
-                            ("5", 5),
-                        ]),
-                        handler: Box::new(
-                            |device: &XAPDevice,
-                             screen: &Screen,
-                             slider: &Slider,
-                             msg: &UserBroadcast,
-                             _user_data: &UserData| {
-                                let intensity = slider.coord(msg) * 6 / 321;
-                                slider.draw(device, screen, intensity);
-                                // ha::set_light_intensity(intensity);
-                            },
-                        ),
-                    }],
+                    sliders: vec![
+                        // Slider {
+                        //     direction: SliderDirection::Horizontal,
+                        //     start: 190,
+                        //     size: 50,
+                        //     x: 320 - 3 * IMAGE_SIZE,
+                        //     y: 240 - 2 * IMAGE_SIZE,
+                        //     img_map: HashMap::from([
+                        //         ("0", 0),
+                        //         ("1", 1),
+                        //         ("2", 2),
+                        //         ("3", 3),
+                        //         ("4", 4),
+                        //         ("5", 5),
+                        //     ]),
+                        //     handler: Box::new(
+                        //         |device: &XAPDevice,
+                        //         screen: &Screen,
+                        //         slider: &Slider,
+                        //         msg: &UserBroadcast,
+                        //         _user_data: &UserData| {
+                        //             let intensity = slider.coord(msg) * 6 / 321;
+                        //             slider.draw(device, screen, intensity);
+                        //             // ha::set_light_intensity(intensity);
+                        //         },
+                        //     ),
+                        // }
+                    ],
                 },
             ],
             ..Default::default()
@@ -130,9 +131,14 @@ pub(crate) fn broadcast_callback(
     user_data: &mut UserData,
 ) {
     // Parse raw data
-    let msg: UserBroadcast = broadcast.into_xap_broadcast().unwrap();
+    let msg = if let Ok(m) = broadcast.into_xap_broadcast() {
+        m
+    } else {
+        log::error!("Couldn't parse broadcast into user broadcast");
+        return;
+    };
 
-    // info!("Received {msg:?}");
+    // log::info!("Received {msg:?}");
 
     // Clear any leftover graphics
     gui::clear(device, user_data);
@@ -147,13 +153,13 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
     let device = match devices.first() {
         Some(dev) => dev,
         None => {
-            trace!("housekeeping: no device connected, quitting");
+            log::trace!("housekeeping: no device connected, quitting");
             return;
         }
     };
 
     if !user_data.connected {
-        info!("Waiting until displays are clear");
+        log::info!("Waiting until displays are clear");
         return;
     }
 

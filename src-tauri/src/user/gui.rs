@@ -34,10 +34,6 @@ pub const BG_COLOR: HSVColor = HSV_BLACK;
 pub const FG_COLOR: HSVColor = HSV_WHITE;
 
 pub fn on_connect(device: &XAPDevice, user_data: &UserData) {
-    for screen in &user_data.screens {
-        draw::clear(device, screen.id);
-    }
-
     // Draws buttons
     clear(device, user_data);
 }

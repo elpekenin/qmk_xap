@@ -15,46 +15,34 @@ pub const IMG_SIZE: u16 = 24;
 pub const X: u16 = 15;
 pub const Y: u16 = os::FONT_SIZE + os::Y;
 
-fn get_forecast() -> u8 {
-    let latitude = 37.60;
-    let longitude = -0.97;
+const LATITUDE: f64 = 37.60;
+const LONGITUDE: f64 = -0.97;
+
+fn get_forecast() -> Option<u8> {
     let url = format!(
         "https://api.open-meteo.com/v1/forecast?latitude={:.2}&longitude={:.2}&hourly=weathercode",
-        latitude, longitude
+        LATITUDE, LONGITUDE
     );
 
-    let response = super::request(Method::GET, url, None, None).unwrap();
+    let response = super::request(Method::GET, url, None, None)?;
 
     let hour = chrono::offset::Utc::now().hour() as usize;
 
-    let forecast = response
-        .get("hourly")
-        .unwrap()
-        .get("weathercode")
-        .unwrap()
-        .as_array()
-        .unwrap()[hour]
-        .as_u64()
-        .unwrap();
-
-    forecast as u8
+    Some(response.get("hourly")?.get("weathercode")?.as_array()?[hour].as_u64()? as u8)
 }
 
-fn forecast_to_img_id(forecast: u8) -> Option<u8> {
-    let temp = match forecast {
-        0 => 8,       // clear (sunny)
-        1..=3 => 6,   // cloudy
-        61..=65 => 7, // rain
-        80..=82 => 7, // rain
-        _ => u8::MAX, // anything else
-    };
-
-    if temp == u8::MAX {
-        info!("No img for forecast with id: {forecast}");
-        return None;
+fn forecast_to_img_id(forecast: Option<u8>) -> Option<u8> {
+    match forecast? {
+        0 => Some(8),       // clear (sunny)
+        1..=3 => Some(6),   // cloudy
+        61..=65 => Some(7), // rain
+        80..=82 => Some(7), // rain
+        id => {
+            // anything else
+            info!("No img for forecast with id: {id}");
+            None
+        }
     }
-
-    Some(temp)
 }
 
 pub fn draw(device: &XAPDevice, _user_data: &mut UserData) {
