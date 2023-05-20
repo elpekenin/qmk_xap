@@ -49,7 +49,7 @@ fn draw(device: &XAPDevice, bottom: u16, value: u8, cpu: bool) {
         HSVColor {
             hue,
             sat: 255,
-            val: 255,
+            val: 100,
         },
         true,
     );

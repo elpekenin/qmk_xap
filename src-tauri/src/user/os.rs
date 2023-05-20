@@ -2,6 +2,7 @@ mod linux;
 mod windows;
 
 use crate::user::gui::{self, HSV_BLACK, HSV_WHITE};
+use active_win_pos_rs::get_active_window;
 use log::warn;
 use xap_specs::protocol::painter::HSVColor;
 
@@ -22,9 +23,15 @@ pub fn start_home_assistant() {
     }
 }
 
+fn __active_window() -> Option<String> {
+    let window = get_active_window().ok()?;
+
+    Some(window.process_name.replace(['-'], " "))
+}
+
 pub fn active_window(device: &XAPDevice, user_data: &mut UserData) {
     let output = match OS {
-        "windows" => windows::active_window(),
+        "linux" | "windows" => __active_window(),
         _ => {
             warn!("active_window: not implemented for {}", OS);
             return;
