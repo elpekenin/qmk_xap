@@ -17,7 +17,9 @@ use dotenvy::dotenv;
 use std::collections::HashMap;
 use sysinfo::{System, SystemExt, User};
 use uuid::Uuid;
-use xap_specs::protocol::{BroadcastRaw, UserBroadcast};
+use xap_specs::protocol::{BroadcastRaw, UserBroadcast, keymap::{KeyCoords, KeyPosition}, painter::{PainterKeycode, PainterDrawKeycode}};
+
+use self::gui::{FG_COLOR, BG_COLOR};
 
 // Custom data
 #[derive(Default)]
@@ -36,6 +38,7 @@ pub struct UserData {
     pub active_window: String,
     pub active_window_token: Option<u8>,
     pub time: DateTime<Local>,
+    pub drawn: bool,
 }
 
 impl UserData {
@@ -162,6 +165,44 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
         log::info!("Waiting until displays are clear");
         return;
     }
+
+    if user_data.drawn {
+        return;
+    }
+    user_data.drawn = true;
+
+    let layer = 1;
+    for row in &device.key_info()[layer] {
+        for key in row {
+            match key {
+                None => continue,
+                Some(info) => {
+                    // physichal position
+                    let KeyCoords {x, y, w, h } = info.coords;
+                    let size = 23;
+                    let x = x as u16 * size;
+                    let y = y as u16 * size;
+
+                    // electrical position
+                    let KeyPosition { layer, row, col } = info.position;
+
+                    let _ = device.query(PainterDrawKeycode(
+                        PainterKeycode {
+                            screen_id: 1,
+                            x,
+                            y,
+                            font: 0,
+                            layer,
+                            row,
+                            col
+                        }
+                    ));
+                }
+            }
+        }
+    }
+
+    return;
 
     // NOTE: ticks are 0.5s
 

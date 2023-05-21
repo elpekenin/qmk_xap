@@ -552,6 +552,7 @@ impl PainterExtendScrollingText {
             - 1 // null terminator
     }
 }
+
 #[derive(BinWrite, Debug)]
 
 pub struct PainterDrawExtendScrollingText(pub PainterExtendScrollingText);
@@ -561,5 +562,33 @@ impl XAPRequest for PainterDrawExtendScrollingText {
 
     fn id() -> &'static [u8] {
         &[0x3, 0x2, 0x15]
+    }
+}
+
+// ==============================
+// 0x3 0x2 0x16
+
+#[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
+#[ts(export)]
+#[ts(export_to = "../bindings/")]
+pub struct PainterKeycode {
+    pub screen_id: u8,
+    pub x: u16,
+    pub y: u16,
+    pub font: u8,
+    pub layer: u8,
+    pub row: u8,
+    pub col: u8,
+}
+
+#[derive(BinWrite, Debug)]
+
+pub struct PainterDrawKeycode(pub PainterKeycode);
+
+impl XAPRequest for PainterDrawKeycode {
+    type Response = ();
+
+    fn id() -> &'static [u8] {
+        &[0x3, 0x2, 0x16]
     }
 }
