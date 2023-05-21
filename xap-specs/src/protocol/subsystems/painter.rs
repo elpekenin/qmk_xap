@@ -1,4 +1,7 @@
-use std::cmp::{max, min};
+use std::{
+    cmp::{max, min},
+    mem::size_of,
+};
 
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
@@ -6,7 +9,11 @@ use ts_rs::TS;
 
 use crate::request::XAPRequest;
 
-#[derive(BinWrite, Clone, Debug, TS, Serialize, Deserialize)]
+// 2 for token, 1 for length, 3 for the router
+const XAP_REPORT_SIZE: usize = 64;
+const PAYLOAD_SIZE: usize = XAP_REPORT_SIZE - 6;
+
+#[derive(BinWrite, Clone, Debug, TS, Serialize, Deserialize, Default)]
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
 pub struct HSVColor {
@@ -286,7 +293,7 @@ impl XAPRequest for PainterDrawAnimateRecolor {
 
 // ==============================
 // 0x3 0x2 0xB
-#[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
+#[derive(BinWrite, Debug, TS, Serialize, Deserialize, Default)]
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
 pub struct PainterText {
@@ -295,6 +302,18 @@ pub struct PainterText {
     pub y: u16,
     pub font: u8,
     pub text: Vec<u8>,
+    pub null: u8,
+}
+
+impl PainterText {
+    pub fn text_size(&self) -> usize {
+        PAYLOAD_SIZE
+            - 1 // screen_id
+            - 2 // x
+            - 2 // y
+            - 1 // font
+            - 1 // null terminator
+    }
 }
 
 #[derive(BinWrite, Debug)]
@@ -310,7 +329,7 @@ impl XAPRequest for PainterDrawText {
 
 // ==============================
 // 0x3 0x2 0xC
-#[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
+#[derive(BinWrite, Debug, TS, Serialize, Deserialize, Default)]
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
 pub struct PainterTextRecolor {
@@ -321,6 +340,20 @@ pub struct PainterTextRecolor {
     pub fg_color: HSVColor,
     pub bg_color: HSVColor,
     pub text: Vec<u8>,
+    pub null: u8,
+}
+
+impl PainterTextRecolor {
+    pub fn text_size() -> usize {
+        PAYLOAD_SIZE
+            - 1 // screen_id
+            - 2 // x
+            - 2 // y
+            - 1 // font
+            - size_of::<HSVColor>() // fg_color
+            - size_of::<HSVColor>() // bg_color
+            - 1 // null terminator
+    }
 }
 
 #[derive(BinWrite, Debug)]
@@ -418,12 +451,21 @@ impl XAPRequest for PainterSurfaceDrawText {
 
 // ==============================
 // 0x3 0x2 0x12
-#[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
+#[derive(BinWrite, Debug, TS, Serialize, Deserialize, Default)]
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
 pub struct PainterTextWidth {
     pub font: u8,
     pub text: Vec<u8>,
+    pub null: u8,
+}
+
+impl PainterTextWidth {
+    pub fn text_size() -> usize {
+        PAYLOAD_SIZE
+            - 1 // font
+            - 1 // null terminator
+    }
 }
 
 #[derive(BinWrite, Debug)]
@@ -439,7 +481,7 @@ impl XAPRequest for PainterGetTextWidth {
 
 // ==============================
 // 0x3 0x2 0x13
-#[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
+#[derive(BinWrite, Debug, TS, Serialize, Deserialize, Default)]
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
 pub struct PainterScrollingText {
@@ -450,6 +492,20 @@ pub struct PainterScrollingText {
     pub n_chars: u8,
     pub delay: u16,
     pub text: Vec<u8>,
+    pub null: u8,
+}
+
+impl PainterScrollingText {
+    pub fn text_size() -> usize {
+        PAYLOAD_SIZE
+            - 1 // screen_id
+            - 2 // x
+            - 2 // y
+            - 1 // font
+            - 1 // n_chars
+            - 2 // delay
+            - 1 // null terminator
+    }
 }
 
 #[derive(BinWrite, Debug)]
@@ -480,14 +536,22 @@ impl XAPRequest for PainterDrawStopScrollingText {
 // ==============================
 // 0x3 0x2 0x15
 
-#[derive(BinWrite, Debug, TS, Serialize, Deserialize)]
+#[derive(BinWrite, Debug, TS, Serialize, Deserialize, Default)]
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
 pub struct PainterExtendScrollingText {
     pub token: u8,
     pub text: Vec<u8>,
+    pub null: u8,
 }
 
+impl PainterExtendScrollingText {
+    pub fn text_size() -> usize {
+        PAYLOAD_SIZE
+            - 1 // token
+            - 1 // null terminator
+    }
+}
 #[derive(BinWrite, Debug)]
 
 pub struct PainterDrawExtendScrollingText(pub PainterExtendScrollingText);

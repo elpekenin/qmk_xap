@@ -66,7 +66,10 @@ pub fn text_recolor(
     bg_color: HSVColor,
     text: impl Into<Vec<u8>>,
 ) {
-    let text = normalize_string(text).into_iter().take(46).collect();
+    let text = normalize_string(text)
+        .into_iter()
+        .take(PainterTextRecolor::text_size())
+        .collect();
 
     let _ = device.query(PainterDrawTextRecolor(PainterTextRecolor {
         screen_id,
@@ -76,6 +79,7 @@ pub fn text_recolor(
         fg_color,
         bg_color,
         text,
+        ..Default::default()
     }));
 }
 
@@ -123,10 +127,14 @@ pub fn pixdata(device: &XAPDevice, screen_id: u8, pixels: impl Into<Vec<u8>>) {
 pub fn textwidth(device: &XAPDevice, font: u8, text: &Vec<u8>) -> u16 {
     let text = normalize_string(text.to_owned())
         .into_iter()
-        .take(57)
+        .take(PainterTextWidth::text_size())
         .collect();
 
-    match device.query(PainterGetTextWidth(PainterTextWidth { font, text })) {
+    match device.query(PainterGetTextWidth(PainterTextWidth {
+        font,
+        text,
+        ..Default::default()
+    })) {
         Ok(value) => {
             if value < 0 {
                 u16::MAX
@@ -159,6 +167,7 @@ fn extend_text(device: &XAPDevice, token: u8, text: impl Into<Vec<u8>>) {
         .query(PainterDrawExtendScrollingText(PainterExtendScrollingText {
             token,
             text,
+            ..Default::default()
         }))
         .unwrap();
 }
@@ -173,7 +182,8 @@ pub fn scrolling_text(
     delay: u16,
 ) -> Option<u8> {
     let text = normalize_string(text);
-    let msg_size = 49;
+    let msg_size = PainterScrollingText::text_size();
+
     let first: Vec<u8> = text.clone().into_iter().take(msg_size).collect();
 
     let n_chars = match (screen_id, font) {
@@ -195,12 +205,13 @@ pub fn scrolling_text(
             n_chars,
             delay,
             text: first,
+            ..Default::default()
         }))
         .unwrap();
 
     if text.len() > msg_size {
         text[msg_size..]
-            .chunks(57)
+            .chunks(PainterExtendScrollingText::text_size())
             .for_each(|text| extend_text(device, token, text));
     }
 
