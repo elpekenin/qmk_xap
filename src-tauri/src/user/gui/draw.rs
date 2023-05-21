@@ -2,7 +2,10 @@ use crate::{
     user::gui::{self, BG_COLOR, HSV_BLACK, HSV_WHITE},
     xap::hid::XAPDevice,
 };
-use xap_specs::protocol::painter::*;
+use xap_specs::protocol::{
+    keymap::{KeyCoords, KeyPosition},
+    painter::*,
+};
 
 use log::error;
 
@@ -271,4 +274,34 @@ pub fn stop_scrolling_text(device: &XAPDevice, token: Option<u8>) {
         }
         None => {}
     };
+}
+
+pub fn draw_layer(device: &XAPDevice, layer: u8) {
+    for row in &device.key_info()[layer as usize] {
+        for key in row {
+            match key {
+                None => continue,
+                Some(info) => {
+                    // physichal position
+                    let KeyCoords { x, y, w, h } = info.coords;
+                    let size = 23;
+                    let x = x as u16 * size;
+                    let y = y as u16 * size;
+
+                    // electrical position
+                    let KeyPosition { layer, row, col } = info.position;
+
+                    let _ = device.query(PainterDrawKeycode(PainterKeycode {
+                        screen_id: 1,
+                        x,
+                        y,
+                        font: 0,
+                        layer,
+                        row,
+                        col,
+                    }));
+                }
+            }
+        }
+    }
 }

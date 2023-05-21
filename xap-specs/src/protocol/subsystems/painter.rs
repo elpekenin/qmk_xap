@@ -554,7 +554,6 @@ impl PainterExtendScrollingText {
 }
 
 #[derive(BinWrite, Debug)]
-
 pub struct PainterDrawExtendScrollingText(pub PainterExtendScrollingText);
 
 impl XAPRequest for PainterDrawExtendScrollingText {
