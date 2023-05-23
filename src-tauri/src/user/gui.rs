@@ -9,7 +9,7 @@ pub use screen::Screen;
 pub use slider::{Slider, SliderDirection};
 
 use crate::xap::hid::{XAPClient, XAPDevice};
-use xap_specs::protocol::{painter::HSVColor, UserBroadcast};
+use xap_specs::protocol::painter::HSVColor;
 
 use super::UserData;
 
@@ -56,18 +56,6 @@ pub(crate) fn close(client: &XAPClient, user_data: &UserData) {
 
 pub(crate) fn clear(device: &XAPDevice, user_data: &UserData) {
     for screen in &user_data.screens {
-        for button in &screen.buttons {
-            button.draw(device, screen, false);
-        }
-
-        for slider in &screen.sliders {
-            slider.clear(device, screen);
-        }
-    }
-}
-
-pub(crate) fn handle(device: &XAPDevice, msg: &UserBroadcast, user_data: &UserData) {
-    for screen in &user_data.screens {
-        screen.handle(device, msg, user_data);
+        screen.clear(device);
     }
 }

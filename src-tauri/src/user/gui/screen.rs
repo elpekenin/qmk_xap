@@ -6,7 +6,7 @@ use crate::{
     },
     xap::hid::XAPDevice,
 };
-use xap_specs::protocol::UserBroadcast;
+use xap_specs::protocol::ScreenPressed;
 
 #[derive(Debug)]
 pub struct Screen {
@@ -16,7 +16,7 @@ pub struct Screen {
 }
 
 impl Screen {
-    fn get_button(&self, msg: &UserBroadcast) -> Option<&Button> {
+    fn get_button(&self, msg: &ScreenPressed) -> Option<&Button> {
         self.buttons.iter().find(|&button| {
             button.x - Button::TOLERANCE <= msg.x
                 && msg.x <= button.x + Button::SIZE
@@ -25,7 +25,7 @@ impl Screen {
         })
     }
 
-    fn get_slider(&self, msg: &UserBroadcast) -> Option<&Slider> {
+    fn get_slider(&self, msg: &ScreenPressed) -> Option<&Slider> {
         for slider in &self.sliders {
             match &slider.direction {
                 SliderDirection::Vertical => {
@@ -43,7 +43,7 @@ impl Screen {
         None
     }
 
-    pub(crate) fn handle(&self, device: &XAPDevice, msg: &UserBroadcast, user_data: &UserData) {
+    pub(crate) fn handle(&self, device: &XAPDevice, msg: &ScreenPressed, user_data: &UserData) {
         if msg.screen_id != self.id {
             return;
         }
@@ -54,5 +54,15 @@ impl Screen {
         self.get_slider(msg).map_or((), |slider| {
             (slider.handler)(device, self, slider, msg, user_data)
         });
+    }
+
+    pub(crate) fn clear(&self, device: &XAPDevice) {
+        for button in &self.buttons {
+            button.draw(device, self, false);
+        }
+
+        for slider in &self.sliders {
+            slider.clear(device, self);
+        }
     }
 }

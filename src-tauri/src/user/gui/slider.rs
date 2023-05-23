@@ -8,7 +8,7 @@ use crate::{
 };
 use log::info;
 use std::{collections::HashMap, fmt};
-use xap_specs::protocol::UserBroadcast;
+use xap_specs::protocol::ScreenPressed;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SliderDirection {
@@ -24,7 +24,7 @@ pub struct Slider {
     pub y: u16,
     pub img_map: HashMap<&'static str, u8>,
     pub handler:
-        Box<dyn Fn(&XAPDevice, &Screen, &Slider, &UserBroadcast, &UserData) + Send + 'static>,
+        Box<dyn Fn(&XAPDevice, &Screen, &Slider, &ScreenPressed, &UserData) + Send + 'static>,
 }
 
 impl PartialEq for Slider {
@@ -48,7 +48,7 @@ impl Slider {
         self.img_map.get(&value.to_string() as &str)
     }
 
-    pub fn coord(&self, msg: &UserBroadcast) -> u16 {
+    pub fn coord(&self, msg: &ScreenPressed) -> u16 {
         match self.direction {
             SliderDirection::Vertical => msg.y,
             SliderDirection::Horizontal => msg.x,

@@ -7,14 +7,14 @@ use crate::{
     xap::hid::XAPDevice,
 };
 use std::fmt;
-use xap_specs::protocol::UserBroadcast;
+use xap_specs::protocol::ScreenPressed;
 
 pub struct Button {
     pub x: u16,
     pub y: u16,
     pub img: u8,
     pub handler:
-        Box<dyn Fn(&XAPDevice, &Screen, &Button, &UserBroadcast, &UserData) + Send + 'static>,
+        Box<dyn Fn(&XAPDevice, &Screen, &Button, &ScreenPressed, &UserData) + Send + 'static>,
 }
 
 impl PartialEq for Button {
@@ -53,7 +53,7 @@ impl Button {
         &self,
         device: &XAPDevice,
         screen: &Screen,
-        msg: &UserBroadcast,
+        msg: &ScreenPressed,
         user_data: &UserData,
     ) {
         // Mark as pressed

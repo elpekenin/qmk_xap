@@ -80,13 +80,38 @@ pub struct SecureStatusBroadcast(pub XAPSecureStatus);
 
 impl XAPBroadcast for SecureStatusBroadcast {}
 
-// ===========================
-// Custom touch screen message
+// ===============
+// Custom messages
 #[derive(BinRead, Debug, Clone)]
-pub struct UserBroadcast {
+pub struct ScreenPressed {
     pub screen_id: u8,
     pub x: u16,
     pub y: u16,
+}
+impl XAPBroadcast for ScreenPressed {}
+
+#[derive(BinRead, Debug, Clone)]
+pub struct ScreenReleased {
+    pub screen_id: u8,
+}
+impl XAPBroadcast for ScreenReleased {}
+
+#[derive(BinRead, Debug, Clone)]
+pub struct LayerChanged {
+    pub layer: u8,
+}
+impl XAPBroadcast for LayerChanged {}
+
+#[derive(BinRead, Debug, Clone)]
+pub enum UserBroadcast {
+    #[br(magic = 0u8)]
+    ScreenPressed(ScreenPressed),
+
+    #[br(magic = 1u8)]
+    ScreenReleased(ScreenReleased),
+
+    #[br(magic = 2u8)]
+    LayerChanged(LayerChanged),
 }
 
 impl XAPBroadcast for UserBroadcast {}

@@ -14,7 +14,7 @@ const FONT: u8 = 0;
 const X: u16 = weather::X + weather::IMG_SIZE + 10;
 const Y: u16 = weather::Y + (weather::IMG_SIZE - gui::FONT_SIZES[FONT as usize]) / 2;
 
-pub fn show(device: &XAPDevice, user_data: &mut UserData) {
+pub fn draw(device: &XAPDevice, user_data: &mut UserData) {
     let now = Local::now();
 
     // Early stopping if minute hasn't changed
