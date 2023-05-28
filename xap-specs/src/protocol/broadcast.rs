@@ -1,7 +1,7 @@
 use core::fmt::Debug;
 use std::io::Cursor;
 
-use binrw::{binread, BinRead, BinReaderExt};
+use binrw::{binread, BinRead, BinReaderExt, NullString};
 use log::trace;
 
 use crate::error::XAPResult;
@@ -103,6 +103,18 @@ pub struct LayerChanged {
 impl XAPBroadcast for LayerChanged {}
 
 #[derive(BinRead, Debug, Clone)]
+pub struct KeyEvent {
+    pub keycode: u16,
+    pub layer: u8,
+    pub row: u8,
+    pub col: u8,
+    pub mods: u8,
+    pub str: NullString,
+}
+impl XAPBroadcast for KeyEvent {}
+
+// - Aggregate
+#[derive(BinRead, Debug, Clone)]
 pub enum UserBroadcast {
     #[br(magic = 0u8)]
     ScreenPressed(ScreenPressed),
@@ -112,6 +124,9 @@ pub enum UserBroadcast {
 
     #[br(magic = 2u8)]
     LayerChanged(LayerChanged),
+
+    #[br(magic = 3u8)]
+    KeyEvent(KeyEvent),
 }
 
 impl XAPBroadcast for UserBroadcast {}

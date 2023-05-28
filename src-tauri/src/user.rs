@@ -17,7 +17,10 @@ use dotenvy::dotenv;
 use std::collections::HashMap;
 use sysinfo::{System, SystemExt, User};
 use uuid::Uuid;
-use xap_specs::protocol::{BroadcastRaw, UserBroadcast::{self, *}, ScreenPressed, ScreenReleased, LayerChanged};
+use xap_specs::protocol::{
+    BroadcastRaw, LayerChanged, ScreenPressed, ScreenReleased,
+    UserBroadcast::{self, *},
+};
 
 // Custom data
 #[derive(Default)]
@@ -126,7 +129,11 @@ pub(crate) fn on_close(client: &XAPClient, user_data: &mut UserData) {
 }
 
 fn get_display(user_data: &UserData, screen_id: u8) -> &Screen {
-    user_data.screens.iter().find(|s| s.id == screen_id).expect("Unknown screen_id, WTF did you do?")
+    user_data
+        .screens
+        .iter()
+        .find(|s| s.id == screen_id)
+        .expect("Unknown screen_id, WTF did you do?")
 }
 
 pub(crate) fn broadcast_callback(
@@ -142,10 +149,16 @@ pub(crate) fn broadcast_callback(
         return;
     };
 
+    println!("{msg:?}");
+
     match msg {
-        ScreenPressed(ScreenPressed { screen_id, x, y }) => get_display(user_data, screen_id).handle(device, &ScreenPressed { screen_id, x, y }, user_data),
-        ScreenReleased(ScreenReleased { screen_id })  => get_display(user_data, screen_id).clear(device),
-        LayerChanged(LayerChanged { layer }) => unreachable!()
+        ScreenPressed(msg) => get_display(user_data, msg.screen_id)
+            .handle(device, &msg, user_data),
+        ScreenReleased(msg) => {
+            get_display(user_data, msg.screen_id).clear(device)
+        }
+        LayerChanged(msg) => {},
+        KeyEvent(msg) => {},
     };
 }
 
