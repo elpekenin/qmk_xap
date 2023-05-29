@@ -151,13 +151,14 @@ pub fn textwidth(device: &XAPDevice, font: u8, text: &Vec<u8>) -> u16 {
 
 pub fn clear(device: &XAPDevice, screen_id: u8) {
     let geometry = geometry(device, screen_id);
+
     rect(
         device,
         screen_id,
         0,
         0,
-        geometry.width,
-        geometry.height,
+        geometry.width - 1,
+        geometry.height - 1,
         HSV_BLACK,
         true,
     );
@@ -166,7 +167,7 @@ pub fn clear(device: &XAPDevice, screen_id: u8) {
 fn extend_text(device: &XAPDevice, token: u8, text: impl Into<Vec<u8>>) {
     let text = text.into();
 
-    let _ = device
+    device
         .query(PainterDrawExtendScrollingText(PainterExtendScrollingText {
             token,
             text,
@@ -264,15 +265,12 @@ pub fn centered_or_scrolling_text(
 
     centered_text(device, screen_id, geometry.width / 2, y, font, text);
 
-    return None;
+    None
 }
 
 pub fn stop_scrolling_text(device: &XAPDevice, token: Option<u8>) {
-    match token {
-        Some(token) => {
-            let _ = device.query(PainterDrawStopScrollingText(token));
-        }
-        None => {}
+    if let Some(token) = token {
+        let _ = device.query(PainterDrawStopScrollingText(token));
     };
 }
 

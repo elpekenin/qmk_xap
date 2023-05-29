@@ -18,7 +18,7 @@ use std::collections::HashMap;
 use sysinfo::{System, SystemExt, User};
 use uuid::Uuid;
 use xap_specs::protocol::{
-    BroadcastRaw, LayerChanged, ScreenPressed, ScreenReleased,
+    BroadcastRaw,
     UserBroadcast::{self, *},
 };
 
@@ -149,16 +149,16 @@ pub(crate) fn broadcast_callback(
         return;
     };
 
-    println!("{msg:?}");
-
     match msg {
         ScreenPressed(msg) => get_display(user_data, msg.screen_id)
             .handle(device, &msg, user_data),
         ScreenReleased(msg) => {
             get_display(user_data, msg.screen_id).clear(device)
         }
+        // nothing done for other messages
         LayerChanged(msg) => {},
         KeyEvent(msg) => {},
+        Shutdown(msg) => {}
     };
 }
 

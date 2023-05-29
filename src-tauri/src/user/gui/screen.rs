@@ -1,7 +1,7 @@
 /// Screens contain their own ID and elements on them
 use crate::{
     user::{
-        gui::{self, draw, Button, Slider, SliderDirection},
+        gui::{Button, Slider, SliderDirection},
         UserData,
     },
     xap::hid::XAPDevice,

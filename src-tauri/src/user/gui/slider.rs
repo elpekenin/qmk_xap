@@ -16,6 +16,8 @@ pub enum SliderDirection {
     Horizontal,
 }
 
+type SliderFn = Box<dyn Fn(&XAPDevice, &Screen, &Slider, &ScreenPressed, &UserData) + Send + 'static>;
+
 pub struct Slider {
     pub direction: SliderDirection,
     pub start: u16,
@@ -23,8 +25,7 @@ pub struct Slider {
     pub x: u16,
     pub y: u16,
     pub img_map: HashMap<&'static str, u8>,
-    pub handler:
-        Box<dyn Fn(&XAPDevice, &Screen, &Slider, &ScreenPressed, &UserData) + Send + 'static>,
+    pub handler: SliderFn,
 }
 
 impl PartialEq for Slider {

@@ -15,6 +15,7 @@ const FONT_SIZE: u16 = gui::FONT_SIZES[FONT as usize];
 const SCREEN_ID: u8 = 1;
 const FIRST_BAR: u16 = 2 * GAP;
 const SECOND_BAR: u16 = 3 * GAP + WIDTH;
+const DRAW_TEXT: bool = true;
 
 fn draw(device: &XAPDevice, bottom: u16, value: u8, cpu: bool) {
     // Clear previous bar
@@ -55,22 +56,24 @@ fn draw(device: &XAPDevice, bottom: u16, value: u8, cpu: bool) {
     );
 
     // Draw texts
-    gui::draw::centered_text(
-        device,
-        SCREEN_ID,
-        x,
-        bottom,
-        FONT,
-        if cpu { "CPU" } else { "RAM" },
-    );
-    gui::draw::centered_text(
-        device,
-        SCREEN_ID,
-        x,
-        y - FONT_SIZE,
-        FONT,
-        format!("{value}%"),
-    );
+    if DRAW_TEXT {
+        gui::draw::centered_text(
+            device,
+            SCREEN_ID,
+            x,
+            bottom,
+            FONT,
+            if cpu { "CPU" } else { "RAM" },
+        );
+        gui::draw::centered_text(
+            device,
+            SCREEN_ID,
+            x,
+            y - FONT_SIZE,
+            FONT,
+            format!("{value}%"),
+        );
+    }
 }
 
 pub fn stats(device: &XAPDevice, user_data: &mut UserData) {

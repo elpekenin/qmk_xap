@@ -105,6 +105,7 @@ impl XAPBroadcast for LayerChanged {}
 #[derive(BinRead, Debug, Clone)]
 pub struct KeyEvent {
     pub keycode: u16,
+    pub pressed: u8,
     pub layer: u8,
     pub row: u8,
     pub col: u8,
@@ -112,6 +113,12 @@ pub struct KeyEvent {
     pub str: NullString,
 }
 impl XAPBroadcast for KeyEvent {}
+
+#[derive(BinRead, Debug, Clone)]
+pub struct Shutdown {
+    pub bootloader: u8
+}
+impl XAPBroadcast for Shutdown {}
 
 // - Aggregate
 #[derive(BinRead, Debug, Clone)]
@@ -127,6 +134,9 @@ pub enum UserBroadcast {
 
     #[br(magic = 3u8)]
     KeyEvent(KeyEvent),
+
+    #[br(magic = 4u8)]
+    Shutdown(Shutdown),
 }
 
 impl XAPBroadcast for UserBroadcast {}

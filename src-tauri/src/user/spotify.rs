@@ -3,9 +3,7 @@ use crate::{
     xap::hid::XAPDevice,
     UserData,
 };
-use image;
 use log::{debug, error, trace};
-use reqwest;
 use rspotify::{
     model::{AdditionalType, Country, FullTrack, Market, PlayableItem},
     prelude::*,
@@ -138,13 +136,14 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
             return;
         }
 
-        // Clear (potential) strings
+        // Clear strings that are (potentially) still running
         gui::draw::stop_scrolling_text(device, user_data.artist_token);
         gui::draw::stop_scrolling_text(device, user_data.song_token);
+        user_data.artist_token = None;
+        user_data.song_token = None;
 
         gui::draw::clear(device, SCREEN_ID);
         user_data.no_song_token = gui::draw::centered_or_scrolling_text(device, SCREEN_ID, (geometry.height - NO_SONG_FONT_SIZE) / 2, NO_SONG_FONT, "🎵 off");
-
 
         user_data.last_song = String::from("__none__");
         user_data.last_url = Default::default();

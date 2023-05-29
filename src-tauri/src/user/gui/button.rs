@@ -9,12 +9,13 @@ use crate::{
 use std::fmt;
 use xap_specs::protocol::ScreenPressed;
 
+type HandlerFn = Box<dyn Fn(&XAPDevice, &Screen, &Button, &ScreenPressed, &UserData) + Send + 'static>;
+
 pub struct Button {
     pub x: u16,
     pub y: u16,
     pub img: u8,
-    pub handler:
-        Box<dyn Fn(&XAPDevice, &Screen, &Button, &ScreenPressed, &UserData) + Send + 'static>,
+    pub handler: HandlerFn,
 }
 
 impl PartialEq for Button {
