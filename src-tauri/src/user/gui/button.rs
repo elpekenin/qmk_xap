@@ -9,7 +9,8 @@ use crate::{
 use std::fmt;
 use xap_specs::protocol::ScreenPressed;
 
-type HandlerFn = Box<dyn Fn(&XAPDevice, &Screen, &Button, &ScreenPressed, &UserData) + Send + 'static>;
+type HandlerFn =
+    Box<dyn Fn(&XAPDevice, &Screen, &Button, &ScreenPressed, &UserData) + Send + 'static>;
 
 pub struct Button {
     pub x: u16,

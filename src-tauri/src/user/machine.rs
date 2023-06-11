@@ -10,16 +10,16 @@ use xap_specs::protocol::painter::HSVColor;
 
 const GAP: u16 = 10;
 const WIDTH: u16 = 50;
-const FONT: u8 = 0;
+const FONT: u8 = 1;
 const FONT_SIZE: u16 = gui::FONT_SIZES[FONT as usize];
 const SCREEN_ID: u8 = 1;
 const FIRST_BAR: u16 = 2 * GAP;
 const SECOND_BAR: u16 = 3 * GAP + WIDTH;
 const DRAW_TEXT: bool = true;
 
-fn draw(device: &XAPDevice, bottom: u16, value: u8, cpu: bool) {
+fn draw(device: &XAPDevice, bottom: u16, new_value: u8, old_value: u8, is_cpu: bool) {
     // Clear previous bar
-    let left = if cpu { SECOND_BAR } else { FIRST_BAR };
+    let left = if is_cpu { SECOND_BAR } else { FIRST_BAR };
     let top = bottom - 100 - FONT_SIZE;
     gui::draw::rect(
         device,
@@ -27,15 +27,15 @@ fn draw(device: &XAPDevice, bottom: u16, value: u8, cpu: bool) {
         left,
         top,
         left + WIDTH,
-        bottom,
+        bottom + old_value as u16,
         HSV_BLACK,
         true,
     );
 
     // Draw new bar
     let x = left + WIDTH / 2;
-    let y = bottom - value as u16;
-    let hue = match value {
+    let y = bottom - new_value as u16;
+    let hue = match new_value {
         0..=30 => 105,
         31..=70 => 45,
         _ => 0,
@@ -63,7 +63,7 @@ fn draw(device: &XAPDevice, bottom: u16, value: u8, cpu: bool) {
             x,
             bottom,
             FONT,
-            if cpu { "CPU" } else { "RAM" },
+            if is_cpu { "CPU" } else { "RAM" },
         );
         gui::draw::centered_text(
             device,
@@ -71,7 +71,7 @@ fn draw(device: &XAPDevice, bottom: u16, value: u8, cpu: bool) {
             x,
             y - FONT_SIZE,
             FONT,
-            format!("{value}%"),
+            format!("{new_value}%"),
         );
     }
 }
@@ -86,13 +86,13 @@ pub fn stats(device: &XAPDevice, user_data: &mut UserData) {
     let bottom = geometry.height - FONT_SIZE - GAP;
 
     if ram != user_data.ram {
+        draw(device, bottom, ram, user_data.ram, false);
         user_data.ram = ram;
-        draw(device, bottom, ram, false);
     }
 
     if cpu != user_data.cpu {
+        draw(device, bottom, cpu, user_data.cpu, true);
         user_data.cpu = cpu;
-        draw(device, bottom, cpu, true);
     }
 
     // Horizontal line

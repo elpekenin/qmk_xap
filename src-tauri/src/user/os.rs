@@ -9,7 +9,7 @@ use xap_specs::protocol::painter::HSVColor;
 use crate::{user::UserData, xap::hid::XAPDevice};
 
 const OS: &str = std::env::consts::OS;
-const FONT: u8 = 1;
+const FONT: u8 = 0;
 pub const FONT_SIZE: u16 = gui::FONT_SIZES[FONT as usize];
 const SCREEN_ID: u8 = 1;
 pub const Y: u16 = 15;

@@ -80,11 +80,11 @@ impl UserData {
                         //     y: 240 - 2 * IMAGE_SIZE,
                         //     img_map: HashMap::from([
                         //         ("0", 0),
-                        //         ("1", 1),
-                        //         ("2", 2),
-                        //         ("3", 3),
-                        //         ("4", 4),
-                        //         ("5", 5),
+                        //         ("1", 2),
+                        //         ("2", 3),
+                        //         ("3", 4),
+                        //         ("4", 5),
+                        //         ("5", 1),
                         //     ]),
                         //     handler: Box::new(
                         //         |device: &XAPDevice,
@@ -150,15 +150,16 @@ pub(crate) fn broadcast_callback(
     };
 
     match msg {
-        ScreenPressed(msg) => get_display(user_data, msg.screen_id)
-            .handle(device, &msg, user_data),
-        ScreenReleased(msg) => {
-            get_display(user_data, msg.screen_id).clear(device)
-        }
+        ScreenPressed(msg) => get_display(user_data, msg.screen_id).handle(device, &msg, user_data),
+        ScreenReleased(msg) => get_display(user_data, msg.screen_id).clear(device),
         // nothing done for other messages
-        LayerChanged(msg) => {},
-        KeyEvent(msg) => {},
-        Shutdown(msg) => {}
+        LayerChanged(msg) => {}
+        KeyEvent(msg) => {}
+        Shutdown(msg) => {
+            if msg.bootloader != 0 {
+                std::process::exit(0)
+            }
+        }
     };
 }
 

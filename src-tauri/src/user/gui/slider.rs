@@ -16,7 +16,8 @@ pub enum SliderDirection {
     Horizontal,
 }
 
-type SliderFn = Box<dyn Fn(&XAPDevice, &Screen, &Slider, &ScreenPressed, &UserData) + Send + 'static>;
+type SliderFn =
+    Box<dyn Fn(&XAPDevice, &Screen, &Slider, &ScreenPressed, &UserData) + Send + 'static>;
 
 pub struct Slider {
     pub direction: SliderDirection,

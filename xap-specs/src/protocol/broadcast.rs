@@ -116,7 +116,7 @@ impl XAPBroadcast for KeyEvent {}
 
 #[derive(BinRead, Debug, Clone)]
 pub struct Shutdown {
-    pub bootloader: u8
+    pub bootloader: u8,
 }
 impl XAPBroadcast for Shutdown {}
 

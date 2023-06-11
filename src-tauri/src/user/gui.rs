@@ -15,7 +15,7 @@ use super::UserData;
 
 // Assets size
 pub const IMAGE_SIZE: u16 = 48;
-pub const FONT_SIZES: [u16; 2] = [15, 18]; // font height in pixels
+pub const FONT_SIZES: [u16; 2] = [18, 15]; // font height in pixels
 
 // Color definitions
 pub const HSV_WHITE: HSVColor = HSVColor {

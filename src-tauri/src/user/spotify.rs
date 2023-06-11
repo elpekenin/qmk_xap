@@ -12,10 +12,10 @@ use rspotify::{
 use xap_specs::protocol::painter::PainterGeometry;
 
 const SCREEN_ID: u8 = 0;
-const FONT: u8 = 0;
+const FONT: u8 = 1;
 const FONT_SIZE: u16 = gui::FONT_SIZES[FONT as usize];
 
-const NO_SONG_FONT: u8 = 1;
+const NO_SONG_FONT: u8 = 0;
 const NO_SONG_FONT_SIZE: u16 = gui::FONT_SIZES[NO_SONG_FONT as usize];
 
 fn init() -> AuthCodeSpotify {

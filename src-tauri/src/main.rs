@@ -239,7 +239,7 @@ fn main() -> ClientResult<()> {
             app.listen_global("frontend-loaded", move |_| {
                 event_channel_tx_listen_frontend
                     .send(XAPEvent::AnnounceAllDevices)
-                    .unwrap();
+                    .unwrap_or_else(|e| println!("{e}"));
             });
             start_event_loop(app.handle(), state, event_channel_rx, user_data);
             Ok(())

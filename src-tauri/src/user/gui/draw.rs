@@ -191,9 +191,9 @@ pub fn scrolling_text(
     let first: Vec<u8> = text.clone().into_iter().take(msg_size).collect();
 
     let n_chars = match (screen_id, font) {
-        (0, 0) => 18,
-        (0, 1) => 7,
-        (1, 1) => 18,
+        (0, 1) => 18,
+        (0, 0) => 7,
+        (1, 0) => 18,
         (s, f) => {
             error!("Combination not configured. Screen {s}, font: {f}");
             return None;
@@ -293,7 +293,7 @@ pub fn draw_layer(device: &XAPDevice, layer: u8) {
                         screen_id: 1,
                         x,
                         y,
-                        font: 0,
+                        font: 1,
                         layer,
                         row,
                         col,
