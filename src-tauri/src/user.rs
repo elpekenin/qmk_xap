@@ -25,19 +25,31 @@ use xap_specs::protocol::{
 // Custom data
 #[derive(Default)]
 pub struct UserData {
-    pub last_song: String,
-    pub last_url: String,
-    pub song_token: Option<u8>,
-    pub artist_token: Option<u8>,
-    pub no_song_token: Option<u8>,
-    pub counter: u32,
-    pub sys: System,
-    pub ram: u8,
-    pub cpu: u8,
-    pub screens: Vec<Screen>,
+    // common data
     pub connected: bool,
+    pub counter: u32,
+    pub screens: Vec<Screen>,
+
+    // github
+    pub notifications: u8,
+
+    // machine
+    pub cpu: u8,
+    pub ram: u8,
+    pub sys: System,
+
+    // os
     pub active_window: String,
     pub active_window_token: Option<u8>,
+
+    // spotify
+    pub artist_token: Option<u8>,
+    pub last_song: String,
+    pub last_url: String,
+    pub no_song_token: Option<u8>,
+    pub song_token: Option<u8>,
+
+    // time
     pub time: DateTime<Local>,
 }
 
@@ -79,12 +91,12 @@ impl UserData {
                         //     x: 320 - 3 * IMAGE_SIZE,
                         //     y: 240 - 2 * IMAGE_SIZE,
                         //     img_map: HashMap::from([
-                        //         ("0", 0),
-                        //         ("1", 2),
-                        //         ("2", 3),
-                        //         ("3", 4),
-                        //         ("4", 5),
-                        //         ("5", 1),
+                        //         ("0", 1),
+                        //         ("1", 3),
+                        //         ("2", 4),
+                        //         ("3", 5),
+                        //         ("4", 6),
+                        //         ("5", 2),
                         //     ]),
                         //     handler: Box::new(
                         //         |device: &XAPDevice,
@@ -101,6 +113,7 @@ impl UserData {
                     ],
                 },
             ],
+            notifications: 1,  // forces cleanup on boot
             ..Default::default()
         }
     }
@@ -189,9 +202,19 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
         spotify::album_cover(device, user_data);
     }
 
+    if user_data.counter % (30 * 2) == 0 {
+        http::github::draw(device, user_data);
+    }
+
     if user_data.counter % (60 * 10 * 2) == 0 {
         http::weather::draw(device, user_data);
     }
 
     (user_data.counter, _) = user_data.counter.overflowing_add(1);
+}
+
+pub fn get_var(name: impl Into<String>) -> String {
+    let name = name.into();
+
+    std::env::var(name.clone()).unwrap_or_else(|_| panic!("{name} not found"))
 }

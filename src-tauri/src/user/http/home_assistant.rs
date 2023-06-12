@@ -1,4 +1,5 @@
-use crate::user::http;
+use crate::user;
+
 use reqwest::{
     header::{self, HeaderMap},
     Method,
@@ -6,12 +7,11 @@ use reqwest::{
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 
-pub fn get_state(entity_id: impl Into<String>) -> Option<Map<String, Value>> {
+pub fn get_state(entity_id: impl Into<String>) -> super::ResponseT {
     let entity_id = entity_id.into();
 
-    let hasst_token = std::env::var("HASST_TOKEN").unwrap();
-    let hasst_base_url =
-        std::env::var("HASST_BASE_URL").unwrap_or_else(|_| "http://localhost:8123".to_string());
+    let hasst_token = user::get_var("HASST_TOKEN");
+    let hasst_base_url = user::get_var("HASST_BASE_URL");
     let url = format!("{hasst_base_url}/api/states/{entity_id}");
 
     let mut headers = HeaderMap::new();
@@ -20,16 +20,15 @@ pub fn get_state(entity_id: impl Into<String>) -> Option<Map<String, Value>> {
         format!("Bearer {hasst_token}").parse().unwrap(),
     );
 
-    http::request(Method::GET, url, Some(headers), None)
+    super::request(Method::GET, url, Some(headers), None)
 }
 
-pub fn set_light_intensity(level: u16) -> Result<(), std::env::VarError> {
+pub fn set_light_intensity(level: u16) {
     let level = 255 / 5 * level;
 
-    let hasst_token = std::env::var("HASST_TOKEN")?;
-    let hasst_base_url =
-        std::env::var("HASST_BASE_URL").unwrap_or("http://localhost:8123".to_string());
-    let lightbulb = std::env::var("LIGHTBULB_ID")?;
+    let hasst_token = user::get_var("HASST_TOKEN");
+    let hasst_base_url = user::get_var("HASST_BASE_URL");
+    let lightbulb = user::get_var("LIGHTBULB_ID");
 
     let url = format!("{hasst_base_url}/api/services/light/turn_on");
 
@@ -43,7 +42,5 @@ pub fn set_light_intensity(level: u16) -> Result<(), std::env::VarError> {
         format!("Bearer {hasst_token}").parse().unwrap(),
     );
 
-    http::request(Method::POST, url, Some(headers), Some(payload));
-
-    Ok(())
+    super::request(Method::POST, url, Some(headers), Some(payload));
 }

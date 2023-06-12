@@ -1,8 +1,8 @@
+pub mod github;
 pub mod home_assistant;
 pub mod telegram;
 pub mod weather;
 
-use log::error;
 use percent_encoding::{AsciiSet, CONTROLS};
 use reqwest::{self, header::HeaderMap, Method};
 use serde_json::{Map, Value};
@@ -17,12 +17,14 @@ const FRAGMENT: &AsciiSet = &CONTROLS
     .add(b'<')
     .add(b'-');
 
+pub type ResponseT = Option<Vec<Map<String, Value>>>;
+
 fn request(
     method: Method,
     url: impl Into<String>,
     headers: Option<HeaderMap>,
     payload: Option<HashMap<&str, String>>,
-) -> Option<Map<String, Value>> {
+) ->  ResponseT {
     let client = reqwest::blocking::Client::new();
 
     let url = url.into();
@@ -32,7 +34,7 @@ fn request(
 
         Method::POST => {
             if payload.is_none() {
-                error!("Tried to POST without payload");
+                log::error!("Tried to POST without payload");
                 return None;
             }
 
@@ -40,7 +42,7 @@ fn request(
         }
 
         _ => {
-            error!("Unsupported HTTP method");
+            log::error!("Unsupported HTTP method");
             return None;
         }
     };
@@ -50,20 +52,19 @@ fn request(
     }
 
     let Ok(response) = request_builder.send() else {
-        error!("Couldn't make a request to {url}");
+        log::error!("Couldn't make a request to {url}");
         return None;
     };
 
-    let Ok(text) = response.text() else {
-        error!("Couldn't read text from response");
+    let Ok(mut text) = response.text() else {
+        log::error!("Couldn't read text from response");
         return None;
     };
 
-    // let status_code = response.status();
-    // if  status_code != reqwest::StatusCode::OK {
-    //     info!("[{status_code}] - {text}");
-    //     return None;
-    // };
+    // convert plain mapping to 1-element array
+    if !text.starts_with('[') {
+        text = format!("[{text}]");
+    }
 
     serde_json::from_str(&text).map_or(None, |r| r)
 }

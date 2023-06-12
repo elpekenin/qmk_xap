@@ -28,15 +28,15 @@ fn get_forecast() -> Option<u8> {
 
     let hour = chrono::offset::Utc::now().hour() as usize;
 
-    Some(response.get("hourly")?.get("weathercode")?.as_array()?[hour].as_u64()? as u8)
+    Some(response[0].get("hourly")?.get("weathercode")?.as_array()?[hour].as_u64()? as u8)
 }
 
 fn forecast_to_img_id(forecast: Option<u8>) -> Option<u8> {
     match forecast? {
-        0 => Some(8),       // clear (sunny)
-        1..=3 => Some(6),   // cloudy
-        61..=65 => Some(7), // rain
-        80..=82 => Some(7), // rain
+        0 => Some(9),       // clear (sunny)
+        1..=3 => Some(7),   // cloudy
+        61..=65 => Some(8), // rain
+        80..=82 => Some(8), // rain
         id => {
             // anything else
             info!("No img for forecast with id: {id}");

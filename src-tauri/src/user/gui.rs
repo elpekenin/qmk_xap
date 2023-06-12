@@ -28,6 +28,11 @@ pub const HSV_BLACK: HSVColor = HSVColor {
     sat: 0,
     val: 0,
 };
+pub const HSV_RED: HSVColor = HSVColor {
+    hue: 0,
+    sat: 255,
+    val: 255,
+};
 
 // Color palette
 pub const BG_COLOR: HSVColor = HSV_BLACK;
