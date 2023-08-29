@@ -4,7 +4,6 @@ use reqwest::{
     header::{self, HeaderMap},
     Method,
 };
-use serde_json::{Map, Value};
 use std::collections::HashMap;
 
 pub fn get_state(entity_id: impl Into<String>) -> super::ResponseT {

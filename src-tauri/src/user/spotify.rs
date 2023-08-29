@@ -1,5 +1,5 @@
 use crate::{
-    user::gui::{self, HSV_BLACK, HSV_WHITE},
+    user::gui::{self, HSV_BLACK},
     xap::hid::XAPDevice,
     UserData,
 };

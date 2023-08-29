@@ -1,6 +1,11 @@
 pub mod github;
+
+#[allow(unused)]
 pub mod home_assistant;
+
+#[allow(unused)]
 pub mod telegram;
+
 pub mod weather;
 
 use percent_encoding::{AsciiSet, CONTROLS};

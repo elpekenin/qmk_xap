@@ -65,11 +65,7 @@ impl BinRead for LogBroadcast {
         _options: &binrw::ReadOptions,
         _args: Self::Args,
     ) -> binrw::BinResult<Self> {
-        let len: u8 = reader.read_le()?;
-        let mut bytes = Vec::with_capacity(len as usize);
-        reader.read_exact(&mut bytes[..len as usize])?;
-        let mut cursor = Cursor::new(&bytes);
-        Ok(Self(std::io::read_to_string(&mut cursor)?))
+        Ok(Self(std::io::read_to_string(reader)?))
     }
 }
 
@@ -110,7 +106,7 @@ pub struct KeyEvent {
     pub row: u8,
     pub col: u8,
     pub mods: u8,
-    pub str: NullString,
+    // pub str: NullString,
 }
 impl XAPBroadcast for KeyEvent {}
 
@@ -119,6 +115,14 @@ pub struct Shutdown {
     pub bootloader: u8,
 }
 impl XAPBroadcast for Shutdown {}
+
+#[derive(BinRead, Debug, Clone)]
+pub struct KeyTester {
+    pub pressed: u8,
+    pub row: u8,
+    pub col: u8,
+}
+impl XAPBroadcast for KeyTester {}
 
 // - Aggregate
 #[derive(BinRead, Debug, Clone)]
@@ -137,6 +141,9 @@ pub enum UserBroadcast {
 
     #[br(magic = 4u8)]
     Shutdown(Shutdown),
+
+    #[br(magic = 5u8)]
+    KeyTester(KeyTester),
 }
 
 impl XAPBroadcast for UserBroadcast {}

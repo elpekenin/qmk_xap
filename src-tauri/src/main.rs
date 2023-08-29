@@ -10,6 +10,8 @@ mod events;
 mod user;
 mod xap;
 
+use std::collections::HashMap;
+use std::hash::Hash;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -28,9 +30,11 @@ use tauri::{AppHandle, Manager, SystemTrayEvent};
 use commands::*;
 use events::{FrontendEvent, XAPEvent};
 use user::UserData;
+use uuid::Uuid;
 use xap::hid::XAPClient;
 use xap::ClientResult;
 use xap_specs::constants::XAPConstants;
+use xap_specs::protocol::UserBroadcast;
 
 fn shutdown_event_loop<R: Runtime>(sender: Sender<XAPEvent>) -> TauriPlugin<R> {
     Builder::new("event loop shutdown")
@@ -42,6 +46,76 @@ fn shutdown_event_loop<R: Runtime>(sender: Sender<XAPEvent>) -> TauriPlugin<R> {
         .build()
 }
 
+// slightly oversized
+const RECEPTION_BUFFER_INITIAL_SIZE: usize = 100;
+
+#[derive(Default)]
+struct LogBuffers {
+    names: HashMap<Uuid, String>,
+    buffers: HashMap<Uuid, String>,
+}
+
+impl LogBuffers {
+    fn get_name(&mut self, state: &XAPClient, id: &Uuid) -> String {
+        match self.names.get(id) {
+            Some(value) => value.to_owned(),
+            None => {
+                let xap_info = state.get_device(&id).unwrap().xap_info();
+
+                let name = format!("{}:{}", xap_info.qmk.manufacturer, xap_info.qmk.product_name);
+
+                self.names.insert(id.to_owned(), name.clone());
+                name
+            }
+        }
+    }
+
+    fn get_buffer(&mut self, id: &Uuid) -> &mut String {
+        self.buffers.entry(*id).or_insert(String::with_capacity(RECEPTION_BUFFER_INITIAL_SIZE))
+    }
+
+    fn reset_buffer(&mut self, id: &Uuid) {
+        let _ = self.buffers.insert(*id, String::with_capacity(RECEPTION_BUFFER_INITIAL_SIZE));
+    }
+
+    fn append_text(&mut self, id: &Uuid, text: impl Into<String>) {
+        let text = text.into();
+
+        let buffer = self.get_buffer(id);
+        buffer.push_str(&text);
+    }
+
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn log(&mut self, state: &XAPClient, id: &Uuid, log: impl Into<String>) {
+        let log = log.into();
+
+        let name = self.get_name(state, id);
+
+        if !log.contains('\n') {
+            self.append_text(id, log);
+            return;
+        }
+
+        let parts: Vec<&str> = log.split('\n').collect();
+        let n_parts = parts.len();
+
+        for i in 0..n_parts {
+            let part = parts[i];
+            self.append_text(id, part);
+
+            if i != (n_parts-1) {
+                println!("[{name}] {}", self.get_buffer(id));
+                self.reset_buffer(id);
+            }
+        }
+    }
+
+}
+
+
 fn start_event_loop(
     app: AppHandle,
     state: Arc<Mutex<XAPClient>>,
@@ -51,6 +125,9 @@ fn start_event_loop(
     let _ = std::thread::spawn(move || {
         let ticker = tick(Duration::from_millis(500));
         let state = state;
+
+        let mut log_buffers = LogBuffers::new();
+
         info!("started event loop");
         'event_loop: loop {
             select! {
@@ -64,8 +141,11 @@ fn start_event_loop(
                             break 'event_loop;
                         },
                         Ok(XAPEvent::LogReceived{id, log}) => {
-                            info!("LOG: {id} {log}");
-                                app.emit_all("log", FrontendEvent::LogReceived{ id, log }).unwrap();
+                            let client = state.lock();
+
+                            log_buffers.log(&client, &id, &log);
+
+                            app.emit_all("log", FrontendEvent::LogReceived{ id, log }).unwrap();
                         },
                         Ok(XAPEvent::SecureStatusChanged{id, secure_status}) => {
                             info!("Secure status changed: {id} - {secure_status}");
@@ -107,10 +187,18 @@ fn start_event_loop(
                             }
                         },
                         Ok(XAPEvent::ReceivedUserBroadcast{broadcast, id}) => {
+                            // Parse raw data
+                            let user_broadcast: UserBroadcast = if let Ok(broadcast) = broadcast.into_xap_broadcast() {
+                                broadcast
+                            } else {
+                                log::error!("Couldn't parse raw broadcast into user broadcast");
+                                return;
+                            };
+
                             let state = state.lock();
                             let device = state.get_device(&id).unwrap();
                             let mut user_data = user_data.lock();
-                            user::broadcast_callback(broadcast, device, &mut user_data);
+                            user::broadcast_callback(user_broadcast, device, &mut user_data);
                         },
                         Err(err) => {
                             error!("error receiving event {err}");

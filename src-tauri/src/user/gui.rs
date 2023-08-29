@@ -1,8 +1,16 @@
 /// Information about the GUI
+
+#[allow(unused)]
 mod button;
+
+#[allow(unused)]
 pub mod draw;
+
 mod screen;
+
+#[allow(unused)]
 mod slider;
+
 
 pub use button::Button;
 pub use screen::Screen;

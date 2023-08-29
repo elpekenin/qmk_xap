@@ -438,16 +438,8 @@ impl XAPRequest for PainterDrawPixdata {
 
 // ==============================
 // 0x3 0x2 0x11
-#[derive(BinWrite, Debug)]
-pub struct PainterSurfaceDrawText(pub PainterText);
 
-impl XAPRequest for PainterSurfaceDrawText {
-    type Response = ();
-
-    fn id() -> &'static [u8] {
-        &[0x3, 0x2, 0x11]
-    }
-}
+/* This was removed */
 
 // ==============================
 // 0x3 0x2 0x12

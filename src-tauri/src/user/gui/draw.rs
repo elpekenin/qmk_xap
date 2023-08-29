@@ -1,5 +1,5 @@
 use crate::{
-    user::gui::{self, BG_COLOR, HSV_BLACK, HSV_WHITE},
+    user::gui::{HSV_BLACK, HSV_WHITE},
     xap::hid::XAPDevice,
 };
 use xap_specs::protocol::{
@@ -281,7 +281,7 @@ pub fn draw_layer(device: &XAPDevice, layer: u8) {
                 None => continue,
                 Some(info) => {
                     // physichal position
-                    let KeyCoords { x, y, w, h } = info.coords;
+                    let KeyCoords { x, y, w: _, h: _ } = info.coords;
                     let size = 23;
                     let x = x as u16 * size;
                     let y = y as u16 * size;

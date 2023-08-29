@@ -1,7 +1,7 @@
 mod linux;
 mod windows;
 
-use crate::user::gui::{self, HSV_BLACK, HSV_WHITE};
+use crate::user::gui::{self, HSV_BLACK};
 use active_win_pos_rs::get_active_window;
 use log::warn;
 use xap_specs::protocol::painter::HSVColor;
@@ -13,7 +13,6 @@ const FONT: u8 = 0;
 pub const FONT_SIZE: u16 = gui::FONT_SIZES[FONT as usize];
 const SCREEN_ID: u8 = 1;
 pub const Y: u16 = 15;
-const FG_COLOR: HSVColor = HSV_WHITE;
 const BG_COLOR: HSVColor = HSV_BLACK;
 
 pub fn start_home_assistant() {

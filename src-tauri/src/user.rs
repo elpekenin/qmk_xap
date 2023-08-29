@@ -5,6 +5,7 @@ mod os;
 mod spotify;
 mod time;
 
+#[allow(unused)]
 use crate::{
     user::{
         gui::{Button, Screen, Slider, SliderDirection, IMAGE_SIZE},
@@ -15,12 +16,9 @@ use crate::{
 use chrono::{DateTime, Local};
 use dotenvy::dotenv;
 use std::collections::HashMap;
-use sysinfo::{System, SystemExt, User};
+use sysinfo::{System, SystemExt};
 use uuid::Uuid;
-use xap_specs::protocol::{
-    BroadcastRaw,
-    UserBroadcast::{self, *},
-};
+use xap_specs::protocol::UserBroadcast::{self, *};
 
 // Custom data
 #[derive(Default)]
@@ -113,7 +111,7 @@ impl UserData {
                     ],
                 },
             ],
-            notifications: 1,  // forces cleanup on boot
+            notifications: 255,  // forces cleanup on boot
             ..Default::default()
         }
     }
@@ -150,29 +148,22 @@ fn get_display(user_data: &UserData, screen_id: u8) -> &Screen {
 }
 
 pub(crate) fn broadcast_callback(
-    broadcast: BroadcastRaw,
+    broadcast: UserBroadcast,
     device: &XAPDevice,
     user_data: &mut UserData,
 ) {
-    // Parse raw data
-    let msg: UserBroadcast = if let Ok(m) = broadcast.into_xap_broadcast() {
-        m
-    } else {
-        log::error!("Couldn't parse broadcast into user broadcast");
-        return;
-    };
-
-    match msg {
+    match broadcast {
         ScreenPressed(msg) => get_display(user_data, msg.screen_id).handle(device, &msg, user_data),
         ScreenReleased(msg) => get_display(user_data, msg.screen_id).clear(device),
         // nothing done for other messages
-        LayerChanged(msg) => {}
-        KeyEvent(msg) => {}
+        LayerChanged(_msg) => {},
+        KeyEvent(_msg) => {},
         Shutdown(msg) => {
             if msg.bootloader != 0 {
                 std::process::exit(0)
             }
-        }
+        },
+        KeyTester(msg) => println!("{:?}", msg)
     };
 }
 
@@ -199,11 +190,8 @@ pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
     time::draw(device, user_data);
 
     if user_data.counter % (5 * 2) == 0 {
-        spotify::album_cover(device, user_data);
-    }
-
-    if user_data.counter % (30 * 2) == 0 {
         http::github::draw(device, user_data);
+        spotify::album_cover(device, user_data);
     }
 
     if user_data.counter % (60 * 10 * 2) == 0 {
