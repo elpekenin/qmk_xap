@@ -51,23 +51,13 @@ const RECEPTION_BUFFER_INITIAL_SIZE: usize = 100;
 
 #[derive(Default)]
 struct LogBuffers {
-    names: HashMap<Uuid, String>,
     buffers: HashMap<Uuid, String>,
 }
 
 impl LogBuffers {
-    fn get_name(&mut self, state: &XAPClient, id: &Uuid) -> String {
-        match self.names.get(id) {
-            Some(value) => value.to_owned(),
-            None => {
-                let xap_info = state.get_device(&id).unwrap().xap_info();
-
-                let name = format!("{}:{}", xap_info.qmk.manufacturer, xap_info.qmk.product_name);
-
-                self.names.insert(id.to_owned(), name.clone());
-                name
-            }
-        }
+    fn get_name(&self, state: &XAPClient, id: &Uuid) -> String {
+        let xap_info = state.get_device(id).unwrap().xap_info();
+        format!("{}:{}", xap_info.qmk.manufacturer, xap_info.qmk.product_name)
     }
 
     fn get_buffer(&mut self, id: &Uuid) -> &mut String {
@@ -75,14 +65,24 @@ impl LogBuffers {
     }
 
     fn reset_buffer(&mut self, id: &Uuid) {
-        let _ = self.buffers.insert(*id, String::with_capacity(RECEPTION_BUFFER_INITIAL_SIZE));
+        self.get_buffer(id).clear()
     }
 
-    fn append_text(&mut self, id: &Uuid, text: impl Into<String>) {
-        let text = text.into();
-
+    fn append_char(&mut self, id: &Uuid, name: &str, c: char) {
         let buffer = self.get_buffer(id);
-        buffer.push_str(&text);
+        buffer.push(c);
+
+        if c == '\n' {
+            self.flush(id, name);
+        }
+    }
+
+    fn flush(&mut self, id: &Uuid, name: &str) {
+        // unwrap should be safe (slot populated once we get here)
+        // if it fails, something has gone wrong elsewhere (?)
+        print!("[{}] {}", name, self.buffers.get(id).unwrap());
+
+        self.reset_buffer(id);
     }
 
     pub fn new() -> Self {
@@ -94,22 +94,8 @@ impl LogBuffers {
 
         let name = self.get_name(state, id);
 
-        if !log.contains('\n') {
-            self.append_text(id, log);
-            return;
-        }
-
-        let parts: Vec<&str> = log.split('\n').collect();
-        let n_parts = parts.len();
-
-        for i in 0..n_parts {
-            let part = parts[i];
-            self.append_text(id, part);
-
-            if i != (n_parts-1) {
-                println!("[{name}] {}", self.get_buffer(id));
-                self.reset_buffer(id);
-            }
+        for char in log.chars() {
+            self.append_char(id, &name, char);
         }
     }
 
