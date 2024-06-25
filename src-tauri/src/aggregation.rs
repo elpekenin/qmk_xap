@@ -8,7 +8,7 @@ use xap_specs::{
     protocol::{keymap::XAPKeyInfo, qmk::QMKBoardIdentifiers, xap::XAPSecureStatus},
 };
 
-#[derive(Clone, Serialize, TS)]
+#[derive(Clone, Serialize, TS, Debug)]
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
 pub struct XAPDevice {

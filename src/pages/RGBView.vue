@@ -91,7 +91,10 @@
         <div class="">
             <div class="row flex-center">
                 <div class="col-3 q-pa-md q-ma-md">
-                    <color-picker :hue="hue" @input="updateHue" />
+                    <color-picker
+                        :hue="hue"
+                        @input="updateHue"
+                    />
                 </div>
                 <div class="col q-pa-md q-ma-md q-gutter-md">
                     <q-select
@@ -148,7 +151,12 @@
                             { label: 'Disable', value: 0 },
                         ]"
                     />
-                    <q-btn color="white" text-color="black" label="Save" @click="save" />
+                    <q-btn
+                        color="white"
+                        text-color="black"
+                        label="Save"
+                        @click="save"
+                    />
                 </div>
             </div>
         </div>

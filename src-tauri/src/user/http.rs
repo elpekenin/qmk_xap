@@ -29,7 +29,7 @@ fn request(
     url: impl Into<String>,
     headers: Option<HeaderMap>,
     payload: Option<HashMap<&str, String>>,
-) ->  ResponseT {
+) -> ResponseT {
     let client = reqwest::blocking::Client::new();
 
     let url = url.into();

@@ -45,7 +45,10 @@
                 stack-label
             >
                 <template #control>
-                    <div class="self-center full-width no-outline" tabindex="0">
+                    <div
+                        class="self-center full-width no-outline"
+                        tabindex="0"
+                    >
                         {{ device?.info.qmk.manufacturer }}
                     </div>
                 </template>
@@ -57,21 +60,38 @@
                 stack-label
             >
                 <template #control>
-                    <div class="self-center full-width no-outline" tabindex="0">
+                    <div
+                        class="self-center full-width no-outline"
+                        tabindex="0"
+                    >
                         {{ device?.info.qmk.product_name }}
                     </div>
                 </template>
             </q-field>
-            <q-field filled label="XAP Version" stack-label>
+            <q-field
+                filled
+                label="XAP Version"
+                stack-label
+            >
                 <template #control>
-                    <div class="self-center full-width no-outline" tabindex="0">
+                    <div
+                        class="self-center full-width no-outline"
+                        tabindex="0"
+                    >
                         {{ device?.info.xap.version }}
                     </div>
                 </template>
             </q-field>
-            <q-field filled label="QMK Version" stack-label>
+            <q-field
+                filled
+                label="QMK Version"
+                stack-label
+            >
                 <template #control>
-                    <div class="self-center full-width no-outline" tabindex="0">
+                    <div
+                        class="self-center full-width no-outline"
+                        tabindex="0"
+                    >
                         {{ device?.info.qmk.version }}
                     </div>
                 </template>
@@ -83,22 +103,40 @@
                 stack-label
             >
                 <template #control>
-                    <div class="self-center full-width no-outline" tabindex="0">
+                    <div
+                        class="self-center full-width no-outline"
+                        tabindex="0"
+                    >
                         {{ device?.info.qmk.hardware_id }}
                     </div>
                 </template>
             </q-field>
-            <q-field v-if="device?.info.qmk.config != null" filled label="Config JSON" stack-label>
+            <q-field
+                v-if="device?.info.qmk.config != null"
+                filled
+                label="Config JSON"
+                stack-label
+            >
                 <template #control>
-                    <div class="self-center full-width no-outline" tabindex="0">
+                    <div
+                        class="self-center full-width no-outline"
+                        tabindex="0"
+                    >
                         {{ device?.info.qmk.config }}
                     </div>
                 </template>
             </q-field>
             <h5>Secure Actions</h5>
-            <q-field filled label="Secure Status" stack-label>
+            <q-field
+                filled
+                label="Secure Status"
+                stack-label
+            >
                 <template #control>
-                    <div class="self-center full-width no-outline" tabindex="0">
+                    <div
+                        class="self-center full-width no-outline"
+                        tabindex="0"
+                    >
                         {{ device?.secure_status }}
                     </div>
                 </template>
@@ -132,7 +170,10 @@
                     label="Jump to Bootloader"
                     @click="bootloader"
                 />
-                <q-tooltip v-if="device.secure_status != 'Unlocked'" class="bg-red">
+                <q-tooltip
+                    v-if="device.secure_status != 'Unlocked'"
+                    class="bg-red"
+                >
                     Device is locked
                 </q-tooltip>
             </div>
@@ -145,7 +186,10 @@
                     label="Reset EEPROM"
                     @click="reset"
                 />
-                <q-tooltip v-if="device.secure_status != 'Unlocked'" class="bg-red">
+                <q-tooltip
+                    v-if="device.secure_status != 'Unlocked'"
+                    class="bg-red"
+                >
                     Device is locked
                 </q-tooltip>
             </div>

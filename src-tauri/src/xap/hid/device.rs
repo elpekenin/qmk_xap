@@ -496,15 +496,13 @@ impl XAPDevice {
             .as_array()?;
 
         // TODO: Handle JSONs that dont contain matrix info (?)
-        let Some(key) = layout_info.iter().find(|&key| {
-                key.get("matrix")
-                    .unwrap()
-                    .as_array()
-                    .unwrap() == &[row, col]
-            }) else {
-                debug!("There's no key at matrix ({row}, {col})");
-                return None;
-            };
+        let Some(key) = layout_info
+            .iter()
+            .find(|&key| key.get("matrix").unwrap().as_array().unwrap() == &[row, col])
+        else {
+            debug!("There's no key at matrix ({row}, {col})");
+            return None;
+        };
 
         let x = key.get("x")?.as_u64()? as u8;
         let y = key.get("y")?.as_u64()? as u8;

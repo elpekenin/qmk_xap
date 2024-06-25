@@ -57,11 +57,16 @@ struct LogBuffers {
 impl LogBuffers {
     fn get_name(&self, state: &XAPClient, id: &Uuid) -> String {
         let xap_info = state.get_device(id).unwrap().xap_info();
-        format!("{}:{}", xap_info.qmk.manufacturer, xap_info.qmk.product_name)
+        format!(
+            "{}:{}",
+            xap_info.qmk.manufacturer, xap_info.qmk.product_name
+        )
     }
 
     fn get_buffer(&mut self, id: &Uuid) -> &mut String {
-        self.buffers.entry(*id).or_insert(String::with_capacity(RECEPTION_BUFFER_INITIAL_SIZE))
+        self.buffers
+            .entry(*id)
+            .or_insert(String::with_capacity(RECEPTION_BUFFER_INITIAL_SIZE))
     }
 
     fn reset_buffer(&mut self, id: &Uuid) {
@@ -98,9 +103,7 @@ impl LogBuffers {
             self.append_char(id, &name, char);
         }
     }
-
 }
-
 
 fn start_event_loop(
     app: AppHandle,
@@ -181,10 +184,22 @@ fn start_event_loop(
                                 return;
                             };
 
-                            let state = state.lock();
-                            let device = state.get_device(&id).unwrap();
-                            let mut user_data = user_data.lock();
-                            user::broadcast_callback(user_broadcast, device, &mut user_data);
+                            // if let UserBroadcast::KeyTester(event) = &user_broadcast {
+                            //     app.emit_all(
+                            //         "keytester",
+                            //         FrontendEvent::KeyTester{
+                            //             id,
+                            //             pressed: event.pressed != 0,
+                            //             row: event.row,
+                            //             col: event.col
+                            //         }
+                            //     ).unwrap();
+                            // } else {
+                                let state = state.lock();
+                                let device = state.get_device(&id).unwrap();
+                                let mut user_data = user_data.lock();
+                                user::broadcast_callback(user_broadcast, device, &mut user_data);
+                            // }
                         },
                         Err(err) => {
                             error!("error receiving event {err}");

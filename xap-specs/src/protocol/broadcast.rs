@@ -106,7 +106,7 @@ pub struct KeyEvent {
     pub row: u8,
     pub col: u8,
     pub mods: u8,
-    // pub str: NullString,
+    pub str: NullString,
 }
 impl XAPBroadcast for KeyEvent {}
 

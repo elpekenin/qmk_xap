@@ -27,16 +27,24 @@
 
 <template>
     <q-layout view="hHh LpR fff">
-        <q-header class="bg-primary text-white" height-hint="98">
+        <q-header
+            class="bg-primary text-white"
+            height-hint="98"
+        >
             <q-toolbar>
                 <q-toolbar-title>
                     <q-avatar>
-                        <img src="qmk.svg" />
+                        <img src="qmk.svg">
                     </q-avatar>
                     QMK XAP GUI
                 </q-toolbar-title>
                 <q-tabs align="left">
-                    <q-route-tab label="Device" :disable="device == null" to="/device" exact />
+                    <q-route-tab
+                        label="Device"
+                        :disable="device == null"
+                        to="/device"
+                        exact
+                    />
                     <q-route-tab
                         label="Keymap"
                         :disable="device?.info.keymap == null"
@@ -72,7 +80,10 @@
         <q-page-container>
             <router-view v-if="device != null" />
         </q-page-container>
-        <q-page-sticky position="bottom-right" :offset="[24, 24]">
+        <q-page-sticky
+            position="bottom-right"
+            :offset="[24, 24]"
+        >
             <q-btn
                 v-if="device?.secure_status != 'Unlocked'"
                 fab

@@ -15,6 +15,7 @@ use crate::{
 };
 use chrono::{DateTime, Local};
 use dotenvy::dotenv;
+use rspotify::model::FullTrack;
 use std::collections::HashMap;
 use sysinfo::{System, SystemExt};
 use uuid::Uuid;
@@ -41,11 +42,11 @@ pub struct UserData {
     pub active_window_token: Option<u8>,
 
     // spotify
+    pub playing: Option<FullTrack>,
+    pub playing_token: Option<u8>, // song name or "Spotify Off" message
     pub artist_token: Option<u8>,
-    pub last_song: String,
-    pub last_url: String,
-    pub no_song_token: Option<u8>,
-    pub song_token: Option<u8>,
+    pub image_url: Option<String>,
+    pub boot_drawn: bool, // did we draw the first thing? None by default means we wouldnt write "Spotify Off" on boot
 
     // time
     pub time: DateTime<Local>,
@@ -111,7 +112,7 @@ impl UserData {
                     ],
                 },
             ],
-            notifications: 255,  // forces cleanup on boot
+            notifications: 255, // forces cleanup on boot
             ..Default::default()
         }
     }
@@ -156,18 +157,20 @@ pub(crate) fn broadcast_callback(
         ScreenPressed(msg) => get_display(user_data, msg.screen_id).handle(device, &msg, user_data),
         ScreenReleased(msg) => get_display(user_data, msg.screen_id).clear(device),
         // nothing done for other messages
-        LayerChanged(_msg) => {},
-        KeyEvent(_msg) => {},
+        LayerChanged(_) => {}
+        KeyEvent(_) => {}
         Shutdown(msg) => {
             if msg.bootloader != 0 {
                 std::process::exit(0)
             }
-        },
-        KeyTester(msg) => println!("{:?}", msg)
+        }
+        KeyTester(_) => {}
     };
 }
 
 pub(crate) fn housekeeping(client: &XAPClient, user_data: &mut UserData) {
+    return;
+
     let devices = client.get_devices();
 
     let device = match devices.first() {

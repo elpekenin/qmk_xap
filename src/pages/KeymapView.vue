@@ -1,8 +1,10 @@
 <script setup lang="ts">
     import { storeToRefs } from 'pinia'
-    import { ref, watch, onMounted } from 'vue'
+    import { ref, watch, onMounted, onUnmounted } from 'vue'
     import type { Ref } from 'vue'
+    import { listen, Event, UnlistenFn } from '@tauri-apps/api/event'
 
+    import { FrontendEvent } from '@bindings/FrontendEvent'
     import { useXAPDeviceStore } from '@/stores/devices'
     import { KeyPosition } from '@bindings/KeyPosition'
     import { KeyPositionConfig } from '@bindings/KeyPositionConfig'
@@ -23,6 +25,8 @@
     const selectedKey: Ref<KeyPosition | null> = ref(null)
 
     const xapConstants: Ref<XAPConstants | null> = ref(null)
+
+    let unlistenKeyTester: UnlistenFn
 
     async function set(code: number) {
         if (selectedKey.value) {
@@ -65,6 +69,47 @@
         return key.keycode.label ?? key.keycode.key
     }
 
+    function idForKey(row: number, col:number): string {
+        return `row-${row} col-${col}`;
+    }
+
+    function buttonId(key: XAPKeyInfo): string {
+        return idForKey(key.position.row, key.position.col)
+    }
+
+    function _sizeStyle(size: number): string {
+        return `${size * 5}rem !important`
+    }
+
+    function buttonWidth(key: XAPKeyInfo): string {
+        return _sizeStyle(key.coords.w);
+    }
+
+    function buttonHeight(key: XAPKeyInfo): string {
+        return _sizeStyle(key.coords.h);
+    }
+
+    async function drawKey(pressed: boolean, row: number, col: number) {
+        const key = document.getElementById(idForKey(row, col));
+
+        if (key === null) {
+            return;
+        }
+
+        const held_class = "bg-blue";
+        const checked_class = "bg-green";
+
+        // cleanup key
+        key.classList.remove(held_class, checked_class);
+        if (pressed) {
+            // draw as held
+            key.classList.add(held_class)
+        } else {
+            // draw as checked
+            key.classList.add(checked_class)
+        }
+    }
+
     watch(device, async () => {
         selectedKey.value = null
     })
@@ -75,6 +120,22 @@
         } catch (err) {
             notifyError(err)
         }
+
+        unlistenKeyTester = await listen(
+            'keytester',
+            (event: Event<FrontendEvent>) => {
+                if (event.payload.kind != 'KeyTester') {
+                    return
+                }
+
+                const { pressed, row, col } = event.payload.data
+                drawKey(pressed, row, col)
+            }
+        )
+    })
+
+    onUnmounted(async () => {
+        if (unlistenKeyTester) unlistenKeyTester()
     })
 </script>
 
@@ -84,7 +145,11 @@
         <div class="q-pa-md">
             <q-splitter v-model="splitter">
                 <template #before>
-                    <q-tabs v-model="layerTab" vertical class="text-primary text-center">
+                    <q-tabs
+                        v-model="layerTab"
+                        vertical
+                        class="text-primary text-center"
+                    >
                         <h5>Layer</h5>
                         <!-- eslint-disable-next-line vue/valid-v-for -->
                         <q-tab
@@ -104,9 +169,15 @@
                         transition-next="jump-up"
                     >
                         <!-- eslint-disable-next-line vue/valid-v-for -->
-                        <q-tab-panel v-for="(layer, layer_idx) in device?.key_info" :name="layer_idx">
+                        <q-tab-panel
+                            v-for="(layer, layer_idx) in device?.key_info"
+                            :name="layer_idx"
+                        >
                             <!-- eslint-disable-next-line vue/require-v-for-key -->
-                            <div v-for="row in layer" class="row q-gutter-x-md q-ma-md">
+                            <div
+                                v-for="row in layer"
+                                class="row q-gutter-x-md q-ma-md"
+                            >
                                 <!--  TODO create proper Key and Keycode components -->
                                 <!-- eslint-disable-next-line vue/valid-v-for -->
                                 <q-responsive
@@ -115,27 +186,23 @@
                                     style="max-width: 3rem"
                                     :ratio="1"
                                 >
-                                    <q-btn
+                                    <div 
                                         v-if="key !== null"
-                                        :color="
-                                            colorButton(
-                                                key
-                                            )
-                                        "
-                                        text-color="black"
-                                        :label="
-                                            keyLabel(
-                                                key
-                                            )
-                                        "
-                                        square
-                                        @click="
-                                            () =>
-                                                selectKey(
-                                                    key
-                                                )
-                                        "
-                                    />
+                                        class="btn-size-wrapper"
+                                        :width="buttonWidth(key)"
+                                        :height="buttonHeight(key)"
+                                    >
+                                        <q-btn
+                                            v-if="key !== null"
+                                            :id="buttonId(key)"
+                                            block
+                                            square
+                                            text-color="black"
+                                            :color="colorButton(key)"
+                                            :label="keyLabel(key)"
+                                            @click="() => selectKey(key)"
+                                        />
+                                    </div>
                                 </q-responsive>
                             </div>
                         </q-tab-panel>
@@ -148,7 +215,11 @@
             <!-- Keycodes -->
             <q-splitter v-model="splitter">
                 <template #before>
-                    <q-tabs v-model="keycodeTab" vertical class="text-primary text-center">
+                    <q-tabs
+                        v-model="keycodeTab"
+                        vertical
+                        class="text-primary text-center"
+                    >
                         <h5>Keycodes</h5>
                         <!-- eslint-disable vue/no-unused-vars -->
                         <q-tab
@@ -175,8 +246,15 @@
                             :label="category.name"
                             class="row q-gutter-md"
                         >
-                            <div v-for="code in category.codes" :key="code.code" class="col-1">
-                                <q-responsive style="max-width: 4rem" :ratio="1">
+                            <div
+                                v-for="code in category.codes"
+                                :key="code.code"
+                                class="col-1"
+                            >
+                                <q-responsive
+                                    style="max-width: 4rem"
+                                    :ratio="1"
+                                >
                                     <q-btn
                                         color="white"
                                         :disable="device?.secure_status != 'Unlocked'"

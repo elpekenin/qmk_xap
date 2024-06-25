@@ -23,6 +23,7 @@
     }) 
 
     const _tool: Ref<string> = ref("Pixel");
+    const _input: Ref<string> = ref("");
     const _filled: Ref<boolean> = ref(false);
 
     function setCanvasColor() {
@@ -283,6 +284,10 @@
 
         await drawClear(device.value.id, 0);
     }
+
+    async function _eval() {
+        eval(_input.value);
+    }
 </script>
 
 <template>
@@ -311,6 +316,15 @@
                         emit-value
                         style="margin-top: auto; margin-bottom: auto;"
                     />
+
+                    <q-input
+                        v-model.string.lazy="_input"
+                        v-model="area"
+                        type="textarea"
+                        float-label="Textarea"
+                        :max-height="100"
+                        :min-rows="7"
+                    />
                 </div>
                 <br>
                 <div class="row">
@@ -319,6 +333,12 @@
                         text-color="black"
                         label="Clear"
                         @click="clear"
+                    />
+                    <q-btn
+                        color="white"
+                        text-color="black"
+                        label="Eval"
+                        @click="_eval"
                     />
                     <q-checkbox
                         v-if="['Circle', 'Ellipse', 'Rect'].includes(_tool)"

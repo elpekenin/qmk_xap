@@ -16,11 +16,12 @@ const SCREEN_ID: u8 = 1;
 const FIRST_BAR: u16 = 2 * GAP;
 const SECOND_BAR: u16 = 3 * GAP + WIDTH;
 const DRAW_TEXT: bool = true;
+const BAR_DIV: u16 = 2;
 
 fn draw(device: &XAPDevice, bottom: u16, new_value: u8, old_value: u8, is_cpu: bool) {
     // Clear previous bar
     let left = if is_cpu { SECOND_BAR } else { FIRST_BAR };
-    let top = bottom - 100 - FONT_SIZE;
+    let top = bottom - (100 / BAR_DIV) - FONT_SIZE;
     gui::draw::rect(
         device,
         SCREEN_ID,
@@ -34,7 +35,7 @@ fn draw(device: &XAPDevice, bottom: u16, new_value: u8, old_value: u8, is_cpu: b
 
     // Draw new bar
     let x = left + WIDTH / 2;
-    let y = bottom - new_value as u16;
+    let y = bottom - new_value as u16 / BAR_DIV;
     let hue = match new_value {
         0..=30 => 105,
         31..=70 => 45,

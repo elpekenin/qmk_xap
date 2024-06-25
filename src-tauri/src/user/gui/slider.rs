@@ -10,6 +10,8 @@ use log::info;
 use std::{collections::HashMap, fmt};
 use xap_specs::protocol::ScreenPressed;
 
+use super::screen;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum SliderDirection {
     Vertical,
@@ -75,5 +77,9 @@ impl Slider {
             BG_COLOR,
             true,
         );
+    }
+
+    pub fn handle(&self, device: &XAPDevice, screen: &Screen, msg: &ScreenPressed, user_data: &UserData) {
+        (self.handler)(device, screen, self, msg, user_data);
     }
 }

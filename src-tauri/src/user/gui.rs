@@ -11,7 +11,6 @@ mod screen;
 #[allow(unused)]
 mod slider;
 
-
 pub use button::Button;
 pub use screen::Screen;
 pub use slider::{Slider, SliderDirection};
@@ -53,9 +52,8 @@ pub fn on_connect(device: &XAPDevice, user_data: &UserData) {
 
 pub(crate) fn close(client: &XAPClient, user_data: &UserData) {
     for device in client.get_devices() {
-        draw::stop_scrolling_text(device, user_data.song_token);
+        draw::stop_scrolling_text(device, user_data.playing_token);
         draw::stop_scrolling_text(device, user_data.artist_token);
-        draw::stop_scrolling_text(device, user_data.no_song_token);
         draw::stop_scrolling_text(device, user_data.active_window_token);
 
         for screen in &user_data.screens {

@@ -6,7 +6,7 @@ use xap_specs::protocol::{xap::XAPSecureStatus, BroadcastRaw};
 use crate::aggregation::XAPDevice as XAPDeviceDTO;
 
 #[allow(clippy::large_enum_variant)]
-#[derive(Clone, Serialize, TS)]
+#[derive(Clone, Serialize, TS, Debug)]
 #[serde(tag = "kind", content = "data")]
 #[ts(export)]
 #[ts(export_to = "../bindings/")]
@@ -26,9 +26,10 @@ pub(crate) enum FrontendEvent {
         log: String,
     },
     KeyTester {
+        id: Uuid,
         pressed: bool,
         row: u8,
-        col: u8
+        col: u8,
     },
 }
 

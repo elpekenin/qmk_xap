@@ -104,7 +104,6 @@ fn draw_album_img(device: &XAPDevice, url: &String, geometry: &PainterGeometry) 
 
     image
         .pixels()
-        .into_iter()
         .flat_map(|pixel| {
             let image::Rgb([r, g, b]) = pixel;
 
@@ -130,44 +129,41 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
     let geometry = gui::draw::geometry(device, SCREEN_ID);
     let gap = (geometry.height - 64) / 2;
 
-    // Guard clause - No song
-    let Some(track) = playing_track(&spotify) else {
-        if user_data.last_song == "__none__" {
-            return;
-        }
+    // Guard clause - Same song
+    let playing = playing_track(&spotify);
+    if playing == user_data.playing && user_data.boot_drawn {
+        return;
+    }
 
-        // Clear strings that are (potentially) still running
-        gui::draw::stop_scrolling_text(device, user_data.artist_token);
-        gui::draw::stop_scrolling_text(device, user_data.song_token);
-        user_data.artist_token = None;
-        user_data.song_token = None;
+    user_data.boot_drawn = true;
+    user_data.playing = playing.clone();
 
+    // Clear strings that are (potentially) still running
+    gui::draw::stop_scrolling_text(device, user_data.artist_token);
+    gui::draw::stop_scrolling_text(device, user_data.playing_token);
+
+    // Not a song
+    if playing.is_none() {
         gui::draw::clear(device, SCREEN_ID);
-        user_data.no_song_token = gui::draw::centered_or_scrolling_text(device, SCREEN_ID, (geometry.height - NO_SONG_FONT_SIZE) / 2, NO_SONG_FONT, "🎵 off");
 
-        user_data.last_song = String::from("__none__");
-        user_data.last_url = Default::default();
+        user_data.image_url = None;
+        user_data.artist_token = None;
+        user_data.playing_token = gui::draw::centered_or_scrolling_text(
+            device,
+            SCREEN_ID,
+            (geometry.height - NO_SONG_FONT_SIZE) / 2,
+            NO_SONG_FONT,
+            "🎵 off",
+        );
 
         return;
     };
 
-    gui::draw::stop_scrolling_text(device, user_data.no_song_token);
-
-    // Guard clause - Same song
-    let song = track.name;
-    if user_data.last_song == song {
-        trace!("album_cover: same song, quitting");
-        return;
-    }
-    user_data.last_song = song.clone();
-
-    // Stop texts
-    gui::draw::stop_scrolling_text(device, user_data.song_token);
-    gui::draw::stop_scrolling_text(device, user_data.artist_token);
+    let track = playing.unwrap();
 
     // Draw song image, if different
-    let url = &track.album.images.last().unwrap().url;
-    if &user_data.last_url != url {
+    let url = track.album.images.last().unwrap().url.to_string();
+    if Some(url.clone()) != user_data.image_url {
         gui::draw::rect(
             device,
             SCREEN_ID,
@@ -178,9 +174,9 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
             HSV_BLACK,
             true,
         );
-        draw_album_img(device, url, &geometry);
+        draw_album_img(device, &url, &geometry);
+        user_data.image_url = Some(url);
     }
-    user_data.last_url = url.to_string();
 
     // Draw song name
     let y = geometry.height - gap;
@@ -194,7 +190,8 @@ pub fn album_cover(device: &XAPDevice, user_data: &mut UserData) {
         HSV_BLACK,
         true,
     );
-    user_data.song_token = gui::draw::centered_or_scrolling_text(device, SCREEN_ID, y, FONT, song);
+    user_data.playing_token =
+        gui::draw::centered_or_scrolling_text(device, SCREEN_ID, y, FONT, track.name);
 
     // Draw artist name
     let artist = track.artists.first().unwrap().name.clone();

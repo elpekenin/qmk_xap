@@ -48,12 +48,13 @@ impl Screen {
             return;
         }
 
-        self.get_button(msg)
-            .map_or((), |button| button.handle(device, self, msg, user_data));
+        if let Some(button) = self.get_button(msg) {
+            button.handle(device, self, msg, user_data)
+        };
 
-        self.get_slider(msg).map_or((), |slider| {
-            (slider.handler)(device, self, slider, msg, user_data)
-        });
+        if let Some(slider) = self.get_slider(msg) {
+            slider.handle(device, self, msg, user_data)
+        };
     }
 
     pub(crate) fn clear(&self, device: &XAPDevice) {
