@@ -5,24 +5,26 @@ use binrw::{BinRead, BinResult, BinWrite, BinWriterExt, Endian};
 
 use crate::token::Token;
 
-pub trait XAPRequest: Sized + Debug + for<'a> BinWrite<Args<'a> = ()> {
+pub trait XapRequest: Sized + Debug + for<'a> BinWrite<Args<'a> = ()> {
     type Response: for<'a> BinRead<Args<'a> = ()>;
 
     fn id() -> &'static [u8];
+
+    fn xap_version() -> u32;
 
     fn is_secure() -> bool {
         false
     }
 }
 
-pub struct RawRequest<T: XAPRequest> {
+pub struct RawRequest<T: XapRequest> {
     token: Token,
     payload: T,
 }
 
 impl<T> RawRequest<T>
 where
-    T: XAPRequest,
+    T: XapRequest,
 {
     pub fn new(payload: T) -> Self {
         Self {
@@ -38,7 +40,7 @@ where
 
 impl<T> BinWrite for RawRequest<T>
 where
-    T: XAPRequest,
+    T: XapRequest,
 {
     type Args<'a> = ();
 

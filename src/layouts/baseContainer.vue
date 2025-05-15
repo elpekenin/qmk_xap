@@ -1,28 +1,11 @@
 <script setup lang="ts">
     import { storeToRefs } from 'pinia'
-    import { computed } from 'vue'
-    import type { Ref } from 'vue'
+    import { useXapDeviceStore } from '@/utils/deviceStore'
+    import { XapDeviceState } from '@generated/xap'
+    import { commands } from '@/utils/commands'
 
-    import { secureUnlock, secureLock } from '@/commands/xap'
-    import { useXAPDeviceStore } from '@/stores/devices'
-    import { XAPDevice } from '@bindings/XAPDevice'
-    import { XAPSecureStatus } from '@bindings/XAPSecureStatus'
-
-    const store = useXAPDeviceStore()
+    const store = useXapDeviceStore()
     const { device, devices } = storeToRefs(store)
-    const devicesA: Ref<Array<XAPDevice>> = computed(() => Array.from(devices.value.values()))
-
-    async function lock() {
-        if (device.value) {
-            await secureLock(device.value.id)
-        }
-    }
-
-    async function unlock() {
-        if (device.value) {
-            await secureUnlock(device.value.id)
-        }
-    }
 </script>
 
 <template>
@@ -36,10 +19,9 @@
                     QMK XAP GUI
                 </q-toolbar-title>
                 <q-tabs align="left">
-                    <q-route-tab label="Device" :disable="device == null" to="/device" exact />
                     <q-route-tab
                         label="Keymap"
-                        :disable="device?.info.keymap == null"
+                        :disable="device?.info?.keymap == null"
                         to="/keymap"
                         exact
                     />
@@ -49,6 +31,7 @@
                         to="/rgb"
                         exact
                     />
+                    <q-route-tab label="Info" :disable="device == null" to="/info" exact />
                 </q-tabs>
             </q-toolbar>
             <div class="bg-white">
@@ -56,9 +39,14 @@
                     v-model="device"
                     label="XAP device"
                     :disable="device == null"
+                    :readonly="devices.size == 1"
                     filled
-                    :options="devicesA"
-                    :option-label="(device:XAPDevice) => device?.info.qmk.manufacturer + ' - ' + device?.info.qmk.product_name "
+                    :options="() => Array.from(devices.values())"
+                    :option-value="(device: XapDeviceState) => device.id"
+                    :option-label="
+                        (device: XapDeviceState) =>
+                            device?.info?.qmk.manufacturer + ' - ' + device?.info?.qmk.product_name
+                    "
                     emit-value
                 />
             </div>
@@ -68,22 +56,17 @@
         </q-page-container>
         <q-page-sticky position="bottom-right" :offset="[24, 24]">
             <q-btn
-                v-if="device?.secure_status != 'Unlocked'"
                 fab
-                icon="lock_open"
-                :loading="device?.secure_status as XAPSecureStatus == 'Unlocking'"
+                :loading="device?.secure_status == 'Unlocking'"
                 color="secondary"
                 text-color="white"
-                @click="unlock"
-            />
-            <q-btn
-                v-else
-                fab
-                :loading="device?.secure_status as XAPSecureStatus == 'Unlocking'"
-                color="secondary"
-                text-color="white"
-                icon="lock"
-                @click="lock"
+                :icon="device?.secure_status == 'Unlocked' ? 'lock' : 'lock_open'"
+                @click="
+                    async () =>
+                        device?.secure_status == 'Unlocked'
+                            ? commands.xapSecureLock(device!.id)
+                            : commands.xapSecureUnlock(device!.id)
+                "
             />
         </q-page-sticky>
     </q-layout>

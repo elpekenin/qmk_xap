@@ -1,29 +1,39 @@
 pub mod keycode;
+pub mod lighting;
 
-use std::collections::HashMap;
 use std::path::PathBuf;
 
+use anyhow::Result;
 use serde::Serialize;
+use specta::Type;
 
-use crate::constants::keycode::{read_xap_keycodes, XAPKeyCode};
-use crate::error::XAPResult;
+use self::keycode::{read_xap_keycodes, KeyCode, XapKeyCodeCategory};
+use self::lighting::{read_xap_lighting_effects, LightingEffects};
 
-#[derive(Debug, Clone, Serialize)]
-pub struct XAPConstants {
-    pub keycodes: HashMap<u16, XAPKeyCode>,
+#[derive(Debug, Clone, Serialize, Type)]
+pub struct XapConstants {
+    pub keycodes: Vec<XapKeyCodeCategory>,
+    pub rgblight_modes: LightingEffects,
+    pub rgb_matrix_modes: LightingEffects,
+    pub led_matrix_modes: LightingEffects,
 }
 
-impl XAPConstants {
-    pub fn new(specs_path: PathBuf) -> XAPResult<Self> {
+impl XapConstants {
+    pub fn new(specs_path: PathBuf) -> Result<Self> {
         Ok(Self {
-            keycodes: read_xap_keycodes(specs_path)?,
+            keycodes: read_xap_keycodes(&specs_path)?,
+            rgblight_modes: read_xap_lighting_effects(&specs_path, "rgblight")?,
+            rgb_matrix_modes: read_xap_lighting_effects(&specs_path, "rgb_matrix")?,
+            led_matrix_modes: read_xap_lighting_effects(&specs_path, "led_matrix")?,
         })
     }
 
-    pub fn get_keycode(&self, code: u16) -> XAPKeyCode {
-        self.keycodes
-            .get(&code)
-            .cloned()
-            .unwrap_or_else(|| XAPKeyCode::new_custom(code))
+    pub fn get_keycode(&self, code: u16) -> KeyCode {
+        for category in &self.keycodes {
+            if let Some(code) = category.codes.iter().find(|keycode| keycode.code == code) {
+                return code.clone();
+            }
+        }
+        KeyCode::new_custom(code)
     }
 }

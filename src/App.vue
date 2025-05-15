@@ -1,78 +1,81 @@
 <script setup lang="ts">
     import { storeToRefs } from 'pinia'
     import { onMounted, onUnmounted, watchEffect } from 'vue'
-    import { listen, emit, Event, UnlistenFn } from '@tauri-apps/api/event'
     import { Notify, Loading } from 'quasar'
 
-    import { useXAPDeviceStore } from '@/stores/devices'
-    import { FrontendEvent } from '@bindings/FrontendEvent'
-    import router from '@/router/routes'
+    import { addListener, clearListener } from '@/utils/events'
+    import { useXapDeviceStore } from '@/utils/deviceStore'
+    import router from '@/utils/routes'
+    import { eventBus } from '@/utils/eventbus'
+    import { XapDeviceState, XapEvent } from '@generated/xap'
+    import { commands } from '@generated/xap'
 
-    const store = useXAPDeviceStore()
+    const store = useXapDeviceStore()
     const { device, devices } = storeToRefs(store)
 
-    let unlistenNewDevice: UnlistenFn
-    let unlistenRemoveDevice: UnlistenFn
-    let unlistenSecureStatusChanged: UnlistenFn
+    function addDevice(device: XapDeviceState) {
+        const { id } = device
+        console.log('new device with id ' + id + Date.now())
+        if (store.addDevice(device)) {
+            Notify.create({
+                message: 'New Device ' + device.info?.qmk.product_name,
+                icon: 'power',
+            })
+        }
+        return true
+    }
 
     onMounted(async () => {
-        unlistenNewDevice = await listen('new-device', (event: Event<FrontendEvent>) => {
-            if (event.payload.kind != 'NewDevice') {
-                return
-            }
-
-            const { device } = event.payload.data
-            console.log('new device with id ' + device.id + Date.now())
-
-            if (store.addDevice(device)) {
-                Notify.create({
-                    message: 'New Device ' + device.info.qmk.product_name,
-                    icon: 'power',
-                })
-            }
-        })
-
-        unlistenRemoveDevice = await listen('removed-device', (event: Event<FrontendEvent>) => {
-            if (event.payload.kind != 'RemovedDevice') {
-                return
-            }
-
-            const { id } = event.payload.data
-            console.log('removed device with id ' + id)
-
-            Notify.create({
-                message:
-                    'Removed Device ' + (devices.value.get(id)?.info.qmk.product_name ?? 'Unknown'),
-                icon: 'power_off',
-            })
-
-            store.removeDevice(id)
-        })
-
-        unlistenSecureStatusChanged = await listen(
-            'secure-status-changed',
-            (event: Event<FrontendEvent>) => {
-                if (event.payload.kind != 'SecureStatusChanged') {
-                    return
+        addListener()
+        eventBus.on('xap', async (event: XapEvent) => {
+            switch (event.kind) {
+                case 'NewDevice':
+                    {
+                        const { id } = event.data
+                        const result = await commands.deviceGet(id)
+                        switch (result.status) {
+                            case 'ok':
+                                addDevice(result.data)
+                                break
+                            case 'error':
+                                console.error(
+                                    'error getting device info for device ' +
+                                        id +
+                                        ': ' +
+                                        result.error,
+                                )
+                                break
+                        }
+                    }
+                    break
+                case 'RemovedDevice': {
+                    const { id } = event.data
+                    Notify.create({
+                        message:
+                            'Removed Device ' +
+                            (devices.value.get(id)?.info?.qmk.product_name ?? 'Unknown'),
+                        icon: 'power_off',
+                    })
+                    store.removeDevice(id)
+                    console.log('removed device with id ' + id)
+                    break
                 }
-
-                const { id, secure_status } = event.payload.data
-                console.log('secure status ' + secure_status + ' for device ' + id)
-                store.updateSecureStatus(id, secure_status)
+                case 'SecureStatusChanged': {
+                    const { id, secure_status } = event.data
+                    console.log('secure status ' + secure_status + ' for device ' + id)
+                    store.updateSecureStatus(id, secure_status)
+                    break
+                }
             }
-        )
+        })
 
-        await emit('frontend-loaded')
+        for (const dev of await commands.devicesGet()) {
+            addDevice(dev)
+        }
     })
 
     onUnmounted(async () => {
-        if (unlistenNewDevice) {
-            unlistenNewDevice()
-        }
-        if (unlistenRemoveDevice) {
-            unlistenRemoveDevice()
-        }
-        if (unlistenSecureStatusChanged) unlistenSecureStatusChanged()
+        clearListener()
     })
 
     watchEffect(async () => {
