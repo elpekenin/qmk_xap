@@ -582,6 +582,828 @@ pub mod user {
     use crate::xap::spec::types::*;
     use xap_specs::request::XapRequest;
     use xap_specs::response::UTF8String;
+
+    /// ======================================================================
+    ///  capabilities
+    ///
+    /// User subsystem capabilities query. Each bit should be considered as a "usable" route within this subsystem.
+    /// ======================================================================
+    #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+    pub struct UserCapabilitiesRequest(pub ());
+
+    impl From<()> for UserCapabilitiesRequest {
+        fn from(req: ()) -> Self {
+            Self(req)
+        }
+    }
+
+    impl XapRequest for UserCapabilitiesRequest {
+        type Response = UserCapabilitiesFlags;
+
+        fn id() -> &'static [u8] {
+            &[0x03, 0x01]
+        }
+
+        fn xap_version() -> u32 {
+            0x00000300
+        }
+    }
+
+    #[derive(
+        BinRead, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy, Serialize, Type,
+    )]
+    pub struct UserCapabilitiesFlags(u32);
+
+    bitflags! {
+                    impl UserCapabilitiesFlags: u32 {
+
+    const Capabilities = 1 << 1;
+    const QuantumPainter = 1 << 2;
+    }
+    }
+
+    #[allow(dead_code)]
+    #[allow(unused_imports)]
+    pub mod quantum_painter {
+        use binrw::{BinRead, BinWrite};
+        use bitflags::bitflags;
+        use serde::{Deserialize, Serialize};
+        use specta::Type;
+
+        use crate::xap::spec::types::*;
+        use xap_specs::request::XapRequest;
+        use xap_specs::response::UTF8String;
+
+        /// ======================================================================
+        /// clear
+        ///
+        /// Expose `qp_clear`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainterclearRequest(pub QuantumPainterclearArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainterclearArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+        }
+
+        impl From<QuantumPainterclearArg> for QuantumPainterclearRequest {
+            fn from(req: QuantumPainterclearArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainterclearRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x01]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// setpixel
+        ///
+        /// Expose `qp_setpixel`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPaintersetpixelRequest(pub QuantumPaintersetpixelArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPaintersetpixelArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+            pub x: u16,
+            pub y: u16,
+            pub hue: u8,
+            pub sat: u8,
+            pub val: u8,
+        }
+
+        impl From<QuantumPaintersetpixelArg> for QuantumPaintersetpixelRequest {
+            fn from(req: QuantumPaintersetpixelArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPaintersetpixelRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x02]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// line
+        ///
+        /// Expose `qp_line`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainterlineRequest(pub QuantumPainterlineArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainterlineArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+            pub x_0: u16,
+            pub y_0: u16,
+            pub x_1: u16,
+            pub y_1: u16,
+            pub hue: u8,
+            pub sat: u8,
+            pub val: u8,
+        }
+
+        impl From<QuantumPainterlineArg> for QuantumPainterlineRequest {
+            fn from(req: QuantumPainterlineArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainterlineRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x03]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// rect
+        ///
+        /// Expose `qp_rect`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainterrectRequest(pub QuantumPainterrectArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainterrectArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+            pub left: u16,
+            pub top: u16,
+            pub right: u16,
+            pub bottom: u16,
+            pub hue: u8,
+            pub sat: u8,
+            pub val: u8,
+            pub filled: u8,
+        }
+
+        impl From<QuantumPainterrectArg> for QuantumPainterrectRequest {
+            fn from(req: QuantumPainterrectArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainterrectRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x04]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// circle
+        ///
+        /// Expose `qp_circle`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPaintercircleRequest(pub QuantumPaintercircleArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPaintercircleArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+            pub x: u16,
+            pub y: u16,
+            pub radius: u16,
+            pub hue: u8,
+            pub sat: u8,
+            pub val: u8,
+            pub filled: u8,
+        }
+
+        impl From<QuantumPaintercircleArg> for QuantumPaintercircleRequest {
+            fn from(req: QuantumPaintercircleArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPaintercircleRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x05]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// ellipse
+        ///
+        /// Expose `qp_ellipse`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainterellipseRequest(pub QuantumPainterellipseArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainterellipseArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+            pub x: u16,
+            pub y: u16,
+            pub sizex: u16,
+            pub sizey: u16,
+            pub hue: u8,
+            pub sat: u8,
+            pub val: u8,
+            pub filled: u8,
+        }
+
+        impl From<QuantumPainterellipseArg> for QuantumPainterellipseRequest {
+            fn from(req: QuantumPainterellipseArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainterellipseRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x06]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// drawimage
+        ///
+        /// Expose `qp_drawimage`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainterdrawimageRequest(pub QuantumPainterdrawimageArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainterdrawimageArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+            pub x: u16,
+            pub y: u16,
+            pub image_name: [u8; 9],
+            pub image_terminator: u8,
+        }
+
+        impl From<QuantumPainterdrawimageArg> for QuantumPainterdrawimageRequest {
+            fn from(req: QuantumPainterdrawimageArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainterdrawimageRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x07]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// drawimage_recolor
+        ///
+        /// Expose `qp_drawimage_recolor`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainterdrawimageRecolorRequest(pub QuantumPainterdrawimageRecolorArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainterdrawimageRecolorArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+            pub x: u16,
+            pub y: u16,
+            pub image_name: [u8; 9],
+            pub image_terminator: u8,
+            pub hue_fg: u8,
+            pub sat_fg: u8,
+            pub val_fg: u8,
+            pub hue_bg: u8,
+            pub sat_bg: u8,
+            pub val_bg: u8,
+        }
+
+        impl From<QuantumPainterdrawimageRecolorArg> for QuantumPainterdrawimageRecolorRequest {
+            fn from(req: QuantumPainterdrawimageRecolorArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainterdrawimageRecolorRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x08]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// animate
+        ///
+        /// Expose `qp_animate`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainteranimateRequest(pub QuantumPainteranimateArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainteranimateArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+            pub x: u16,
+            pub y: u16,
+            pub image_name: [u8; 9],
+            pub image_terminator: u8,
+        }
+
+        impl From<QuantumPainteranimateArg> for QuantumPainteranimateRequest {
+            fn from(req: QuantumPainteranimateArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainteranimateRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x09]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// animate_recolor
+        ///
+        /// Expose `qp_animate_recolor`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainteranimateRecolorRequest(pub QuantumPainteranimateRecolorArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainteranimateRecolorArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+            pub x: u16,
+            pub y: u16,
+            pub image_name: [u8; 9],
+            pub image_terminator: u8,
+            pub hue_fg: u8,
+            pub sat_fg: u8,
+            pub val_fg: u8,
+            pub hue_bg: u8,
+            pub sat_bg: u8,
+            pub val_bg: u8,
+        }
+
+        impl From<QuantumPainteranimateRecolorArg> for QuantumPainteranimateRecolorRequest {
+            fn from(req: QuantumPainteranimateRecolorArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainteranimateRecolorRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x0a]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// drawtext
+        ///
+        /// Expose `qp_drawtext`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainterdrawtextRequest(pub QuantumPainterdrawtextArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainterdrawtextArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+            pub x: u16,
+            pub y: u16,
+            pub font_name: [u8; 9],
+            pub font_terminator: u8,
+            pub text: [u8; 32],
+            pub text_terminator: u8,
+        }
+
+        impl From<QuantumPainterdrawtextArg> for QuantumPainterdrawtextRequest {
+            fn from(req: QuantumPainterdrawtextArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainterdrawtextRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x0b]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// drawtext_recolor
+        ///
+        /// Expose `qp_drawtext_recolor`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainterdrawtextRecolorRequest(pub QuantumPainterdrawtextRecolorArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainterdrawtextRecolorArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+            pub x: u16,
+            pub y: u16,
+            pub font_name: [u8; 9],
+            pub font_terminator: u8,
+            pub hue_fg: u8,
+            pub sat_fg: u8,
+            pub val_fg: u8,
+            pub hue_bg: u8,
+            pub sat_bg: u8,
+            pub val_bg: u8,
+            pub text: [u8; 27],
+            pub null_terminator: u8,
+        }
+
+        impl From<QuantumPainterdrawtextRecolorArg> for QuantumPainterdrawtextRecolorRequest {
+            fn from(req: QuantumPainterdrawtextRecolorArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainterdrawtextRecolorRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x0c]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// get_geometry
+        ///
+        /// Expose `qp_get_geometry`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPaintergetGeometryRequest(pub QuantumPaintergetGeometryArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPaintergetGeometryArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+        }
+
+        impl From<QuantumPaintergetGeometryArg> for QuantumPaintergetGeometryRequest {
+            fn from(req: QuantumPaintergetGeometryArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPaintergetGeometryRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x0d]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// flush
+        ///
+        /// Expose `qp_flush`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainterflushRequest(pub QuantumPainterflushArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainterflushArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+        }
+
+        impl From<QuantumPainterflushArg> for QuantumPainterflushRequest {
+            fn from(req: QuantumPainterflushArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainterflushRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x0e]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// viewport
+        ///
+        /// Expose `qp_viewport`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainterviewportRequest(pub QuantumPainterviewportArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainterviewportArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+            pub left: u16,
+            pub top: u16,
+            pub right: u16,
+            pub bottom: u16,
+        }
+
+        impl From<QuantumPainterviewportArg> for QuantumPainterviewportRequest {
+            fn from(req: QuantumPainterviewportArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainterviewportRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x0f]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// pixdata
+        ///
+        /// Expose `qp_pixdata` to stream pixels over XAP
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainterpixdataRequest(pub QuantumPainterpixdataArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainterpixdataArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+            pub pixels: [u8; 32],
+        }
+
+        impl From<QuantumPainterpixdataArg> for QuantumPainterpixdataRequest {
+            fn from(req: QuantumPainterpixdataArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainterpixdataRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x10]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// textwidth
+        ///
+        /// Expose `qp_textwidth`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPaintertextwidthRequest(pub QuantumPaintertextwidthArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPaintertextwidthArg {
+            pub font_name: [u8; 9],
+            pub font_terminator: u8,
+            pub text: [u8; 32],
+            pub null_terminator: u8,
+        }
+
+        impl From<QuantumPaintertextwidthArg> for QuantumPaintertextwidthRequest {
+            fn from(req: QuantumPaintertextwidthArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPaintertextwidthRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x12]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// scrolling_text
+        ///
+        /// Expose `scrolling_text_start`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainterscrollingTextRequest(pub QuantumPainterscrollingTextArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainterscrollingTextArg {
+            pub device_name: [u8; 9],
+            pub dev_terminator: u8,
+            pub x: u16,
+            pub y: u16,
+            pub font_name: [u8; 9],
+            pub null_terminator_1: u8,
+            pub n_chars: u8,
+            pub delay: u16,
+            pub text: [u8; 30],
+            pub text_terminator: u8,
+        }
+
+        impl From<QuantumPainterscrollingTextArg> for QuantumPainterscrollingTextRequest {
+            fn from(req: QuantumPainterscrollingTextArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainterscrollingTextRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x13]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// scrolling_text_stop
+        ///
+        /// Expose `scrolling_text_stop`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainterscrollingTextStopRequest(pub QuantumPainterscrollingTextStopArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainterscrollingTextStopArg {
+            pub token: u8,
+        }
+
+        impl From<QuantumPainterscrollingTextStopArg> for QuantumPainterscrollingTextStopRequest {
+            fn from(req: QuantumPainterscrollingTextStopArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainterscrollingTextStopRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x14]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// scrolling_text_extend
+        ///
+        /// Expose `scrolling_text_extend`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainterscrollingTextExtendRequest(
+            pub QuantumPainterscrollingTextExtendArg,
+        );
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainterscrollingTextExtendArg {
+            pub token: u8,
+            pub text: [u8; 32],
+            pub text_terminator: u8,
+        }
+
+        impl From<QuantumPainterscrollingTextExtendArg> for QuantumPainterscrollingTextExtendRequest {
+            fn from(req: QuantumPainterscrollingTextExtendArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainterscrollingTextExtendRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x15]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// push_computer_stats
+        ///
+        /// Expose `push_computer_stats`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct QuantumPainterpushComputerStatsRequest(pub QuantumPainterpushComputerStatsArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct QuantumPainterpushComputerStatsArg {
+            pub cpu: u8,
+            pub ram: u8,
+        }
+
+        impl From<QuantumPainterpushComputerStatsArg> for QuantumPainterpushComputerStatsRequest {
+            fn from(req: QuantumPainterpushComputerStatsArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for QuantumPainterpushComputerStatsRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x02, 0x16]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+    }
 }
 
 #[allow(dead_code)]
@@ -1567,11 +2389,11 @@ pub mod types {
     use serde::{Deserialize, Serialize};
     use specta::Type;
 
-    /// Config for audio subsystem
+    /// Packet format for broadcast messages.
     #[derive(BinRead, BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
-    pub struct AudioConfig {
-        pub enable: u8,
-        pub clicky_enable: u8,
+    pub struct BroadcastHeader {
+        pub r#type: u8,
+        pub length: u8,
     }
 
     /// Config for lighting subsystem
@@ -1582,10 +2404,15 @@ pub mod types {
         pub val: u8,
     }
 
-    /// Packet format for broadcast messages.
+    /// Packet format for inbound data.
     #[derive(BinRead, BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
-    pub struct BroadcastHeader {
-        pub r#type: u8,
+    pub struct RequestHeader {
+        pub length: u8,
+    }
+
+    /// Packet format for outbound data.
+    #[derive(BinRead, BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+    pub struct ResponseHeader {
         pub length: u8,
     }
 
@@ -1612,15 +2439,10 @@ pub mod types {
         pub flags: u8,
     }
 
-    /// Packet format for inbound data.
+    /// Config for audio subsystem
     #[derive(BinRead, BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
-    pub struct RequestHeader {
-        pub length: u8,
-    }
-
-    /// Packet format for outbound data.
-    #[derive(BinRead, BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
-    pub struct ResponseHeader {
-        pub length: u8,
+    pub struct AudioConfig {
+        pub enable: u8,
+        pub clicky_enable: u8,
     }
 }

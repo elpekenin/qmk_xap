@@ -9,6 +9,7 @@
     import { eventBus } from '@/utils/eventbus'
     import { XapDeviceState, XapEvent } from '@generated/xap'
     import { commands } from '@generated/xap'
+    import * as elpekenin from '@/elpekenin'
 
     const store = useXapDeviceStore()
     const { device, devices } = storeToRefs(store)
@@ -27,6 +28,8 @@
 
     onMounted(async () => {
         addListener()
+        elpekenin.onInit()
+
         eventBus.on('xap', async (event: XapEvent) => {
             switch (event.kind) {
                 case 'NewDevice':

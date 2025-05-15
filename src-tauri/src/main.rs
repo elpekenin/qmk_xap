@@ -112,9 +112,15 @@ fn main() -> Result<()> {
         .export(specta_config, "../src/generated/xap.ts")
         .expect("Failed to export typescript bindings");
 
-    tauri::Builder::default()
+    let mut builder = tauri::Builder::default()
         .invoke_handler(specta_builder.invoke_handler())
-        .plugin(shutdown_event_loop())
+        .plugin(shutdown_event_loop());
+
+    if cfg!(feature = "elpekenin") {
+        builder = builder.plugin(tauri_plugin_system_info::init());
+    }
+
+    builder
         .setup(move |app| {
             specta_builder.mount_events(app);
 

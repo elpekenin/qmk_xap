@@ -275,6 +275,328 @@ pub mod user {
     use crate::xap::client::XapClient;
     use crate::xap::spec::types::*;
     use crate::xap::spec::user::*;
+
+    #[tauri::command]
+    #[specta::specta]
+    pub fn user_capabilities(
+        id: Uuid,
+        state: State<'_, Arc<Mutex<XapClient>>>,
+    ) -> Result<UserCapabilitiesFlags, Error> {
+        state
+            .lock()
+            .unwrap()
+            .query(id, UserCapabilitiesRequest(()))
+            .map_err(Into::into)
+    }
+
+    #[allow(dead_code)]
+    #[allow(unused_imports)]
+    pub mod quantum_painter {
+        use std::sync::{Arc, Mutex};
+
+        use std::result::Result;
+        use tauri::State;
+        use uuid::Uuid;
+
+        use crate::rpc::spec::error::Error;
+        use crate::xap::client::XapClient;
+        use crate::xap::spec::types::*;
+        use crate::xap::spec::user::quantum_painter::*;
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterclear(
+            id: Uuid,
+            arg: QuantumPainterclearArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainterclearRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_paintersetpixel(
+            id: Uuid,
+            arg: QuantumPaintersetpixelArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPaintersetpixelRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterline(
+            id: Uuid,
+            arg: QuantumPainterlineArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainterlineRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterrect(
+            id: Uuid,
+            arg: QuantumPainterrectArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainterrectRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_paintercircle(
+            id: Uuid,
+            arg: QuantumPaintercircleArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPaintercircleRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterellipse(
+            id: Uuid,
+            arg: QuantumPainterellipseArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainterellipseRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterdrawimage(
+            id: Uuid,
+            arg: QuantumPainterdrawimageArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainterdrawimageRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterdrawimage_recolor(
+            id: Uuid,
+            arg: QuantumPainterdrawimageRecolorArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainterdrawimageRecolorRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painteranimate(
+            id: Uuid,
+            arg: QuantumPainteranimateArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainteranimateRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painteranimate_recolor(
+            id: Uuid,
+            arg: QuantumPainteranimateRecolorArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainteranimateRecolorRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterdrawtext(
+            id: Uuid,
+            arg: QuantumPainterdrawtextArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainterdrawtextRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterdrawtext_recolor(
+            id: Uuid,
+            arg: QuantumPainterdrawtextRecolorArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainterdrawtextRecolorRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterget_geometry(
+            id: Uuid,
+            arg: QuantumPaintergetGeometryArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPaintergetGeometryRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterflush(
+            id: Uuid,
+            arg: QuantumPainterflushArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainterflushRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterviewport(
+            id: Uuid,
+            arg: QuantumPainterviewportArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainterviewportRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterpixdata(
+            id: Uuid,
+            arg: QuantumPainterpixdataArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainterpixdataRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_paintertextwidth(
+            id: Uuid,
+            arg: QuantumPaintertextwidthArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPaintertextwidthRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterscrolling_text(
+            id: Uuid,
+            arg: QuantumPainterscrollingTextArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainterscrollingTextRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterscrolling_text_stop(
+            id: Uuid,
+            arg: QuantumPainterscrollingTextStopArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainterscrollingTextStopRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterscrolling_text_extend(
+            id: Uuid,
+            arg: QuantumPainterscrollingTextExtendArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainterscrollingTextExtendRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn quantum_painterpush_computer_stats(
+            id: Uuid,
+            arg: QuantumPainterpushComputerStatsArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, QuantumPainterpushComputerStatsRequest(arg))
+                .map_err(Into::into)
+        }
+    }
 }
 
 #[allow(dead_code)]
@@ -757,7 +1079,7 @@ pub mod audio {
 #[macro_export]
 macro_rules! generate_specta_builder {
                 (commands: [$($command:ident),*], events: [$($event:ident),*]) => {{
-                    let specta_builder = tauri_specta::ts::builder()
+                    let specta_builder = tauri_specta::Builder::new()
                         .commands(tauri_specta::collect_commands![
                             crate::rpc::spec::xap::xap_version,
                             crate::rpc::spec::xap::xap_capabilities,
@@ -775,6 +1097,28 @@ macro_rules! generate_specta_builder {
                             crate::rpc::spec::qmk::qmk_jump_to_bootloader,
                             crate::rpc::spec::qmk::qmk_hardware_identifier,
                             crate::rpc::spec::qmk::qmk_reinitialize_eeprom,
+                            crate::rpc::spec::user::user_capabilities,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterclear,
+                            crate::rpc::spec::user::quantum_painter::quantum_paintersetpixel,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterline,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterrect,
+                            crate::rpc::spec::user::quantum_painter::quantum_paintercircle,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterellipse,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterdrawimage,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterdrawimage_recolor,
+                            crate::rpc::spec::user::quantum_painter::quantum_painteranimate,
+                            crate::rpc::spec::user::quantum_painter::quantum_painteranimate_recolor,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterdrawtext,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterdrawtext_recolor,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterget_geometry,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterflush,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterviewport,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterpixdata,
+                            crate::rpc::spec::user::quantum_painter::quantum_paintertextwidth,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterscrolling_text,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterscrolling_text_stop,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterscrolling_text_extend,
+                            crate::rpc::spec::user::quantum_painter::quantum_painterpush_computer_stats,
                             crate::rpc::spec::keymap::keymap_capabilities,
                             crate::rpc::spec::keymap::keymap_get_layer_count,
                             crate::rpc::spec::keymap::keymap_get_keycode,

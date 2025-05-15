@@ -6,7 +6,7 @@
     "scripts": {
         "build": "tauri build",
         "check": "cd src-tauri && cargo check",
-        "dev": "RUST_BACKTRACE=1 tauri dev",
+        "dev": "tauri dev -- --features elpekenin",
         "format": "prettier --write .",
         "preview": "vite preview",
         "test": "vitest",
@@ -24,6 +24,7 @@
         "mitt": "^3.0.1",
         "pinia": "~2.1.7",
         "quasar": "~2.16.4",
+        "tauri-plugin-system-info-api": "^2.0.10",
         "vue": "~3.4.27",
         "vue-router": "~4.3.2"
     },
