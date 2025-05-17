@@ -33,6 +33,7 @@ uuid = { version = "1.8", features = ["serde", "v4"] }
 xap-specs = { path = "../xap-specs" }
 # elpekenin
 tauri-plugin-system-info = { version = "2.0.9", optional = true }
+tauri-plugin-env = { path = "../tauri-plugin-env", features = ["dotenv"], optional = true }
 
 [dev-dependencies]
 similar-asserts = "1.5.0"
@@ -44,4 +45,4 @@ default = ["custom-protocol"]
 # this feature is used used for production builds where `devPath` points to the filesystem
 # DO NOT remove this
 custom-protocol = ["tauri/custom-protocol"]
-elpekenin = ["dep:tauri-plugin-system-info"]
+elpekenin = ["dep:tauri-plugin-system-info", "dep:tauri-plugin-env"]

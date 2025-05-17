@@ -1,0 +1,20 @@
+[package]
+name = "tauri-plugin-env"
+version = "0.0.0"
+authors = ["elpekenin"]
+description = "Interact with environment variables from frontend"
+edition = "2021"
+rust-version = "1.70"
+
+[dependencies]
+tauri = { version = "2.0.0-beta.20" }
+serde = "1.0"
+thiserror = "1.0"
+dotenvy = {version = "0.15.7", optional = true}
+
+[features]
+# load from .env file
+dotenv = ["dep:dotenvy"]
+
+[build-dependencies]
+tauri-plugin = { version = "2.0.0-beta.16", features = ["build"] }

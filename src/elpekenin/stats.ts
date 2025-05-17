@@ -1,19 +1,14 @@
-import { storeToRefs } from "pinia"
 import * as system_info from "tauri-plugin-system-info-api"
 
-import { useXapDeviceStore } from '@/utils/deviceStore'
 import * as xap from "@generated/xap"
 
-import {elpekenin_events} from "@/elpekenin/events"
+import * as elpekenin from "@/elpekenin"
 
 export function onInit() {
-    elpekenin_events.on(
-        "housekeeping",
-        (ev) => handler(ev.time),
-    )
+    setInterval(handler, elpekenin.Seconds(1))
 }
 
-async function handler(_: number) {
+async function handler() {
     await system_info.refreshAll()
     const cpu_info = await system_info.cpuInfo()
     const memory_info = await system_info.memoryInfo()
@@ -21,11 +16,8 @@ async function handler(_: number) {
     const cpu_usage = cpu_info.cpus.reduce((sum, x) => sum + x.cpu_usage, 0) / cpu_info.cpu_count
     const memory_usage = memory_info.used_memory / memory_info.total_memory * 100
 
-    const store = useXapDeviceStore()
-    const { device } = storeToRefs(store) as { device: Ref<xap.XapDeviceState | null> }
-
-    const ret = await xap.commands.quantumPainterpushComputerStats(
-        device.value?.id!,
+    const ret = await xap.commands.taskspushComputerStats(
+        elpekenin.getDeviceId()!,
         {
             cpu: Math.round(cpu_usage),
             ram: Math.round(memory_usage),

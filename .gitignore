@@ -33,3 +33,6 @@ target
 #  * src-tauri/src/xap/spec.rs
 src/generated
 src-tauri/gen/schemas
+
+# elpekenin
+.env

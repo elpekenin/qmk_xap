@@ -3,6 +3,7 @@
   "description": "user-specific permissions",
   "windows": ["main"],
   "permissions": [
+    "env:allow-get",
     "system-info:allow-all"
   ]
 }

@@ -619,6 +619,7 @@ pub mod user {
 
     const Capabilities = 1 << 1;
     const QuantumPainter = 1 << 2;
+    const Tasks = 1 << 3;
     }
     }
 
@@ -1371,6 +1372,19 @@ pub mod user {
                 0x00000300
             }
         }
+    }
+
+    #[allow(dead_code)]
+    #[allow(unused_imports)]
+    pub mod tasks {
+        use binrw::{BinRead, BinWrite};
+        use bitflags::bitflags;
+        use serde::{Deserialize, Serialize};
+        use specta::Type;
+
+        use crate::xap::spec::types::*;
+        use xap_specs::request::XapRequest;
+        use xap_specs::response::UTF8String;
 
         /// ======================================================================
         /// push_computer_stats
@@ -1378,25 +1392,56 @@ pub mod user {
         /// Expose `push_computer_stats`
         /// ======================================================================
         #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
-        pub struct QuantumPainterpushComputerStatsRequest(pub QuantumPainterpushComputerStatsArg);
+        pub struct TaskspushComputerStatsRequest(pub TaskspushComputerStatsArg);
 
         #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
-        pub struct QuantumPainterpushComputerStatsArg {
+        pub struct TaskspushComputerStatsArg {
             pub cpu: u8,
             pub ram: u8,
         }
 
-        impl From<QuantumPainterpushComputerStatsArg> for QuantumPainterpushComputerStatsRequest {
-            fn from(req: QuantumPainterpushComputerStatsArg) -> Self {
+        impl From<TaskspushComputerStatsArg> for TaskspushComputerStatsRequest {
+            fn from(req: TaskspushComputerStatsArg) -> Self {
                 Self(req)
             }
         }
 
-        impl XapRequest for QuantumPainterpushComputerStatsRequest {
+        impl XapRequest for TaskspushComputerStatsRequest {
             type Response = ();
 
             fn id() -> &'static [u8] {
-                &[0x03, 0x02, 0x16]
+                &[0x03, 0x03, 0x01]
+            }
+
+            fn xap_version() -> u32 {
+                0x00000300
+            }
+        }
+
+        /// ======================================================================
+        /// set_github_notifications_count
+        ///
+        /// Expose `set_github_notifications_count`
+        /// ======================================================================
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Type)]
+        pub struct TaskssetGithubNotificationsCountRequest(pub TaskssetGithubNotificationsCountArg);
+
+        #[derive(BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+        pub struct TaskssetGithubNotificationsCountArg {
+            pub count: u8,
+        }
+
+        impl From<TaskssetGithubNotificationsCountArg> for TaskssetGithubNotificationsCountRequest {
+            fn from(req: TaskssetGithubNotificationsCountArg) -> Self {
+                Self(req)
+            }
+        }
+
+        impl XapRequest for TaskssetGithubNotificationsCountRequest {
+            type Response = ();
+
+            fn id() -> &'static [u8] {
+                &[0x03, 0x03, 0x02]
             }
 
             fn xap_version() -> u32 {
@@ -2389,6 +2434,31 @@ pub mod types {
     use serde::{Deserialize, Serialize};
     use specta::Type;
 
+    /// RGB config for RGB matrix subsystem
+    #[derive(BinRead, BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+    pub struct RgbMatrixConfig {
+        pub enable: u8,
+        pub mode: u8,
+        pub hue: u8,
+        pub sat: u8,
+        pub val: u8,
+        pub speed: u8,
+        pub flags: u8,
+    }
+
+    /// Packet format for outbound data.
+    #[derive(BinRead, BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+    pub struct ResponseHeader {
+        pub length: u8,
+    }
+
+    /// Config for audio subsystem
+    #[derive(BinRead, BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
+    pub struct AudioConfig {
+        pub enable: u8,
+        pub clicky_enable: u8,
+    }
+
     /// Packet format for broadcast messages.
     #[derive(BinRead, BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
     pub struct BroadcastHeader {
@@ -2410,12 +2480,6 @@ pub mod types {
         pub length: u8,
     }
 
-    /// Packet format for outbound data.
-    #[derive(BinRead, BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
-    pub struct ResponseHeader {
-        pub length: u8,
-    }
-
     /// RGB config for RGB lighting subsystem
     #[derive(BinRead, BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
     pub struct RgbLightConfig {
@@ -2425,24 +2489,5 @@ pub mod types {
         pub sat: u8,
         pub val: u8,
         pub speed: u8,
-    }
-
-    /// RGB config for RGB matrix subsystem
-    #[derive(BinRead, BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
-    pub struct RgbMatrixConfig {
-        pub enable: u8,
-        pub mode: u8,
-        pub hue: u8,
-        pub sat: u8,
-        pub val: u8,
-        pub speed: u8,
-        pub flags: u8,
-    }
-
-    /// Config for audio subsystem
-    #[derive(BinRead, BinWrite, Default, Debug, Clone, Serialize, Deserialize, Type)]
-    pub struct AudioConfig {
-        pub enable: u8,
-        pub clicky_enable: u8,
     }
 }

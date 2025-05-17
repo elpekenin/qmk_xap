@@ -582,18 +582,47 @@ pub mod user {
                 .query(id, QuantumPainterscrollingTextExtendRequest(arg))
                 .map_err(Into::into)
         }
+    }
+
+    #[allow(dead_code)]
+    #[allow(unused_imports)]
+    pub mod tasks {
+        use std::sync::{Arc, Mutex};
+
+        use std::result::Result;
+        use tauri::State;
+        use uuid::Uuid;
+
+        use crate::rpc::spec::error::Error;
+        use crate::xap::client::XapClient;
+        use crate::xap::spec::types::*;
+        use crate::xap::spec::user::tasks::*;
 
         #[tauri::command]
         #[specta::specta]
-        pub fn quantum_painterpush_computer_stats(
+        pub fn taskspush_computer_stats(
             id: Uuid,
-            arg: QuantumPainterpushComputerStatsArg,
+            arg: TaskspushComputerStatsArg,
             state: State<'_, Arc<Mutex<XapClient>>>,
         ) -> Result<(), Error> {
             state
                 .lock()
                 .unwrap()
-                .query(id, QuantumPainterpushComputerStatsRequest(arg))
+                .query(id, TaskspushComputerStatsRequest(arg))
+                .map_err(Into::into)
+        }
+
+        #[tauri::command]
+        #[specta::specta]
+        pub fn tasksset_github_notifications_count(
+            id: Uuid,
+            arg: TaskssetGithubNotificationsCountArg,
+            state: State<'_, Arc<Mutex<XapClient>>>,
+        ) -> Result<(), Error> {
+            state
+                .lock()
+                .unwrap()
+                .query(id, TaskssetGithubNotificationsCountRequest(arg))
                 .map_err(Into::into)
         }
     }
@@ -1118,7 +1147,8 @@ macro_rules! generate_specta_builder {
                             crate::rpc::spec::user::quantum_painter::quantum_painterscrolling_text,
                             crate::rpc::spec::user::quantum_painter::quantum_painterscrolling_text_stop,
                             crate::rpc::spec::user::quantum_painter::quantum_painterscrolling_text_extend,
-                            crate::rpc::spec::user::quantum_painter::quantum_painterpush_computer_stats,
+                            crate::rpc::spec::user::tasks::taskspush_computer_stats,
+                            crate::rpc::spec::user::tasks::tasksset_github_notifications_count,
                             crate::rpc::spec::keymap::keymap_capabilities,
                             crate::rpc::spec::keymap::keymap_get_layer_count,
                             crate::rpc::spec::keymap::keymap_get_keycode,

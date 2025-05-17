@@ -104,7 +104,7 @@ fn main() -> Result<()> {
         .bigint(specta_typescript::BigIntExportBehavior::BigInt)
         .formatter(specta_typescript::formatter::prettier);
 
-    let mut specta_builder =
+    let specta_builder =
         generate_specta_builder!(commands: [xap_constants_get, remap_key, keymap_get, device_get, devices_get], events: [XapEvent]);
 
     // TODO: do not always export?
@@ -117,7 +117,9 @@ fn main() -> Result<()> {
         .plugin(shutdown_event_loop());
 
     if cfg!(feature = "elpekenin") {
-        builder = builder.plugin(tauri_plugin_system_info::init());
+        builder = builder
+            .plugin(tauri_plugin_system_info::init())
+            .plugin(tauri_plugin_env::init());
     }
 
     builder
